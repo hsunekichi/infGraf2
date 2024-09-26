@@ -160,16 +160,26 @@ public:
         }
             
         // Decide whether to sample diffuse or specular reflection
-        if (sample.x() <= m_ks) {
+        if (sample.x() <= m_ks) 
+        {
             // Specular case: adjust sample.x() for reuse
             Point2f newSample = Point2f(sample.x() / m_ks, sample.y());
 
-            // Sample a normal according to the Beckmann distribution
-            Vector3f wh = Warp::squareToBeckmann(newSample, m_alpha);
-            
-            // Reflect the incident direction in the normal to get the outgoing direction
-            bRec.wo = -bRec.wi + 2 * bRec.wi.dot(wh) * wh;
-        } else {
+            bRec.wo = Vector3f(0.0f, 0.0f, -1.0f);
+
+            // Rejection sampling to prevent the corner case 
+            //  of the microfacet normal reflecting below the surface
+            while (bRec.wo.z() <= 0)
+            {
+                // Sample a normal according to the Beckmann distribution
+                Vector3f wh = Warp::squareToBeckmann(newSample, m_alpha);
+                
+                // Reflect the incident direction in the normal to get the outgoing direction
+                bRec.wo = Math::reflect(bRec.wi, wh);
+            }
+        } 
+        else 
+        {
 
             // Diffuse case: adjust sample.x() for cosine-weighted sampling
             Point2f newSample = Point2f((sample.x() - m_ks) / (1.0f - m_ks), sample.y());
@@ -182,9 +192,6 @@ public:
         if (std::abs(PDF) <= Epsilon)
             return Color3f(0.0f);
 
-        // If the outgoing direction is below the surface, flip it
-        if (bRec.wo.z() < 0)
-            bRec.wo.z() = -bRec.wo.z();
 
         return eval(bRec) * Frame::cosTheta(bRec.wo) / PDF;
     }

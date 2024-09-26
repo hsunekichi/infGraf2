@@ -237,7 +237,7 @@ class NoriWriter:
     
     def create_complex_bsdf(self, principled, name):
 
-        if "fabric" in name.lower():
+        if "fabric" in name.lower() or "leather" in name.lower():
             bsdfElement = self.__createElement("bsdf", {"type":"orenNayar"})
         else:
             bsdfElement = self.__createElement("bsdf", {"type":"GGX"})   # , "name" : slot.material.name

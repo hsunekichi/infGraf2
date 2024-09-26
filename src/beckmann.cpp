@@ -145,21 +145,23 @@ public:
             return F;
         }
             
+        bRec.wo = Vector3f(0.0f, 0.0f, -1.0f);
 
-        // Sample a normal according to the Beckmann distribution
-        Vector3f wh = Warp::squareToBeckmann(sample, m_alpha);
-        
-        // Reflect the incident direction in the normal 
-        //  to get the outgoing direction
-        bRec.wo = -bRec.wi + 2 * bRec.wi.dot(wh) * wh;
+        // Rejection sampling to prevent the corner case 
+        //  of the microfacet normal reflecting below the surface
+        while (bRec.wo.z() <= 0)
+        {
+            // Sample a normal according to the Beckmann distribution
+            Vector3f wh = Warp::squareToBeckmann(sample, m_alpha);
+            
+            // Reflect the incident direction in the normal 
+            //  to get the outgoing direction
+            bRec.wo = Math::reflect(bRec.wi, wh);
+        }
 
         float PDF = pdf(bRec);
         if (std::abs(PDF) <= Epsilon)
             return Color3f(0.0f);
-
-        // If the outgoing direction is below the surface, flip it
-        if (bRec.wo.z() < 0)
-            bRec.wo.z() = -bRec.wo.z();
 
         return eval(bRec) * Frame::cosTheta(bRec.wo) / PDF;
     }

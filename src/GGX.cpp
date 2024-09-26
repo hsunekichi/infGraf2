@@ -208,14 +208,16 @@ public:
             return F;
         }
 
-        // Sample a normal according to the GGX distribution
-        Vector3f wh = sampleGGX(bRec.wi, sample);
+        bRec.wo = Vector3f(0.0f, 0.0f, -1.0f);
 
-        bRec.wo = Math::reflect(bRec.wi, wh);
-
-        // If the outgoing direction is below the surface, flip it
-        if (bRec.wo.z() < 0)
-            bRec.wo.z() = -bRec.wo.z();
+        // Rejection sampling to prevent the corner case 
+        //  of the microfacet normal reflecting below the surface
+        while (bRec.wo.z() <= 0)
+        {
+            // Sample a normal according to the GGX distribution
+            Vector3f wh = sampleGGX(bRec.wi, sample);
+            bRec.wo = Math::reflect(bRec.wi, wh);
+        }
 
         return eval(bRec) * Frame::cosTheta(bRec.wo) / pdf(bRec);
     }
