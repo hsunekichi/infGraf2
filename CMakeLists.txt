@@ -111,6 +111,8 @@ add_executable(nori
   src/beckmann.cpp
   src/lightProbeMipMap.cpp
   src/pathtracing.cpp
+  src/directWhitted.cpp
+  src/depthIntegrator.cpp
 )
 
 add_definitions(${NANOGUI_EXTRA_DEFS})
