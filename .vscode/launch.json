@@ -1,0 +1,87 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+
+
+        {
+            "name": "C++ Debug",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/nori",
+            "args": ["${workspaceFolder}/scenes/ajax/ajax-gold.xml"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "miDebuggerPath": "/usr/bin/gdb",  // Path to GDB, adjust if necessary
+            "preLaunchTask": "CMake: Build",
+            "logging": {
+                "trace": true,
+                "engineLogging": true,
+                "traceResponse": true
+            }
+        },
+
+        {
+            "name": "microfacet_debug_1",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/nori",
+            "args": ["${workspaceFolder}/scenes/pa5/tests/ttest-microfacet.xml"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "miDebuggerPath": "/usr/bin/gdb",  // Path to GDB, adjust if necessary
+            "preLaunchTask": "CMake: Build",
+            "logging": {
+                "trace": true,
+                "engineLogging": true,
+                "traceResponse": true
+            }
+        },
+
+        {
+            "name": "microfacet_debug_2",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/nori",
+            "args": ["${workspaceFolder}/scenes/pa5/tests/chi2test-microfacet.xml"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "miDebuggerPath": "/usr/bin/gdb",  // Path to GDB, adjust if necessary
+            "preLaunchTask": "CMake: Build",
+            "logging": {
+                "trace": true,
+                "engineLogging": true,
+                "traceResponse": true
+            }
+        }
+    ]
+}
