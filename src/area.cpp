@@ -46,7 +46,7 @@ public:
         query.wo = (query.surfaceP - query.lightP).normalized();
         Le = m_radiance / query.pdf;
 
-        Le *= Math::absCosTheta(query.wo);
+        Le *= Math::absDot(query.wo, normal);
 
         // Change pdf units if necesary
         if (query.measure == EMeasure::ESolidAngle)

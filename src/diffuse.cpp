@@ -31,8 +31,16 @@ NORI_NAMESPACE_BEGIN
  */
 class Diffuse : public BSDF {
 public:
-    Diffuse(const PropertyList &propList) {
+    Diffuse(const PropertyList &propList) 
+    {
         m_albedo = new ConstantSpectrumTexture(propList.getColor("albedo", Color3f(0.5f)));
+    
+        Color3f kd = propList.getColor("kd", Color3f(-1.0f));
+        if (kd != Color3f(-1.0f))
+        {
+            delete m_albedo;
+            m_albedo = new ConstantSpectrumTexture(kd);
+        }
     }
 
     /// Evaluate the BRDF model

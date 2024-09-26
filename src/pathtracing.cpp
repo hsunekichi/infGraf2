@@ -87,6 +87,7 @@ Color3f Pth::nextEventEstimation(const Scene *scene, Sampler *sampler,
     Vector3f g_wi = (lightP - state.intersection.p);
     Vector3f surface_wiNormalized = state.intersection.toLocal(g_wi).normalized();
 
+
     //*********************** Sample emitter ******************************
     if (checkVisibility(scene, state, emitterMesh, g_wi))
     {
@@ -98,9 +99,10 @@ Color3f Pth::nextEventEstimation(const Scene *scene, Sampler *sampler,
         Color3f f = bsdf->eval(bsdfQuery);
         float bsdfPdf = bsdf->pdf(bsdfQuery);
 
+
         // Compute the geometric term
         float cosThetaP = std::abs(state.intersection.shFrame.cosTheta(surface_wiNormalized));
-        float G = (cosThetaP) / g_wi.squaredNorm();
+        float G = cosThetaP / g_wi.squaredNorm();
 
         // Combine all terms
         if (MIS)
