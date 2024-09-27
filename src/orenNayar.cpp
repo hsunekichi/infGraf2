@@ -59,8 +59,9 @@ public:
     }
 
     /// Sample the BRDF
-    Color3f sample(BSDFQueryRecord &bRec, const Point2f &sample) const 
+    Color3f sample(BSDFQueryRecord &bRec, Sampler *sampler) const 
     {
+        Point2f sample = sampler->next2D();
         bRec.wo = Warp::squareToCosineHemisphere(sample);
         return eval(bRec);
     }

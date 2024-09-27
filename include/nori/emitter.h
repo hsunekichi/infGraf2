@@ -69,6 +69,8 @@ struct EmitterQueryRecord {
     /// Create a new query record that can be used to sample a emitter
     EmitterQueryRecord(const Point3f& ref) : surfaceP(ref) { }
 
+    EmitterQueryRecord(EMeasure measure) : measure(measure) { } 
+
     EmitterQueryRecord(const Vector3f& wo, EMeasure measure) : wo(wo), measure(measure) { }
 
     /**

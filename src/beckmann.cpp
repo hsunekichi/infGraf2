@@ -132,7 +132,7 @@ public:
     }
 
     /// Sample the BRDF
-    Color3f sample(BSDFQueryRecord &bRec, const Point2f &sample) const 
+    Color3f sample(BSDFQueryRecord &bRec, Sampler *sampler) const 
     {
         if (Frame::cosTheta(bRec.wi) <= Epsilon)
             return Color3f(0.0f);
@@ -151,6 +151,8 @@ public:
         //  of the microfacet normal reflecting below the surface
         while (bRec.wo.z() <= 0)
         {
+            Point2f sample = sampler->next2D();
+
             // Sample a normal according to the Beckmann distribution
             Vector3f wh = Warp::squareToBeckmann(sample, m_alpha);
             

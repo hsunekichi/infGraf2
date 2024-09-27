@@ -36,7 +36,7 @@ public:
         return 0.0f;
     }
 
-    Color3f sample(BSDFQueryRecord &bRec, const Point2f &) const {
+    Color3f sample(BSDFQueryRecord &bRec, Sampler *sampler) const {
         if (Frame::cosTheta(bRec.wi) <= 0) 
             return Color3f(0.0f);
 

@@ -34,13 +34,15 @@ public:
         return 0.0f;
     }
 
-    Color3f sample(BSDFQueryRecord &info, const Point2f &sample) const 
+    Color3f sample(BSDFQueryRecord &info, Sampler *sampler) const 
     {
         float reflectionFr = fresnel(Frame::cosTheta(info.wi), m_extIOR, m_intIOR);
         float refractionFr = 1 - reflectionFr;
 
         float reflectionPdf = reflectionFr / (reflectionFr + refractionFr);
         float refractionPdf = refractionFr / (reflectionFr + refractionFr);
+
+        Point2f sample = sampler->next2D();
 
         // Sample proportional to the fresnel term contribution
         if (sample.x() < reflectionPdf)

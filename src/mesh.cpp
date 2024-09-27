@@ -149,7 +149,7 @@ Point2f Mesh::uvFrom3D(n_UINT index, const Point3f &p) const
 
     Vector3f n0 = (p1 - p).cross(p2 - p);
     Vector3f n1 = (p2 - p).cross(p0 - p);
-    Vector3f n2 = (p0 - p).cross(p1 - p);
+    //Vector3f n2 = (p0 - p).cross(p1 - p);
 
     float alpha = n0.norm() / area;
     float beta = n1.norm() / area;

@@ -23,6 +23,7 @@
 #pragma once
 
 #include <nori/object.h>
+#include <nori/sampler.h>
 
 NORI_NAMESPACE_BEGIN
 
@@ -81,7 +82,11 @@ public:
      *         when this is appropriate. A zero value means that sampling
      *         failed.
      */
-    virtual Color3f sample(BSDFQueryRecord &bRec, const Point2f &sample) const = 0;
+    virtual Color3f sample(BSDFQueryRecord &bRec, Sampler *sampler) const = 0;
+
+    Color3f sample(BSDFQueryRecord &bRec, const Point2f &sample) const {
+        throw NoriException("BSDF::sample() not implemented!");
+    }
 
     /**
      * \brief Evaluate the BSDF for a pair of directions and measure

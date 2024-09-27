@@ -76,9 +76,11 @@ public:
     }
 
     /// Draw a a sample from the BRDF model
-    Color3f sample(BSDFQueryRecord &bRec, const Point2f &sample) const {
+    Color3f sample(BSDFQueryRecord &bRec, Sampler *sampler) const {
         if (Frame::cosTheta(bRec.wi) <= 0)
             return Color3f(0.0f);
+
+        Point2f sample = sampler->next2D();
 
         bRec.measure = ESolidAngle;
 

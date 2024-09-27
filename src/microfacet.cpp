@@ -145,7 +145,7 @@ public:
     }
 
     /// Sample the BRDF
-    Color3f sample(BSDFQueryRecord &bRec, const Point2f &sample) const 
+    Color3f sample(BSDFQueryRecord &bRec, Sampler *sampler) const 
     {
         if (Frame::cosTheta(bRec.wi) <= Epsilon)
             return Color3f(0.0f);
@@ -158,6 +158,8 @@ public:
 
             return F;
         }
+
+        Point2f sample = sampler->next2D();
             
         // Decide whether to sample diffuse or specular reflection
         if (sample.x() <= m_ks) 
@@ -165,18 +167,14 @@ public:
             // Specular case: adjust sample.x() for reuse
             Point2f newSample = Point2f(sample.x() / m_ks, sample.y());
 
-            bRec.wo = Vector3f(0.0f, 0.0f, -1.0f);
+            // Sample a normal according to the Beckmann distribution
+            Vector3f wh = Warp::squareToBeckmann(newSample, m_alpha);
+            
+            // Reflect the incident direction in the normal to get the outgoing direction
+            bRec.wo = Math::reflect(bRec.wi, wh);
 
-            // Rejection sampling to prevent the corner case 
-            //  of the microfacet normal reflecting below the surface
-            while (bRec.wo.z() <= 0)
-            {
-                // Sample a normal according to the Beckmann distribution
-                Vector3f wh = Warp::squareToBeckmann(newSample, m_alpha);
-                
-                // Reflect the incident direction in the normal to get the outgoing direction
-                bRec.wo = Math::reflect(bRec.wi, wh);
-            }
+            if (Frame::cosTheta(bRec.wo) <= 0)
+                return Color3f(0.0f);
         } 
         else 
         {
