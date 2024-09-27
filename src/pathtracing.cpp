@@ -126,7 +126,7 @@ void Pth::sampleBSDF(const Scene *scene, Sampler *sampler, PathState &state, flo
     // Render non diffuse BSDF
     BSDFQueryRecord bsdfQuery(wi);
 
-    Color3f f = state.intersection.mesh->getBSDF()->sample(bsdfQuery, sampler->next2D());
+    Color3f f = state.intersection.mesh->getBSDF()->sample(bsdfQuery, sampler);
     pdf = state.intersection.mesh->getBSDF()->pdf(bsdfQuery);
 
     // Create the new ray

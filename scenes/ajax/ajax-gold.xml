@@ -5,7 +5,7 @@
 	</sampler>
 
 	<!-- Use the simple point light integrator -->
-    <integrator type="whitted"/>
+    <integrator type="path_mis"/>
 
 	<!-- Load the Ajax bust (a freely available scan from the Jotero forum) -->
 	<mesh type="obj">

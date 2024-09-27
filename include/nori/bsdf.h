@@ -85,7 +85,7 @@ public:
     virtual Color3f sample(BSDFQueryRecord &bRec, Sampler *sampler) const = 0;
 
     Color3f sample(BSDFQueryRecord &bRec, const Point2f &sample) const {
-        throw NoriException("BSDF::sample() not implemented!");
+        throw NoriException("BSDF::sample(point) not implemented!");
     }
 
     /**
