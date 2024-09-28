@@ -29,13 +29,14 @@ struct Pth
 {
 
 static Color3f sampleRandomEmitter(const Scene *scene, Sampler *sampler, 
-            const PathState &state,
+            const Point3f &surfaceP,
             Emitter *&emitterMesh,
             Point3f &lightP,
             float &lightPdf);
 
 static Color3f nextEventEstimation(const Scene *scene, Sampler *sampler,
-                const PathState &state, bool MIS = false);
+                const PathState &state, 
+                bool MIS = false, bool applyF = true);
 
 static void sampleBSDF(const Scene *scene, Sampler *sampler,
             PathState &state, float &bsdfPdf);

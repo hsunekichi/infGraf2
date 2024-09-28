@@ -44,6 +44,8 @@ struct BSDFQueryRecord {
     /// UV coordinates of the BRDF
     Vector2f uv;
 
+    Point3f surfaceP;
+
     /// Measure associated with the sample
     EMeasure measure;
 
@@ -128,6 +130,8 @@ public:
      * or not to store photons on a surface
      */
     virtual bool isDiffuse() const { return false; }
+
+    virtual bool isSubsurfaceScattering() const { return false; }
 };
 
 NORI_NAMESPACE_END

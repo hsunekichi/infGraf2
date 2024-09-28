@@ -23,24 +23,17 @@
 #include <nori/frame.h>
 #include <nori/warp.h>
 #include <nori/texture.h>
+#include <nori/scene.h>
 
 NORI_NAMESPACE_BEGIN
 
 /**
- * \brief Diffuse / Lambertian BRDF model
+ * \brief SubsurfaceScattering / Lambertian BRDF model
  */
-class Diffuse : public BSDF {
+class SubsurfaceScattering : public BSDF {
 public:
-    Diffuse(const PropertyList &propList) 
-    {
+    SubsurfaceScattering(const PropertyList &propList) {
         m_albedo = new ConstantSpectrumTexture(propList.getColor("albedo", Color3f(0.5f)));
-    
-        Color3f kd = propList.getColor("kd", Color3f(-1.0f));
-        if (kd != Color3f(-1.0f))
-        {
-            delete m_albedo;
-            m_albedo = new ConstantSpectrumTexture(kd);
-        }
     }
 
     /// Evaluate the BRDF model
@@ -51,8 +44,11 @@ public:
             return Color3f(0.0f);
 
         /* The BRDF is simply the albedo / pi */
-        return m_albedo->eval(bRec.uv) * INV_PI;
+        //return m_albedo->eval(bRec.uv) * INV_PI;
+        return Color3f(1.0f) * INV_PI;
     }
+
+  
 
     /// Compute the density of \ref sample() wrt. solid angles
     float pdf(const BSDFQueryRecord &bRec) const {
@@ -74,9 +70,9 @@ public:
     /// Draw a a sample from the BRDF model
     Color3f sample(BSDFQueryRecord &bRec, Sampler *sampler) const 
     {
-        Point2f sample = sampler->next2D();
-
         bRec.measure = ESolidAngle;
+
+        Point2f sample = sampler->next2D();
 
         /* Warp a uniformly distributed sample on [0,1]^2
            to a direction on a cosine-weighted hemisphere */
@@ -90,6 +86,10 @@ public:
         return m_albedo->eval(bRec.uv);
     }
 
+    bool isSubsurfaceScattering() const {
+        return true;
+    }
+
     bool isDiffuse() const {
         return true;
     }
@@ -97,7 +97,7 @@ public:
     /// Return a human-readable summary
     std::string toString() const {
         return tfm::format(
-            "Diffuse[\n"
+            "SubsurfaceScattering[\n"
             "  albedo = %s\n"
             "]", m_albedo->toString());
     }
@@ -111,12 +111,12 @@ public:
                 m_albedo = static_cast<Texture*>(obj);
             }
             else
-                throw NoriException("Diffuse::addChild(<%s>,%s) is not supported!",
+                throw NoriException("SubsurfaceScattering::addChild(<%s>,%s) is not supported!",
                 classTypeName(obj->getClassType()), name);
             break;
 
         default:
-            throw NoriException("Diffuse::addChild(<%s>) is not supported!",
+            throw NoriException("SubsurfaceScattering::addChild(<%s>) is not supported!",
                 classTypeName(obj->getClassType()));
         }
     }
@@ -127,5 +127,5 @@ private:
     Texture *m_albedo;
 };
 
-NORI_REGISTER_CLASS(Diffuse, "diffuse");
+NORI_REGISTER_CLASS(SubsurfaceScattering, "subsurface");
 NORI_NAMESPACE_END

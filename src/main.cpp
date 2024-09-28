@@ -78,6 +78,19 @@ static void render(Scene* scene, const std::string& filename, bool nogui) {
     ImageBlock result(outputSize, camera->getReconstructionFilter());
     result.clear();
 
+    std::cout << "Computing incoming radiance for subsurface scattering..." << std::endl;
+
+    std::vector<Photon> photons = scene->sampleSubsurfaceScattering(scene->getSampler());
+    Integrator *integrator = scene->getIntegrator();
+
+    for (Photon& photon : photons)
+    {      
+        integrator->precomputeLi(scene, scene->getSampler(), photon);
+    }
+
+    scene->storeSubsurfacePhotons(photons);
+
+
     /* Create a window that visualizes the partially rendered result */
     NoriScreen* screen = 0;
     if (!nogui)

@@ -57,6 +57,7 @@ class Math
     /// Compute the cosine of an angle
     inline static float cos(float a) { return std::cos(a); }
     inline static float cos(const Vector3f &a, const Vector3f &b) { return a.dot(b) / (a.norm() * b.norm()); }
+    inline static float absCos(const Vector3f &a, const Vector3f &b) { return std::abs(cos(a, b)); }
 
     /// Compute the sine of an angle
     inline static float sin(float a) { return std::sin(a); }

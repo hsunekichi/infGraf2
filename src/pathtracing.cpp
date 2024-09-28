@@ -15,7 +15,7 @@ NORI_NAMESPACE_BEGIN
 
 
 Color3f Pth::sampleRandomEmitter(const Scene *scene, Sampler *sampler, 
-            const PathState &state,
+            const Point3f &surfaceP,
             Emitter *&emitterMesh,
             Point3f &lightP,
             float &lightPdf)
@@ -30,7 +30,7 @@ Color3f Pth::sampleRandomEmitter(const Scene *scene, Sampler *sampler,
 
     // Sample a point on the emitter
     EmitterQueryRecord emitterQuery (ESolidAngle);
-    emitterQuery.surfaceP = state.intersection.p;
+    emitterQuery.surfaceP = surfaceP;
     Color3f Le = emitterMesh->sampleLi(sampler, emitterQuery) / randomLightPdf;
     
     lightP = emitterQuery.lightP;
@@ -69,7 +69,8 @@ bool checkVisibility (const Scene *scene,
 
 
 Color3f Pth::nextEventEstimation(const Scene *scene, Sampler *sampler,
-                const PathState &state, bool MIS)
+                const PathState &state, 
+                bool MIS, bool applyF)
 {
     float lightPdf = 0.0f;
     Point3f lightP;
@@ -77,7 +78,7 @@ Color3f Pth::nextEventEstimation(const Scene *scene, Sampler *sampler,
 
 
     // Sample a point on a random emitter
-    Color3f Le = sampleRandomEmitter(scene, sampler, state, 
+    Color3f Le = sampleRandomEmitter(scene, sampler, state.intersection.p, 
             emitterMesh, lightP, lightPdf);
     
     if (Le == Color3f(0.0f))
@@ -96,12 +97,12 @@ Color3f Pth::nextEventEstimation(const Scene *scene, Sampler *sampler,
             BSDFQueryRecord bsdfQuery(state.intersection.toLocal(-state.ray.d), 
                     surface_wiNormalized, ESolidAngle);
         
-        Color3f f = bsdf->eval(bsdfQuery);
+        Color3f f = applyF ? bsdf->eval(bsdfQuery) : Color3f(1.0f);
         float bsdfPdf = bsdf->pdf(bsdfQuery);
 
 
         // Compute the geometric term
-        float cosThetaP = std::abs(state.intersection.shFrame.cosTheta(surface_wiNormalized));
+        float cosThetaP = Math::absCosTheta(surface_wiNormalized);
         float G = cosThetaP / g_wi.squaredNorm();
 
         // Combine all terms

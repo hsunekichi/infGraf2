@@ -113,6 +113,7 @@ add_executable(nori
   src/pathtracing.cpp
   src/directWhitted.cpp
   src/depthIntegrator.cpp
+  src/subsurfaceScattering.cpp
 )
 
 add_definitions(${NANOGUI_EXTRA_DEFS})

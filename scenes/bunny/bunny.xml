@@ -5,7 +5,7 @@
 	</sampler>
 
     <!-- Render the visible surface normals -->
-    <integrator type="simple">
+    <integrator type="whitted">
 		<point name="position" value="-20, 40, 20"/>
 		<color name="energy" value="3.76e4, 3.76e4, 3.76e4"/>
 	</integrator>
@@ -13,13 +13,17 @@
     <!-- Load the Stanford bunny (https://graphics.stanford.edu/data/3Dscanrep/) -->
 	<mesh type="obj">
 		<string name="filename" value="bunny.obj"/>
-		
-		<!-- Turn the mesh into an area light source -->
-        <emitter type="area">
-            <!-- Assign a uniform radiance of 1 W/m2sr -->
-            <color name="radiance" value="1, 1, 1"/>
-        </emitter>
+		<bsdf type="subsurface"/>
 	</mesh>
+
+	<mesh type="obj">
+		<string name="filename" value="light.obj"/>
+
+		<emitter type="area">
+            <color name="radiance" value="20 20 20"/>
+		</emitter>
+	</mesh>
+
 
 	<!-- Render the scene viewed by a perspective camera -->
 	<camera type="perspective">

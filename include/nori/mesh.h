@@ -22,6 +22,7 @@
 #include <nori/frame.h>
 #include <nori/bbox.h>
 #include <nori/dpdf.h>
+#include <nori/bsdf.h>
 
 #ifndef n_UINT
 #define n_UINT uint32_t
@@ -105,6 +106,13 @@ public:
     //// Return a random triangle index
     int sampleTriangle(Sampler *sampler, float &pdf) const;
     float sampleTrianglePdf(n_UINT index) const;
+    void samplePositions(Sampler *sampler, 
+            std::vector<Point3f> &p, 
+            std::vector<Normal3f> &n, 
+            std::vector<Point2f> &uv, 
+            std::vector<float> &pdf, 
+            std::vector<n_UINT> &triangleId, 
+            size_t samplesPerTriangle) const;
 
 
     int getTriangleIndex(Point3f p) const;
@@ -113,6 +121,8 @@ public:
 	/// Return the surface area of the given triangle
 	float pdf(const Point3f &p) const;
     float pdf(const Point3f &p, n_UINT triangleId) const;
+
+    n_UINT nTriangles() const { return m_F.cols(); }
 
     /// Return the surface area of the given triangle
     float surfaceArea(n_UINT index) const;
@@ -167,6 +177,8 @@ public:
 
     /// Is this mesh an area emitter?
     bool isEmitter() const { return m_emitter != nullptr; }
+
+    bool hasSubsurfaceScattering() const { return m_bsdf != nullptr && m_bsdf->isSubsurfaceScattering(); }
 
     /// Return a pointer to an attached area emitter instance
     Emitter *getEmitter() { return m_emitter; }
