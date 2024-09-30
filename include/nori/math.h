@@ -46,6 +46,8 @@ class Math
 
     /// Compute the square root of a float
     inline static float sqrt(float a) { return std::sqrt(a); }
+    inline static Color3f sqrt(const Color3f &a) { return Color3f(std::sqrt(a.x()), std::sqrt(a.y()), std::sqrt(a.z())); }
+    inline static Color3f exp(const Color3f &a) { return Color3f(std::exp(a.x()), std::exp(a.y()), std::exp(a.z())); }
 
     inline static float safeSqrt(float a) { return std::sqrt(std::max(a, 0.0f)); }
     
@@ -298,6 +300,21 @@ class Math
 
         // Average the perpendicular and parallel reflectance
         return (rPerp + rParallel) * 0.5f;
+    }
+
+    static Vector3f refract (Vector3f wi, Vector3f n, float etaI, float etaT)
+    {
+        float eta = etaI / etaT;
+
+        float cosThetaI = dot(wi, n);
+        float sin2ThetaI = std::max(0.0f, 1.0f - cosThetaI * cosThetaI);
+        float sin2ThetaT = eta * eta * sin2ThetaI;
+
+        if (sin2ThetaT >= 1.0f)
+            return Vector3f(0.0f, 0.0f, 0.0f);
+
+        float cosThetaT = std::sqrt(1.0f - sin2ThetaT);
+        return eta * (-wi) + (eta * cosThetaI - cosThetaT) * n;
     }
 
 

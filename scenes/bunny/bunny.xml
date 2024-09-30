@@ -1,7 +1,7 @@
 <scene>
     <!-- Independent sample generator, one sample per pixel -->
 	<sampler type="independent">
-		<integer name="sampleCount" value="8"/>
+		<integer name="sampleCount" value="4"/>
 	</sampler>
 
     <!-- Render the visible surface normals -->
@@ -13,12 +13,12 @@
     <!-- Load the Stanford bunny (https://graphics.stanford.edu/data/3Dscanrep/) -->
 	<mesh type="obj">
 		<string name="filename" value="bunny.obj"/>
-		<bsdf type="diffuse">   <!-- Marble properties -->
-			<color name="albedo" value="1 1 1"/>
-			<color name="sigmaA" value="0.001 0.001 0.001"/>
-			<color name="sigmaS" value="2.5 2.5 2.5"/>
-			<float name="g" value="0.1"/>
-			<float name="eta" value="1.33"/>
+		<bsdf type="subsurface">   <!-- Marble properties -->
+			<color name="albedo" value="0.83 0.79 0.75"/>
+			<color name="sigmaA" value="0.0021 0.0041 0.0071"/>
+			<color name="sigmaS" value="2.19 2.62 3.00"/>
+			<float name="g" value="0.85"/>
+			<float name="eta" value="1.5"/>
 		</bsdf>
 	</mesh>
 

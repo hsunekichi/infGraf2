@@ -52,6 +52,8 @@ struct BSDFQueryRecord {
     /// Measure associated with the sample
     EMeasure measure;
 
+    Sampler *sampler == nullptr;
+
     bool isCameraRay = true;
 
     /// Create a new record for sampling the BSDF

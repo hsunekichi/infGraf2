@@ -46,8 +46,16 @@ public:
 
         sigmaA = propList.getColor("sigmaA", Color3f(0.0f));
         sigmaS = propList.getColor("sigmaS", Color3f(0.0f));
+        Color3f sigmaT = propList.getColor("sigmaT", Color3f(-1.0f));
+
         g = propList.getFloat("g", 0.0f);
         eta = propList.getFloat("eta", 1.0f);
+
+        if (sigmaT != Color3f(-1.0f))
+        {
+            sigmaS = sigmaT * (1 - g);
+            sigmaA = sigmaT - sigmaS;
+        }
     }
 
     /// Evaluate the BRDF model
@@ -62,7 +70,7 @@ public:
         }
         else
         {
-            return diffusionTermBSSRDF(bRec);
+            return computeSingleScattering(bRec);
         }
     }
 
@@ -179,6 +187,17 @@ public:
         return result;
     }
 
+    Color3f diffusionProfile(float distance) 
+    {
+        Color3f D = 1.0f / (3.0f * (sigmaA + sigmaS));
+        Color3f alpha_prime = sigmaS / (sigmaA + sigmaS);
+        
+        // Use the diffusion approximation formula
+        Color3f diffusion = (alpha_prime / (4.0f * M_PI * D)) * Math::exp(-Math::sqrt(3.0f * sigmaA * sigmaS) * distance);
+        
+        return diffusion;
+    }
+
     Color3f dipoleDiffusionAproximation(Point3f point, Photon photon, Color3f sigmaT)
     {
         Color3f sigmaS = sigmaT * (1 - g);
@@ -188,7 +207,7 @@ public:
     }
 
 
-    Color3f diffusionTermBSSRDF(const BSDFQueryRecord &bRec) const
+    Color3f computeMultipleScattering(const BSDFQueryRecord &bRec) const
     {
         Color3f Rd = impPaper_dipoleDiffusionAproximation(bRec.po, bRec.pi);
 
@@ -202,7 +221,74 @@ public:
         Color3f Sd = INV_PI * Ft_i * Rd * Ft_o;
 
         return Sd;
+    } 
+    
+    Color3f computeSingleScattering(const BSDFQueryRecord &bRec) const
+    {
+        // Get refraction direction entering the material
+        float etaI = 1, etaT = eta;
+        float invEta = etaI / etaT;
+
+        Vector3f L = bRec.wo;
+
+        Color3f sigmaT = sigmaA + sigmaS;
+        Vector3f To = (Math::refract(-bRec.wo, Vector3f(0, 0, 1), etaI, etaT)).normalized();
+        if (To.x() == 0 && To.y() == 0 && To.z() == 0)
+            return Color3f(0);
+
+        float sp_o = -log(bRec.sampler->next1D()) / sigmaT.maxCoeff();
+        Point3f p_o = Point3f(0, 0, 0) + sp_o * To;
+        Ray3f shadowRay (p_o, L);
+        
+        // Get intersection point of shadowRay with surface
+        float Pi_offset = -shadowRay.origin.z / shadowRay.direction.z;
+        Point3f Pi = shadowRay(Pi_offset);
+        outgoingPoint = Pi;
+
+        float si = distance(Pi, p_o);
+        float Lcos = absCosine(L, Vector3f(0, 0, 1));
+        float sp_i = si * Lcos / sqrt(1 - pow2(invEta) * (1 - pow2(Lcos)));
+
+        Vector3f Ri, Ti;
+        float Kri = fresnelDielectric(cosine(L, Vector3f(0, 0, 1)), etaI, etaT);
+        float Kti = 1 - Kri;
+
+        Ti = normalize(refract(L, Vector3f(0, 0, 1), etaI, etaT));
+
+        float g2 = pow2(g);
+        float phase = (1-g2) / pow(1+2*g*cosine(Ti, To) + g2, 1.5);
+
+        sampleDirection = Ti;
+
+        float G = absCosine(cameraDirection) / absCosine(sampleDirection);
+        Color3f sigmaTc = sigmaT + sigmaT*G;
+
+        Color3f result = exp(-sp_i*sigmaT) / sigmaTc * phase * Kti;
+
+
+        /********** Compute the correction of the montecarlo estimation (pdf?) *********/
+        // Compute isotropic phase function
+        Color3f _sigmaS = (1 - g) * sigmaS;
+        Color3f _sigmaT = _sigmaS + sigmaA;
+        Color3f _alpha = _sigmaS / _sigmaT;
+        // Effective transport coefficient
+        Color3f sigmaTr = sqrt(3 * sigmaA * _sigmaT);
+        Color3f zr = sqrt(3*(1-_alpha)) / sigmaTr;
+        float r = distance(Point3f(0, 0, 0), Pi);
+
+        Color3f distanceR = sqrt(pow2(r) + pow2(zr));
+        Color3f C1 = zr * (sigmaTr + 1/distanceR);
+
+        float cosWi = cosine(sampleDirection);
+        float cosWo = cosine(cameraDirection);
+
+        // Assuming Ft is a function that returns the Fresnel term
+        double Ft_o = 1 - fresnelDielectric(cosWo, 1.0, eta);
+        double Ft_i = 1 - fresnelDielectric(cosWi, 1.0, eta);
+
+        return result * M_PI * C1 * Ft_o * Ft_i;
     }
+
 
     /// Return a human-readable summary
     std::string toString() const {

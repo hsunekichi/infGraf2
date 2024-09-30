@@ -54,14 +54,21 @@ public:
             bsdfQuery.po = intersection.p;
             bsdfQuery.wo = intersection.toLocal(-ray.d);
             bsdfQuery.measure = ESolidAngle;
+            bsdfQuery.sampler = sampler;
 
             Color3f contributions = Color3f(0.0f);
+
+            unsigned long long int photonsUsed = 0;
             
             for (const auto &photon : photons)
             {   
-                if ((photon.p - intersection.p).norm() > 0.1
-                    || photon.radiance == Color3f(0.0f))
+                if (photon.radiance == Color3f(0.0f))
+                {
+                    if (photon.radiance == Color3f(0.0f))
+                        photonsUsed++;
+
                     continue;
+                }
 
                 bsdfQuery.pi = photon.p;
                 bsdfQuery.ni = intersection.toLocal(photon.n);
@@ -70,6 +77,7 @@ public:
                 Color3f radiance = photon.radiance * f;
 
                 contributions += radiance;
+                photonsUsed++;
             }
 
             return contributions / photons.size();
@@ -171,7 +179,7 @@ public:
 
 
         ph.d = wi.normalized();
-        ph.radiance = direct; 
+        ph.radiance = direct / ph.pdf; 
         ph.n = intersection.shFrame.n;
     }
 

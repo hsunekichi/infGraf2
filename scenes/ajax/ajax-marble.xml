@@ -1,22 +1,22 @@
 <scene>
 	<!-- Independent sample generator, 64 samples per pixel -->
 	<sampler type="independent">
-		<integer name="sampleCount" value="64"/>
+		<integer name="sampleCount" value="1"/>
 	</sampler>
 
 	<!-- Use the simple point light integrator -->
-    <integrator type="path_mis"/>
+    <integrator type="whitted"/>
 
 	<!-- Load the Ajax bust (a freely available scan from the Jotero forum) -->
 	<mesh type="obj">
 		<string name="filename" value="ajax.obj"/>
 
-		<bsdf type="diffuse">   <!-- Marble properties -->
-			<color name="albedo" value="1 1 1"/>
-			<color name="sigmaA" value="0.001 0.001 0.001"/>
-			<color name="sigmaS" value="2.5 2.5 2.5"/>
-			<float name="g" value="0.1"/>
-			<float name="eta" value="1.33"/>
+		<bsdf type="subsurface">   <!-- Marble properties -->
+			<color name="albedo" value="0.83 0.79 0.75"/>
+			<color name="sigmaA" value="0.0021 0.0041 0.0071"/>
+			<color name="sigmaS" value="2.19 2.62 3.00"/>
+			<float name="g" value="0.85"/>
+			<float name="eta" value="1.5"/>
 		</bsdf>
 	</mesh>
 
