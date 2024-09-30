@@ -49,7 +49,7 @@ public:
 
 
             float minD = std::numeric_limits<float>::infinity();
-            Color3f radiance = Color3f(0.0f);
+            Photon *closest;
 
             for (const auto &photon : photons)
             {
@@ -57,15 +57,16 @@ public:
                 
                 if (d < minD) //  && d < 0.001f
                 {
-                    bsdfQuery.wi = intersection.toLocal(photon.d);
-
+                    closest = const_cast<Photon*>(&photon);
                     minD = d;
-                    Color3f f = intersection.mesh->getBSDF()->eval(bsdfQuery);
-                    radiance = f * photon.radiance;
                 }
             }
 
-            return radiance;
+
+            Color3f f = intersection.mesh->getBSDF()->eval(bsdfQuery);
+            Color3f radiance = closest->radiance;
+
+            return radiance * f;
         }
     }
 

@@ -13,7 +13,9 @@
     <!-- Load the Stanford bunny (https://graphics.stanford.edu/data/3Dscanrep/) -->
 	<mesh type="obj">
 		<string name="filename" value="bunny.obj"/>
-		<bsdf type="subsurface"/>
+		<bsdf type="subsurface">
+			<color name="albedo" value="1 1 1"/>
+		</bsdf>
 	</mesh>
 
 	<mesh type="obj">

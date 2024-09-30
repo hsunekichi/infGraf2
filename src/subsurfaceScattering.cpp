@@ -34,6 +34,13 @@ class SubsurfaceScattering : public BSDF {
 public:
     SubsurfaceScattering(const PropertyList &propList) {
         m_albedo = new ConstantSpectrumTexture(propList.getColor("albedo", Color3f(0.5f)));
+
+        Color3f kd = propList.getColor("kd", Color3f(-1.0f));
+        if (kd != Color3f(-1.0f))
+        {
+            delete m_albedo;
+            m_albedo = new ConstantSpectrumTexture(kd);
+        }
     }
 
     /// Evaluate the BRDF model
@@ -45,7 +52,7 @@ public:
 
         /* The BRDF is simply the albedo / pi */
         //return m_albedo->eval(bRec.uv) * INV_PI;
-        return Color3f(1.0f) * INV_PI;
+        return m_albedo->eval(bRec.uv) * INV_PI;
     }
 
   
