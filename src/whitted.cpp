@@ -54,7 +54,6 @@ public:
             bsdfQuery.po = intersection.p;
             bsdfQuery.wo = intersection.toLocal(-ray.d);
             bsdfQuery.measure = ESolidAngle;
-            bsdfQuery.sampler = sampler;
 
             Color3f contributions = Color3f(0.0f);
 

@@ -49,7 +49,7 @@ public:
         Color3f sigmaT = propList.getColor("sigmaT", Color3f(-1.0f));
 
         g = propList.getFloat("g", 0.0f);
-        eta = propList.getFloat("eta", 1.0f);
+        etaT = propList.getFloat("eta", 1.0f);
 
         if (sigmaT != Color3f(-1.0f))
         {
@@ -70,7 +70,7 @@ public:
         }
         else
         {
-            return computeSingleScattering(bRec);
+            return computeMultipleScattering(bRec);
         }
     }
 
@@ -121,53 +121,54 @@ public:
     }
 
 
-    Color3f dipoleDiffusionAproximation(Point3f point, Photon photon, Color3f sigmaS, Color3f sigmaA, float g, float eta)
+    Color3f dipoleDiffusionAproximation(float r) const
     {
+        float eta = etaT;
+
         // Compute isotropic phase function
         Color3f _sigmaS = (1 - g) * sigmaS;
         Color3f _sigmaT = _sigmaS + sigmaA;
         Color3f _alpha = _sigmaS / _sigmaT;
 
         // Effective transport coefficient
-        Color3f sigmaTr = sqrt(3 * sigmaA * _sigmaT);
+        Color3f sigmaTr = Math::sqrt(3 * sigmaA * _sigmaT);
         
         // Aproximation for the diffuse reflectance (fresnel)
         float Fdr = (-1.440 / Math::pow2(eta)) + (0.710 / eta) + 0.668 + 0.0636 * eta;
         float A = (1 + Fdr) / (1 - Fdr);    // Boundary condition for the change between refraction indexes
 
-        float r = (point - photon.p).norm();
         Color3f lu = 1 / _sigmaT;
         Color3f zr = lu;
-        Color3f zv = lu * (1 + 4/3 * A);
+        Color3f zv = lu * (1.0f + 4.0f/3.0f * A);
 
-        Color3f distanceR = sqrt(Math::pow2(r) + Math::pow2(zr)); 
-        Color3f distanceV = sqrt(Math::pow2(r) + Math::pow2(zv)); 
+        Color3f dr = Math::sqrt(Math::pow2(r) + Math::pow2(zr)); 
+        Color3f dv = Math::sqrt(Math::pow2(r) + Math::pow2(zv)); 
 
         // Compute main formula
-        Color3f C1 = zr * (sigmaTr + 1/distanceR);
-        Color3f C2 = zv * (sigmaTr + 1/distanceV);
+        Color3f C1 = zr * (1 + sigmaTr * dr) * Math::exp(-sigmaTr * dr) / Math::pow3(dr);
+        Color3f C2 = zv * (1 + sigmaTr * dv) * Math::exp(-sigmaTr * dv) / Math::pow3(dv);
 
-        Color3f m2 = C1 * exp(-sigmaTr * distanceR) / Math::pow2(distanceR) + C2 * exp(-sigmaTr * distanceV) / Math::pow2(distanceV);
-        Color3f result = _alpha * INV_FOURPI * m2;
+        Color3f result = _alpha * INV_FOURPI * (C1 - C2);
 
         return result;
     }
 
-    Color3f impPaper_dipoleDiffusionAproximation(Point3f po, Point3f pi) const
+    Color3f impPaper_dipoleDiffusionAproximation(float r) const
     {
+        float eta = etaT;
+
         // Compute isotropic phase function
         Color3f _sigmaS = (1 - g) * sigmaS;
         Color3f _sigmaT = _sigmaS + sigmaA;
         Color3f _alpha = _sigmaS / _sigmaT;
 
         // Effective transport coefficient
-        Color3f sigmaTr = sqrt(3 * sigmaA * _sigmaT);
+        Color3f sigmaTr = Math::sqrt(3 * sigmaA * _sigmaT);
         
         // Aproximation for the diffuse reflectance (fresnel)
         float Fdr = (-1.440 / Math::pow2(eta)) + (0.710 / eta) + 0.668 + 0.0636 * eta;
         float A = (1 + Fdr) / (1 - Fdr);    // Boundary condition for the change between refraction indexes
 
-        float r = (po - pi).norm();
         Color3f zr = sqrt(3*(1-_alpha)) / sigmaTr;
         Color3f zv = zr * A;
 
@@ -187,29 +188,13 @@ public:
         return result;
     }
 
-    Color3f diffusionProfile(float distance) 
-    {
-        Color3f D = 1.0f / (3.0f * (sigmaA + sigmaS));
-        Color3f alpha_prime = sigmaS / (sigmaA + sigmaS);
-        
-        // Use the diffusion approximation formula
-        Color3f diffusion = (alpha_prime / (4.0f * M_PI * D)) * Math::exp(-Math::sqrt(3.0f * sigmaA * sigmaS) * distance);
-        
-        return diffusion;
-    }
-
-    Color3f dipoleDiffusionAproximation(Point3f point, Photon photon, Color3f sigmaT)
-    {
-        Color3f sigmaS = sigmaT * (1 - g);
-        Color3f sigmaA = sigmaT - sigmaS;
-
-        return dipoleDiffusionAproximation(point, photon, sigmaS, sigmaA, g, eta);
-    }
-
 
     Color3f computeMultipleScattering(const BSDFQueryRecord &bRec) const
     {
-        Color3f Rd = impPaper_dipoleDiffusionAproximation(bRec.po, bRec.pi);
+        float r = (bRec.po - bRec.pi).norm();
+        float eta = 1.0f / etaT;
+
+        Color3f Rd = dipoleDiffusionAproximation(r);
 
         float cosWi = Math::absCos(bRec.wi, bRec.ni);
         float cosWo = Math::cosTheta(bRec.wo);
@@ -223,72 +208,6 @@ public:
         return Sd;
     } 
     
-    Color3f computeSingleScattering(const BSDFQueryRecord &bRec) const
-    {
-        // Get refraction direction entering the material
-        float etaI = 1, etaT = eta;
-        float invEta = etaI / etaT;
-
-        Vector3f L = bRec.wo;
-
-        Color3f sigmaT = sigmaA + sigmaS;
-        Vector3f To = (Math::refract(-bRec.wo, Vector3f(0, 0, 1), etaI, etaT)).normalized();
-        if (To.x() == 0 && To.y() == 0 && To.z() == 0)
-            return Color3f(0);
-
-        float sp_o = -log(bRec.sampler->next1D()) / sigmaT.maxCoeff();
-        Point3f p_o = Point3f(0, 0, 0) + sp_o * To;
-        Ray3f shadowRay (p_o, L);
-        
-        // Get intersection point of shadowRay with surface
-        float Pi_offset = -shadowRay.origin.z / shadowRay.direction.z;
-        Point3f Pi = shadowRay(Pi_offset);
-        outgoingPoint = Pi;
-
-        float si = distance(Pi, p_o);
-        float Lcos = absCosine(L, Vector3f(0, 0, 1));
-        float sp_i = si * Lcos / sqrt(1 - pow2(invEta) * (1 - pow2(Lcos)));
-
-        Vector3f Ri, Ti;
-        float Kri = fresnelDielectric(cosine(L, Vector3f(0, 0, 1)), etaI, etaT);
-        float Kti = 1 - Kri;
-
-        Ti = normalize(refract(L, Vector3f(0, 0, 1), etaI, etaT));
-
-        float g2 = pow2(g);
-        float phase = (1-g2) / pow(1+2*g*cosine(Ti, To) + g2, 1.5);
-
-        sampleDirection = Ti;
-
-        float G = absCosine(cameraDirection) / absCosine(sampleDirection);
-        Color3f sigmaTc = sigmaT + sigmaT*G;
-
-        Color3f result = exp(-sp_i*sigmaT) / sigmaTc * phase * Kti;
-
-
-        /********** Compute the correction of the montecarlo estimation (pdf?) *********/
-        // Compute isotropic phase function
-        Color3f _sigmaS = (1 - g) * sigmaS;
-        Color3f _sigmaT = _sigmaS + sigmaA;
-        Color3f _alpha = _sigmaS / _sigmaT;
-        // Effective transport coefficient
-        Color3f sigmaTr = sqrt(3 * sigmaA * _sigmaT);
-        Color3f zr = sqrt(3*(1-_alpha)) / sigmaTr;
-        float r = distance(Point3f(0, 0, 0), Pi);
-
-        Color3f distanceR = sqrt(pow2(r) + pow2(zr));
-        Color3f C1 = zr * (sigmaTr + 1/distanceR);
-
-        float cosWi = cosine(sampleDirection);
-        float cosWo = cosine(cameraDirection);
-
-        // Assuming Ft is a function that returns the Fresnel term
-        double Ft_o = 1 - fresnelDielectric(cosWo, 1.0, eta);
-        double Ft_i = 1 - fresnelDielectric(cosWi, 1.0, eta);
-
-        return result * M_PI * C1 * Ft_o * Ft_i;
-    }
-
 
     /// Return a human-readable summary
     std::string toString() const {
@@ -322,7 +241,7 @@ public:
 private:
     Texture *m_albedo;
     Color3f sigmaA, sigmaS; 
-    float g, eta;
+    float g, etaT;
 };
 
 NORI_REGISTER_CLASS(SubsurfaceScattering, "subsurface");
