@@ -144,9 +144,12 @@ public:
         Color3f dr = Math::sqrt(Math::pow2(r) + Math::pow2(zr)); 
         Color3f dv = Math::sqrt(Math::pow2(r) + Math::pow2(zv)); 
 
+        Color3f sigmaTrDr = sigmaTr * dr;
+        Color3f sigmaTrDv = sigmaTr * dv;
+
         // Compute main formula
-        Color3f C1 = zr * (1 + sigmaTr * dr) * Math::exp(-sigmaTr * dr) / Math::pow3(dr);
-        Color3f C2 = zv * (1 + sigmaTr * dv) * Math::exp(-sigmaTr * dv) / Math::pow3(dv);
+        Color3f C1 = zr * (1 + sigmaTrDr) * Math::exp(-sigmaTrDr) / Math::pow3(dr);
+        Color3f C2 = zv * (1 + sigmaTrDv) * Math::exp(-sigmaTrDv) / Math::pow3(dv);
 
         Color3f result = _alpha * INV_FOURPI * (C1 - C2);
 
@@ -192,7 +195,7 @@ public:
     Color3f computeMultipleScattering(const BSDFQueryRecord &bRec) const
     {
         float r = (bRec.po - bRec.pi).norm();
-        float eta = 1.0f / etaT;
+        float eta = etaT;
 
         Color3f Rd = dipoleDiffusionAproximation(r);
 
@@ -204,6 +207,8 @@ public:
 
         // Compute the diffusion term
         Color3f Sd = INV_PI * Ft_i * Rd * Ft_o;
+
+        Sd = Math::max(Sd, Color3f(0.0f));
 
         return Sd;
     } 

@@ -56,18 +56,13 @@ public:
             bsdfQuery.measure = ESolidAngle;
 
             Color3f contributions = Color3f(0.0f);
-
-            unsigned long long int photonsUsed = 0;
+            
+            
             
             for (const auto &photon : photons)
             {   
                 if (photon.radiance == Color3f(0.0f))
-                {
-                    if (photon.radiance == Color3f(0.0f))
-                        photonsUsed++;
-
                     continue;
-                }
 
                 bsdfQuery.pi = photon.p;
                 bsdfQuery.ni = intersection.toLocal(photon.n);
@@ -76,8 +71,24 @@ public:
                 Color3f radiance = photon.radiance * f;
 
                 contributions += radiance;
-                photonsUsed++;
             }
+            
+            /*
+            // Choose random photon
+            int randomPhoton = sampler->next1D() * photons.size();
+            auto photon = photons[randomPhoton % photons.size()];
+            
+            if (photon.radiance != Color3f(0.0f))
+            {
+                bsdfQuery.pi = photon.p;
+                bsdfQuery.ni = intersection.toLocal(photon.n);
+                bsdfQuery.wi = intersection.toLocal(photon.d);
+                Color3f f = intersection.mesh->getBSDF()->eval(bsdfQuery);
+                Color3f radiance = photon.radiance * f;
+
+                contributions += radiance;
+            }
+            */
 
             return contributions / photons.size();
         }
