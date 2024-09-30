@@ -54,6 +54,11 @@ class Math
     inline static float pow3(float a) { return a * a * a; }
     inline static float pow4(float a) { float a2 = a*a; return a2*a2; }
 
+    inline static Color3f pow(const Color3f &a, float b) { return Color3f(std::pow(a.x(), b), std::pow(a.y(), b), std::pow(a.z(), b)); }
+    inline static Color3f pow2(const Color3f &a) { return Color3f(a.x() * a.x(), a.y() * a.y(), a.z() * a.z()); }
+    inline static Color3f pow3(const Color3f &a) { return Color3f(a.x() * a.x() * a.x(), a.y() * a.y() * a.y(), a.z() * a.z() * a.z()); }
+    inline static Color3f pow4(const Color3f &a) { return Color3f(a.x() * a.x() * a.x() * a.x(), a.y() * a.y() * a.y() * a.y(), a.z() * a.z() * a.z() * a.z()); }
+
     /// Compute the cosine of an angle
     inline static float cos(float a) { return std::cos(a); }
     inline static float cos(const Vector3f &a, const Vector3f &b) { return a.dot(b) / (a.norm() * b.norm()); }

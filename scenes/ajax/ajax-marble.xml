@@ -1,18 +1,16 @@
 <scene>
-    <!-- Independent sample generator, one sample per pixel -->
+	<!-- Independent sample generator, 64 samples per pixel -->
 	<sampler type="independent">
-		<integer name="sampleCount" value="8"/>
+		<integer name="sampleCount" value="64"/>
 	</sampler>
 
-    <!-- Render the visible surface normals -->
-    <integrator type="whitted">
-		<point name="position" value="-20, 40, 20"/>
-		<color name="energy" value="3.76e4, 3.76e4, 3.76e4"/>
-	</integrator>
+	<!-- Use the simple point light integrator -->
+    <integrator type="path_mis"/>
 
-    <!-- Load the Stanford bunny (https://graphics.stanford.edu/data/3Dscanrep/) -->
+	<!-- Load the Ajax bust (a freely available scan from the Jotero forum) -->
 	<mesh type="obj">
-		<string name="filename" value="bunny.obj"/>
+		<string name="filename" value="ajax.obj"/>
+
 		<bsdf type="diffuse">   <!-- Marble properties -->
 			<color name="albedo" value="1 1 1"/>
 			<color name="sigmaA" value="0.001 0.001 0.001"/>
@@ -22,6 +20,7 @@
 		</bsdf>
 	</mesh>
 
+    <!-- Area light source -->
 	<mesh type="obj">
 		<string name="filename" value="light.obj"/>
 
@@ -30,18 +29,17 @@
 		</emitter>
 	</mesh>
 
-
 	<!-- Render the scene viewed by a perspective camera -->
 	<camera type="perspective">
         <!-- 3D origin, target point, and 'up' vector -->
 		<transform name="toWorld">
-            <lookat target="-0.0123771, 0.0540913, -0.239922"
-                    origin="-0.0315182, 0.284011, 0.7331"
-                    up="0.00717446, 0.973206, -0.229822"/>
+            <lookat target="-64.8161, 47.2211, 23.8576"
+                    origin="-65.6055, 47.5762, 24.3583"
+                    up="0.299858, 0.934836, -0.190177"/>
 		</transform>
 
 		<!-- Field of view: 30 degrees -->
-		<float name="fov" value="16"/>
+		<float name="fov" value="30"/>
 
 		<!-- 768 x 768 pixels -->
 		<integer name="width" value="768"/>

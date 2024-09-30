@@ -19,6 +19,7 @@ struct PathState
 
     Ray3f ray;
     int depth = 0;
+    bool isCameraRay = true;
 
     Color3f radiance = Color3f(0.0f);
     Color3f scatteringFactor = Color3f(1.0f);
@@ -36,6 +37,17 @@ static Color3f sampleRandomEmitter(const Scene *scene, Sampler *sampler,
 
 static Color3f nextEventEstimation(const Scene *scene, Sampler *sampler,
                 const PathState &state, 
+                bool MIS = false, bool applyF = true)
+{
+    Vector3f wi;
+    return nextEventEstimation(scene, sampler, state, wi, MIS, applyF);
+}
+
+static std::vector<Photon> generateSubsurfaceSamples(const Scene *scene, Sampler *sampler);
+
+static Color3f nextEventEstimation(const Scene *scene, Sampler *sampler,
+                const PathState &state, 
+                Vector3f &wi,
                 bool MIS = false, bool applyF = true);
 
 static void sampleBSDF(const Scene *scene, Sampler *sampler,

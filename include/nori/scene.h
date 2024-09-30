@@ -31,8 +31,8 @@ NORI_NAMESPACE_BEGIN
 struct Photon
 {
     Point3f p;
-    Vector3f d;
-    float pdf;
+    Vector3f d; Normal3f n;
+    float pdf, cosWi = 0.0f;
     Color3f radiance;
 
     Photon (const Point3f &p, float pdf) : p(p), pdf(pdf), radiance(0.0f) {}
@@ -77,10 +77,7 @@ public:
 
 	/// Return a reference to an array containing all lights
 	const std::vector<Emitter *> &getLights() const { return m_emitters; }
-
-    std::vector<Photon> sampleSubsurfaceScattering(Sampler *sampler) const;
-    void storeSubsurfacePhotons(std::vector<Photon> &photons);
-    const std::vector<Photon> &getSubsurfacePhotons() const { return m_photons; }
+    const std::vector<Mesh *> &getSSMeshes() const { return SS_meshes; }
 
 	/// Return a the scene background
 	Color3f getBackground(const Ray3f& ray) const;
@@ -158,7 +155,6 @@ private:
     std::vector<Mesh *> m_meshes;
     std::vector<Mesh *> SS_meshes;
 	std::vector<Emitter *> m_emitters;
-    std::vector<Photon> m_photons;
 
 	Emitter *m_enviromentalEmitter = nullptr;
 	

@@ -16,6 +16,16 @@ public:
 
     Whitted(const PropertyList &props) {}
 
+    void preprocess(const Scene *scene, Sampler *sampler) 
+    {
+        photons = Pth::generateSubsurfaceSamples(scene, sampler);
+
+        for (auto &photon : photons)
+        {
+            precomputeLi(scene, sampler, photon);
+        }
+    }
+
     // Integrate a diffuse surface
     Color3f diffuseIntegration(const Scene *scene, Sampler *sampler, const Ray3f &ray,
                 Intersection &intersection) const
@@ -40,33 +50,29 @@ public:
         }
         else
         {
-            const auto &photons = scene->getSubsurfacePhotons();
-
             BSDFQueryRecord bsdfQuery(intersection.toLocal(-ray.d));
-            bsdfQuery.surfaceP = intersection.p;
+            bsdfQuery.po = intersection.p;
             bsdfQuery.wo = intersection.toLocal(-ray.d);
             bsdfQuery.measure = ESolidAngle;
 
-
-            float minD = std::numeric_limits<float>::infinity();
-            Photon *closest;
-
+            Color3f contributions = Color3f(0.0f);
+            
             for (const auto &photon : photons)
-            {
-                float d = (photon.p - intersection.p).norm();
-                
-                if (d < minD) //  && d < 0.001f
-                {
-                    closest = const_cast<Photon*>(&photon);
-                    minD = d;
-                }
+            {   
+                if ((photon.p - intersection.p).norm() > 0.1
+                    || photon.radiance == Color3f(0.0f))
+                    continue;
+
+                bsdfQuery.pi = photon.p;
+                bsdfQuery.ni = intersection.toLocal(photon.n);
+                bsdfQuery.wi = intersection.toLocal(photon.d);
+                Color3f f = intersection.mesh->getBSDF()->eval(bsdfQuery);
+                Color3f radiance = photon.radiance * f;
+
+                contributions += radiance;
             }
 
-
-            Color3f f = intersection.mesh->getBSDF()->eval(bsdfQuery);
-            Color3f radiance = closest->radiance;
-
-            return radiance * f;
+            return contributions / photons.size();
         }
     }
 
@@ -154,19 +160,27 @@ public:
         if (!scene->rayIntersect(ray, intersection))
             return;
 
+
         PathState state;
         state.ray = ray;
         state.intersection = intersection;
+        state.isCameraRay = false;
         
-        Color3f direct = Pth::nextEventEstimation(scene, sampler, state, false, false);
+        Vector3f wi;
+        Color3f direct = Pth::nextEventEstimation(scene, sampler, state, wi, false, false);
 
-        ph.d = (intersection.p - ph.p).normalized();
+
+        ph.d = wi.normalized();
         ph.radiance = direct; 
+        ph.n = intersection.shFrame.n;
     }
 
     std::string toString() const {
         return "Whitted[]";
     }
+
+    protected:
+        std::vector<Photon> photons;
 };
 
 NORI_REGISTER_CLASS(Whitted, "whitted");

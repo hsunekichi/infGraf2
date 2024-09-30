@@ -44,10 +44,15 @@ struct BSDFQueryRecord {
     /// UV coordinates of the BRDF
     Vector2f uv;
 
-    Point3f surfaceP;
+    // Global coordinates of the sampling points
+    Point3f po, pi;
+
+    Normal3f ni; // In the local frame
 
     /// Measure associated with the sample
     EMeasure measure;
+
+    bool isCameraRay = true;
 
     /// Create a new record for sampling the BSDF
     BSDFQueryRecord(const Vector3f &wi, const Vector2f &uv = Vector2f() )
@@ -62,6 +67,11 @@ struct BSDFQueryRecord {
     BSDFQueryRecord(const Vector3f &wi,
             const Vector3f &wo, EMeasure measure)
         : wi(wi), wo(wo), eta(1.f), measure(measure) { }
+
+    void setP(const Point3f &p) {
+        po = p;
+        pi = p;
+    }
 };
 
 /**

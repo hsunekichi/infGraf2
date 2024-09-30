@@ -30,9 +30,11 @@ NORI_NAMESPACE_BEGIN
 /**
  * \brief SubsurfaceScattering / Lambertian BRDF model
  */
-class SubsurfaceScattering : public BSDF {
+class SubsurfaceScattering : public BSDF 
+{
 public:
-    SubsurfaceScattering(const PropertyList &propList) {
+    SubsurfaceScattering(const PropertyList &propList) 
+    {
         m_albedo = new ConstantSpectrumTexture(propList.getColor("albedo", Color3f(0.5f)));
 
         Color3f kd = propList.getColor("kd", Color3f(-1.0f));
@@ -41,6 +43,11 @@ public:
             delete m_albedo;
             m_albedo = new ConstantSpectrumTexture(kd);
         }
+
+        sigmaA = propList.getColor("sigmaA", Color3f(0.0f));
+        sigmaS = propList.getColor("sigmaS", Color3f(0.0f));
+        g = propList.getFloat("g", 0.0f);
+        eta = propList.getFloat("eta", 1.0f);
     }
 
     /// Evaluate the BRDF model
@@ -50,9 +57,13 @@ public:
         if (bRec.measure != ESolidAngle)
             return Color3f(0.0f);
 
-        /* The BRDF is simply the albedo / pi */
-        //return m_albedo->eval(bRec.uv) * INV_PI;
-        return m_albedo->eval(bRec.uv) * INV_PI;
+        if (!bRec.isCameraRay) {
+            return m_albedo->eval(bRec.uv) * INV_PI;
+        }
+        else
+        {
+            return diffusionTermBSSRDF(bRec);
+        }
     }
 
   
@@ -101,6 +112,98 @@ public:
         return true;
     }
 
+
+    Color3f dipoleDiffusionAproximation(Point3f point, Photon photon, Color3f sigmaS, Color3f sigmaA, float g, float eta)
+    {
+        // Compute isotropic phase function
+        Color3f _sigmaS = (1 - g) * sigmaS;
+        Color3f _sigmaT = _sigmaS + sigmaA;
+        Color3f _alpha = _sigmaS / _sigmaT;
+
+        // Effective transport coefficient
+        Color3f sigmaTr = sqrt(3 * sigmaA * _sigmaT);
+        
+        // Aproximation for the diffuse reflectance (fresnel)
+        float Fdr = (-1.440 / Math::pow2(eta)) + (0.710 / eta) + 0.668 + 0.0636 * eta;
+        float A = (1 + Fdr) / (1 - Fdr);    // Boundary condition for the change between refraction indexes
+
+        float r = (point - photon.p).norm();
+        Color3f lu = 1 / _sigmaT;
+        Color3f zr = lu;
+        Color3f zv = lu * (1 + 4/3 * A);
+
+        Color3f distanceR = sqrt(Math::pow2(r) + Math::pow2(zr)); 
+        Color3f distanceV = sqrt(Math::pow2(r) + Math::pow2(zv)); 
+
+        // Compute main formula
+        Color3f C1 = zr * (sigmaTr + 1/distanceR);
+        Color3f C2 = zv * (sigmaTr + 1/distanceV);
+
+        Color3f m2 = C1 * exp(-sigmaTr * distanceR) / Math::pow2(distanceR) + C2 * exp(-sigmaTr * distanceV) / Math::pow2(distanceV);
+        Color3f result = _alpha * INV_FOURPI * m2;
+
+        return result;
+    }
+
+    Color3f impPaper_dipoleDiffusionAproximation(Point3f po, Point3f pi) const
+    {
+        // Compute isotropic phase function
+        Color3f _sigmaS = (1 - g) * sigmaS;
+        Color3f _sigmaT = _sigmaS + sigmaA;
+        Color3f _alpha = _sigmaS / _sigmaT;
+
+        // Effective transport coefficient
+        Color3f sigmaTr = sqrt(3 * sigmaA * _sigmaT);
+        
+        // Aproximation for the diffuse reflectance (fresnel)
+        float Fdr = (-1.440 / Math::pow2(eta)) + (0.710 / eta) + 0.668 + 0.0636 * eta;
+        float A = (1 + Fdr) / (1 - Fdr);    // Boundary condition for the change between refraction indexes
+
+        float r = (po - pi).norm();
+        Color3f zr = sqrt(3*(1-_alpha)) / sigmaTr;
+        Color3f zv = zr * A;
+
+        Color3f distanceR = sqrt(Math::pow2(r) + Math::pow2(zr)); 
+        Color3f distanceV = sqrt(Math::pow2(r) + Math::pow2(zv)); 
+        Color3f sigmaTrDr = sigmaTr * distanceR;
+        Color3f sigmaTrDv = sigmaTr * distanceV;
+
+        Color3f Rd = (sigmaTrDr+1) * exp(-sigmaTrDr) * zr/Math::pow3(distanceR)
+                        +
+                        (sigmaTrDv+1) * exp(-sigmaTrDv) * zv/Math::pow3(distanceV);
+
+        Color3f C1 = zr * (sigmaTr + 1/distanceR);
+
+        Color3f result = C1 * Rd * (1-Fdr) * _alpha;
+
+        return result;
+    }
+
+    Color3f dipoleDiffusionAproximation(Point3f point, Photon photon, Color3f sigmaT)
+    {
+        Color3f sigmaS = sigmaT * (1 - g);
+        Color3f sigmaA = sigmaT - sigmaS;
+
+        return dipoleDiffusionAproximation(point, photon, sigmaS, sigmaA, g, eta);
+    }
+
+
+    Color3f diffusionTermBSSRDF(const BSDFQueryRecord &bRec) const
+    {
+        Color3f Rd = impPaper_dipoleDiffusionAproximation(bRec.po, bRec.pi);
+
+        float cosWi = Math::absCos(bRec.wi, bRec.ni);
+        float cosWo = Math::cosTheta(bRec.wo);
+
+        double Ft_o = 1 - fresnel(cosWo, 1.0, eta);
+        double Ft_i = 1 - fresnel(cosWi, 1.0, eta);
+
+        // Compute the diffusion term
+        Color3f Sd = INV_PI * Ft_i * Rd * Ft_o;
+
+        return Sd;
+    }
+
     /// Return a human-readable summary
     std::string toString() const {
         return tfm::format(
@@ -132,6 +235,8 @@ public:
     EClassType getClassType() const { return EBSDF; }
 private:
     Texture *m_albedo;
+    Color3f sigmaA, sigmaS; 
+    float g, eta;
 };
 
 NORI_REGISTER_CLASS(SubsurfaceScattering, "subsurface");

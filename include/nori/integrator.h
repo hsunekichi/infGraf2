@@ -38,7 +38,7 @@ public:
     virtual ~Integrator() { }
 
     /// Perform an (optional) preprocess step
-    virtual void preprocess(const Scene *scene) { }
+    virtual void preprocess(const Scene *scene, Sampler *sampler) { }
 
     /**
      * \brief Sample the incident radiance along a ray
@@ -53,9 +53,6 @@ public:
      *    A (usually) unbiased estimate of the radiance in this direction
      */
     virtual Color3f Li(const Scene *scene, Sampler *sampler, const Ray3f &ray) const = 0;
-
-    virtual void precomputeLi(const Scene *scene, Sampler *sampler,
-            Photon &ph) const { return; }
 
     /**
      * \brief Return the type of object (i.e. Mesh/BSDF/etc.) 

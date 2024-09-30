@@ -77,34 +77,6 @@ void Scene::activate()
     cout << endl;
 }
 
-std::vector<Photon> Scene::sampleSubsurfaceScattering(Sampler *sampler) const
-{
-    std::vector<Photon> photons;
-
-    for (auto mesh : SS_meshes)
-    {
-        u_int32_t nTriangles = mesh->nTriangles();
-
-        for (u_int32_t i = 0; i < 50*nTriangles; i++)
-        {
-            float pdf;
-            Point3f p; Normal3f n; Point2f uv;
-            u_int32_t triangle_id;
-            
-            mesh->samplePosition(sampler, p, n, uv, pdf, triangle_id);
-            photons.push_back(Photon(p, pdf));
-        }
-    }
-
-    return photons;
-}
-
-void Scene::storeSubsurfacePhotons(std::vector<Photon> &photons)
-{
-    m_photons.clear();
-    m_photons.swap(photons);
-}
-
 
 /// Sample emitter
 Emitter *Scene::sampleEmitter(Sampler* sampler, float &pdf) const

@@ -69,7 +69,7 @@ static void renderBlock(const Scene *scene, Sampler *sampler, ImageBlock &block)
 static void render(Scene* scene, const std::string& filename, bool nogui) {
     const Camera* camera = scene->getCamera();
     Vector2i outputSize = camera->getOutputSize();
-    scene->getIntegrator()->preprocess(scene);
+    scene->getIntegrator()->preprocess(scene, scene->getSampler());
 
     /* Create a block generator (i.e. a work scheduler) */
     BlockGenerator blockGenerator(outputSize, NORI_BLOCK_SIZE);
@@ -79,17 +79,6 @@ static void render(Scene* scene, const std::string& filename, bool nogui) {
     result.clear();
 
     std::cout << "Computing incoming radiance for subsurface scattering..." << std::endl;
-
-    std::vector<Photon> photons = scene->sampleSubsurfaceScattering(scene->getSampler());
-    Integrator *integrator = scene->getIntegrator();
-
-    for (Photon& photon : photons)
-    {      
-        integrator->precomputeLi(scene, scene->getSampler(), photon);
-    }
-
-    scene->storeSubsurfacePhotons(photons);
-
 
     /* Create a window that visualizes the partially rendered result */
     NoriScreen* screen = 0;

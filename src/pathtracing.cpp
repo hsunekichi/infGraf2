@@ -68,8 +68,10 @@ bool checkVisibility (const Scene *scene,
 
 
 
-Color3f Pth::nextEventEstimation(const Scene *scene, Sampler *sampler,
+Color3f Pth::nextEventEstimation(const Scene *scene, 
+                Sampler *sampler,
                 const PathState &state, 
+                Vector3f &wi,
                 bool MIS, bool applyF)
 {
     float lightPdf = 0.0f;
@@ -87,15 +89,17 @@ Color3f Pth::nextEventEstimation(const Scene *scene, Sampler *sampler,
 
     Vector3f g_wi = (lightP - state.intersection.p);
     Vector3f surface_wiNormalized = state.intersection.toLocal(g_wi).normalized();
-
+    wi = g_wi;
 
     //*********************** Sample emitter ******************************
     if (checkVisibility(scene, state, emitterMesh, g_wi))
     {
         // Evaluate bsdf
         const BSDF *bsdf = state.intersection.mesh->getBSDF();
-            BSDFQueryRecord bsdfQuery(state.intersection.toLocal(-state.ray.d), 
-                    surface_wiNormalized, ESolidAngle);
+        BSDFQueryRecord bsdfQuery(state.intersection.toLocal(-state.ray.d), 
+                surface_wiNormalized, ESolidAngle);
+        bsdfQuery.isCameraRay = state.isCameraRay;
+        
         
         Color3f f = applyF ? bsdf->eval(bsdfQuery) : Color3f(1.0f);
         float bsdfPdf = bsdf->pdf(bsdfQuery);
@@ -119,13 +123,13 @@ Color3f Pth::nextEventEstimation(const Scene *scene, Sampler *sampler,
     return Color3f(0.0f);
 }
 
-
 void Pth::sampleBSDF(const Scene *scene, Sampler *sampler, PathState &state, float &pdf)
 {
     Vector3f wi = state.intersection.toLocal(-state.ray.d).normalized();
 
     // Render non diffuse BSDF
     BSDFQueryRecord bsdfQuery(wi);
+    bsdfQuery.isCameraRay = state.isCameraRay;
 
     Color3f f = state.intersection.mesh->getBSDF()->sample(bsdfQuery, sampler);
     pdf = state.intersection.mesh->getBSDF()->pdf(bsdfQuery);
@@ -137,6 +141,32 @@ void Pth::sampleBSDF(const Scene *scene, Sampler *sampler, PathState &state, flo
     state.scatteringFactor *= f;
     state.ray = newRay;
 }
+
+std::vector<Photon> Pth::generateSubsurfaceSamples(const Scene *scene, Sampler *sampler)
+{
+    std::vector<Photon> photons;
+
+    auto SS_meshes = scene->getSSMeshes();
+
+    for (auto mesh : SS_meshes)
+    {
+        u_int32_t nTriangles = mesh->nTriangles();
+
+        for (u_int32_t i = 0; i < nTriangles; i++)
+        {
+            float pdf;
+            Point3f p; Normal3f n; Point2f uv;
+            u_int32_t triangle_id;
+            
+            mesh->samplePosition(sampler, p, n, uv, pdf, triangle_id);
+            photons.push_back(Photon(p, pdf));
+        }
+    }
+
+    return photons;
+}
+
+
 
 
 

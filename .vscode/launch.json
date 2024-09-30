@@ -8,7 +8,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/nori",
-            "args": ["${workspaceFolder}/scenes/ajax/ajax-gold.xml"],
+            "args": ["${workspaceFolder}/scenes/bunny/bunny.xml"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
