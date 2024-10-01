@@ -1,7 +1,7 @@
 <scene>
 	<!-- Independent sample generator, 64 samples per pixel -->
 	<sampler type="independent">
-		<integer name="sampleCount" value="4"/>
+		<integer name="sampleCount" value="8"/>
 	</sampler>
 
 	<!-- Use the simple point light integrator -->

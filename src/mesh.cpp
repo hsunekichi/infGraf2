@@ -44,11 +44,18 @@ void Mesh::activate() {
             NoriObjectFactory::createInstance("diffuse", PropertyList()));
     }
 
+    meshArea = 0.0f;
+
+    for (Eigen::Index i = 0; i < m_F.cols(); ++i)
+        meshArea += surfaceArea(i);
+
+    std::cout << "Mesh triangles: " << m_F.cols() << ", area: " << meshArea << std::endl;
+
     // Build triangle distribution
     m_pdf.clear();
     m_pdf.reserve(m_F.cols());
     for (uint32_t i = 0; i < m_F.cols(); ++i) {
-        m_pdf.append(surfaceArea(i));
+        m_pdf.append(surfaceArea(i) / meshArea);
     }
 
     m_pdf.normalize();
@@ -118,7 +125,7 @@ void Mesh::samplePosition(Sampler *sampler, Point3f &p,
     p = uvTo3D(triangleIndex, Point2f(alpha, beta));
 
     // Compute the PDF
-    pdf = trianglePdf / surfaceArea(triangleIndex);
+    pdf = 1.0f / meshArea;
 }
 
 void Mesh::samplePositions(Sampler *sampler, 

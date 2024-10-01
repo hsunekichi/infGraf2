@@ -57,10 +57,15 @@ public:
 
             Color3f contributions = Color3f(0.0f);
             
+            int N_SAMPLES = 1000;
+            float photonPdf = 1.0f / photons.size();
             
-            
-            for (const auto &photon : photons)
+            for (int i = 0; i < N_SAMPLES; i++)
             {   
+                // Choose random photon
+                int randomPhoton = sampler->next1D() * photons.size();
+                auto photon = photons[randomPhoton % photons.size()];
+
                 if (photon.radiance == Color3f(0.0f))
                     continue;
 
@@ -72,25 +77,12 @@ public:
 
                 contributions += radiance;
             }
-            
-            /*
-            // Choose random photon
-            int randomPhoton = sampler->next1D() * photons.size();
-            auto photon = photons[randomPhoton % photons.size()];
-            
-            if (photon.radiance != Color3f(0.0f))
-            {
-                bsdfQuery.pi = photon.p;
-                bsdfQuery.ni = intersection.toLocal(photon.n);
-                bsdfQuery.wi = intersection.toLocal(photon.d);
-                Color3f f = intersection.mesh->getBSDF()->eval(bsdfQuery);
-                Color3f radiance = photon.radiance * f;
 
-                contributions += radiance;
-            }
-            */
+            contributions = contributions / N_SAMPLES;
+            
+          
 
-            return contributions / photons.size();
+            return contributions;
         }
     }
 
@@ -186,7 +178,6 @@ public:
         
         Vector3f wi;
         Color3f direct = Pth::nextEventEstimation(scene, sampler, state, wi, false, false);
-
 
         ph.d = wi.normalized();
         ph.radiance = direct / ph.pdf; 

@@ -124,6 +124,7 @@ public:
     Color3f dipoleDiffusionAproximation(float r) const
     {
         float eta = etaT;
+        float r2 = Math::pow2(r);
 
         // Compute isotropic phase function
         Color3f _sigmaS = (1 - g) * sigmaS;
@@ -139,10 +140,10 @@ public:
 
         Color3f lu = 1 / _sigmaT;
         Color3f zr = lu;
-        Color3f zv = lu * (1.0f + 4.0f/3.0f * A);
+        Color3f zv = -lu * (1.0f + (4.0f/3.0f) * A); // Negative because it is inside the surface
 
-        Color3f dr = Math::sqrt(Math::pow2(r) + Math::pow2(zr)); 
-        Color3f dv = Math::sqrt(Math::pow2(r) + Math::pow2(zv)); 
+        Color3f dr = Math::sqrt(r2 + Math::pow2(zr)); 
+        Color3f dv = Math::sqrt(r2 + Math::pow2(zv)); 
 
         Color3f sigmaTrDr = sigmaTr * dr;
         Color3f sigmaTrDv = sigmaTr * dv;
@@ -152,41 +153,6 @@ public:
         Color3f C2 = zv * (1 + sigmaTrDv) * Math::exp(-sigmaTrDv) / Math::pow3(dv);
 
         Color3f result = _alpha * INV_FOURPI * (C1 - C2);
-
-        return result;
-    }
-
-    Color3f impPaper_dipoleDiffusionAproximation(float r) const
-    {
-        float eta = etaT;
-
-        // Compute isotropic phase function
-        Color3f _sigmaS = (1 - g) * sigmaS;
-        Color3f _sigmaT = _sigmaS + sigmaA;
-        Color3f _alpha = _sigmaS / _sigmaT;
-
-        // Effective transport coefficient
-        Color3f sigmaTr = Math::sqrt(3 * sigmaA * _sigmaT);
-        
-        // Aproximation for the diffuse reflectance (fresnel)
-        float Fdr = (-1.440 / Math::pow2(eta)) + (0.710 / eta) + 0.668 + 0.0636 * eta;
-        float A = (1 + Fdr) / (1 - Fdr);    // Boundary condition for the change between refraction indexes
-
-        Color3f zr = sqrt(3*(1-_alpha)) / sigmaTr;
-        Color3f zv = zr * A;
-
-        Color3f distanceR = sqrt(Math::pow2(r) + Math::pow2(zr)); 
-        Color3f distanceV = sqrt(Math::pow2(r) + Math::pow2(zv)); 
-        Color3f sigmaTrDr = sigmaTr * distanceR;
-        Color3f sigmaTrDv = sigmaTr * distanceV;
-
-        Color3f Rd = (sigmaTrDr+1) * exp(-sigmaTrDr) * zr/Math::pow3(distanceR)
-                        +
-                        (sigmaTrDv+1) * exp(-sigmaTrDv) * zv/Math::pow3(distanceV);
-
-        Color3f C1 = zr * (sigmaTr + 1/distanceR);
-
-        Color3f result = C1 * Rd * (1-Fdr) * _alpha;
 
         return result;
     }
@@ -212,6 +178,76 @@ public:
 
         return Sd;
     } 
+
+    double Fdr() const {
+        const double eta = etaT;
+        const double eta2 = eta * eta;
+        const double eta3 = eta2 * eta;
+        if (eta >= 1.0) {
+            return -1.4399 / eta2 + 0.7099 / eta + 0.6681 +
+                    0.0636 * eta;
+        } else {
+            return -0.4399 + 0.7099 / eta - 0.3319 / eta2 +
+                    0.0636 / eta3;
+        }
+    }
+
+    double C1() const {
+        const double eta = etaT;
+        const double eta2 = eta * eta;
+        const double eta3 = eta2 * eta;
+        const double eta4 = eta3 * eta;
+        const double eta5 = eta4 * eta;
+        if (eta < 1.0) {
+            return (0.919317 - 3.4793 * eta + 6.75335 * eta2
+                    -7.80989 * eta3 + 4.98554 * eta4 - 1.36881 * eta5) / 2.0;
+        } else {
+            return (-9.23372 + 22.2272 * eta - 20.9292 * eta2 + 10.2291 * eta3
+                    - 2.54396 * eta4 + 0.254913 * eta5) / 2.0;
+        }
+    }
+
+    double C2() const {
+        const double eta = etaT;
+        const double eta2 = eta * eta;
+        const double eta3 = eta2 * eta;
+        const double eta4 = eta3 * eta;
+        const double eta5 = eta4 * eta;
+        if (eta < 1.0) {
+            return (0.828421 - 2.62051 * eta + 3.36231 * eta2 - 1.95284 * eta3
+                    + 0.236494 * eta4 + 0.145787 * eta5) / 3.0;
+        } else {
+            return (-1641.1 + 135.926 / eta3 - 656.175 / eta2 + 1376.53 / eta
+                    + 1213.67 * eta - 568.556 * eta2 + 164.798 * eta3
+                    - 27.0181 * eta4 + 1.91826 * eta5) / 3.0;
+        }
+    }
+
+    Color3f betterAlternative (float r) const
+    {
+        Color3f sigmap_s = (1 - g) * sigmaS;
+        Color3f sigmap_t = sigmap_s + sigmaA;
+        Color3f alphap = sigmap_s / sigmap_t;
+        float A = (1.0 + 3.0 * C2()) / (1.0 - 2.0 * C1());
+        Color3f D = (2.0 * sigmaA + sigmap_s) / (3.0 * sigmap_t * sigmap_t);
+        Color3f sigma_tr = Math::sqrt(sigmaA / D);
+        Color3f zr = 1.0 / sigmap_t;
+        Color3f zb = 2.0 * A * D;
+        Color3f zv = -zr - 2.0 * zb;
+        Color3f Cphi = 0.25 * (1.0 - 2.0 * C1());
+        Color3f CE   = 0.50 * (1.0 - 3.0 * C2());
+
+        const double r2 = r * r;
+        const Color3f dr = Math::sqrt(r2 + zr * zr);
+        const Color3f dv = Math::sqrt(r2 + zv * zv);
+        const Color3f ar = zr * (sigma_tr * dr + 1.0) / (dr * dr);
+        const Color3f av = zv * (sigma_tr * dv + 1.0) / (dv * dv);
+        const Color3f br = Math::exp(-sigma_tr * dr) / dr;
+        const Color3f bv = Math::exp(-sigma_tr * dv) / dv;
+        return (alphap * alphap / (4.0 * M_PI)) *
+               ((CE * ar + Cphi / D) * br -
+                (CE * av + Cphi / D) * bv);
+    }
     
 
     /// Return a human-readable summary
