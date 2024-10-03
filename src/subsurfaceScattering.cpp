@@ -37,17 +37,11 @@ public:
     {
         m_albedo = new ConstantSpectrumTexture(propList.getColor("albedo", Color3f(0.5f)));
 
-        Color3f kd = propList.getColor("kd", Color3f(-1.0f));
-        if (kd != Color3f(-1.0f))
-        {
-            delete m_albedo;
-            m_albedo = new ConstantSpectrumTexture(kd);
-        }
-
         sigmaA = propList.getColor("sigmaA", Color3f(0.0f));
         sigmaS = propList.getColor("sigmaS", Color3f(0.0f));
         Color3f sigmaT = propList.getColor("sigmaT", Color3f(-1.0f));
-
+        
+        scale = propList.getFloat("scale", 1.0f);
         g = propList.getFloat("g", 0.0f);
         etaT = propList.getFloat("eta", 1.0f);
 
@@ -70,7 +64,7 @@ public:
         }
         else
         {
-            return computeMultipleScattering(bRec);
+            return computeMultipleScattering(bRec) * scale * m_albedo->eval(bRec.uv);
         }
     }
 
@@ -109,7 +103,7 @@ public:
 
         /* eval() / pdf() * cos(theta) = albedo. There
            is no need to call these functions. */
-        return m_albedo->eval(bRec.uv);
+        return eval(bRec);
     }
 
     bool isSubsurfaceScattering() const {
@@ -163,7 +157,7 @@ public:
         float r = (bRec.po - bRec.pi).norm();
         float eta = etaT;
 
-        Color3f Rd = dipoleDiffusionAproximation(r);
+        Color3f Rd = betterAlternative(r);
 
         float cosWi = Math::absCos(bRec.wi, bRec.ni);
         float cosWo = Math::cosTheta(bRec.wo);
@@ -282,7 +276,7 @@ public:
 private:
     Texture *m_albedo;
     Color3f sigmaA, sigmaS; 
-    float g, etaT;
+    float g, etaT, scale;
 };
 
 NORI_REGISTER_CLASS(SubsurfaceScattering, "subsurface");

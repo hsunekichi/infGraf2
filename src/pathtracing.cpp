@@ -99,6 +99,7 @@ Color3f Pth::nextEventEstimation(const Scene *scene,
         BSDFQueryRecord bsdfQuery(state.intersection.toLocal(-state.ray.d), 
                 surface_wiNormalized, ESolidAngle);
         bsdfQuery.isCameraRay = state.isCameraRay;
+        bsdfQuery.uv = state.intersection.uv;
         
         
         Color3f f = applyF ? bsdf->eval(bsdfQuery) : Color3f(1.0f);
@@ -152,7 +153,7 @@ std::vector<Photon> Pth::generateSubsurfaceSamples(const Scene *scene, Sampler *
     {
         u_int32_t nTriangles = mesh->nTriangles();
 
-        for (u_int32_t i = 0; i < nTriangles; i++)
+        for (u_int32_t i = 0; i < nTriangles/10; i++)
         {
             float pdf;
             Point3f p; Normal3f n; Point2f uv;

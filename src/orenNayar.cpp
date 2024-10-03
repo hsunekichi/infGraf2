@@ -16,7 +16,7 @@ public:
     OrenNayar(const PropertyList &propList) 
     {
         sigma = propList.getFloat("roughness", 0.1f);
-        sigma = Math::toRadians(sigma);
+        sigma = sigma / SQRT_TWO;
 
         Kd = propList.getColor("kd", Color3f(0.5f));
         
