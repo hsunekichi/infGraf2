@@ -67,7 +67,9 @@ float Mesh::surfaceArea(n_UINT index) const
 
     const Point3f p0 = m_V.col(i0), p1 = m_V.col(i1), p2 = m_V.col(i2);
 
-    return 0.5f * Vector3f((p1 - p0).cross(p2 - p0)).norm();
+    float area = 0.5f * ((p1 - p0).cross(p2 - p0)).norm();
+
+    return area;
 }
 
 
@@ -112,17 +114,13 @@ void Mesh::samplePosition(Sampler *sampler, Point3f &p,
     uint32_t triangleIndex = sampleTriangle(sampler, trianglePdf);
     triangleId = triangleIndex;
 
-    float s1 = sampler->next1D();
-    float s2 = sampler->next1D();
-
-    float alpha = 1 - sqrt(1 - s1);
-    float beta = s2 * sqrt(1 - s1);
+    Point2f sample = Warp::squareToUniformTriangle(sampler->next2D());
 
     // Compute the normal at the sampled point
-    n = getNormal(triangleIndex, Point2f(alpha, beta));
+    n = getNormal(triangleIndex, sample);
 
     // Compute the position
-    p = uvTo3D(triangleIndex, Point2f(alpha, beta));
+    p = uvTo3D(triangleIndex, sample);
 
     // Compute the PDF
     pdf = 1.0f / meshArea;
