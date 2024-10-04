@@ -153,7 +153,7 @@ std::vector<Photon> Pth::generateSubsurfaceSamples(const Scene *scene, Sampler *
     {
         u_int32_t nTriangles = mesh->nTriangles();
 
-        for (u_int32_t i = 0; i < 10*nTriangles; i++)
+        for (u_int32_t i = 0; i < nTriangles / 100; i++)
         {
             float pdf;
             Point3f p; Normal3f n; Point2f uv;

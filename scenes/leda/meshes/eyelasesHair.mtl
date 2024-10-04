@@ -1,10 +1,10 @@
 # Blender MTL File: 'character.blend'
 # Material Count: 1
 
-newmtl EyebrowsHair
+newmtl eyelashesHair
 Ns 250.000000
 Ka 1.000000 1.000000 1.000000
-Kd 0.229838 0.134117 0.088607
+Kd 0.076467 0.066887 0.042512
 Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
 Ni 1.450000

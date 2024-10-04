@@ -78,7 +78,7 @@ public:
                 contributions += radiance;
             }
 
-            contributions = contributions / N_SAMPLES;
+            contributions = contributions / (N_SAMPLES * photonPdf);
             
           
 
