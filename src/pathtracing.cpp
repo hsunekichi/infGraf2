@@ -160,7 +160,7 @@ std::vector<Photon> Pth::generateSubsurfaceSamples(const Scene *scene, Sampler *
             u_int32_t triangle_id;
             
             mesh->samplePosition(sampler, p, n, uv, pdf, triangle_id);
-            photons.push_back(Photon(p, pdf));
+            photons.push_back(Photon(p, pdf, mesh));
         }
     }
 

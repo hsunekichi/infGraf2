@@ -34,8 +34,9 @@ struct Photon
     Vector3f d; Normal3f n;
     float pdf, cosWi = 0.0f;
     Color3f radiance;
+    Mesh *mesh = nullptr;
 
-    Photon (const Point3f &p, float pdf) : p(p), pdf(pdf), radiance(0.0f) {}
+    Photon (const Point3f &p, float pdf, Mesh *mesh) : p(p), pdf(pdf), mesh(mesh), radiance(0.0f) {}
 };
 
 

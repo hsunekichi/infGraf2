@@ -57,16 +57,17 @@ public:
 
             Color3f contributions = Color3f(0.0f);
             
-            int N_SAMPLES = 1000;
-            float photonPdf = 1.0f / photons.size();
+            //int N_SAMPLES = 1000;
+            //float photonPdf = 1.0f / photons.size();
             
-            for (int i = 0; i < N_SAMPLES; i++)
+            for (auto photon : photons)
             {   
                 // Choose random photon
-                int randomPhoton = sampler->next1D() * photons.size();
-                auto photon = photons[randomPhoton % photons.size()];
+                //int randomPhoton = sampler->next1D() * photons.size();
+                //auto photon = photons[randomPhoton % photons.size()];
 
-                if (photon.radiance == Color3f(0.0f))
+                if (photon.radiance == Color3f(0.0f)
+                    || photon.mesh != intersection.mesh)
                     continue;
 
                 bsdfQuery.pi = photon.p;
@@ -78,7 +79,7 @@ public:
                 contributions += radiance;
             }
 
-            contributions = contributions / (N_SAMPLES * photonPdf);
+            contributions = contributions / photons.size();
             
           
 

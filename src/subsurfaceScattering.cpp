@@ -64,7 +64,7 @@ public:
         }
         else
         {
-            return computeMultipleScattering(bRec) * scale * m_albedo->eval(bRec.uv);
+            return computeMultipleScattering(bRec) * scale * m_albedo->eval(bRec.uv) * Math::absCosTheta (bRec.wo);
         }
     }
 

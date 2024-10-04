@@ -204,6 +204,8 @@ public:
      * */
     EClassType getClassType() const { return EMesh; }
 
+    float meshArea() const { return _meshArea; }
+
 protected:
     /// Create an empty mesh
     Mesh();
@@ -219,7 +221,7 @@ protected:
     BoundingBox3f m_bbox;                ///< Bounding box of the mesh
     DiscretePDF  m_pdf;                  ///< Discrete pdf for sampling triangles uniformly wrt their area. 
 
-    float meshArea = 0.0f;
+    float _meshArea = 0.0f;
 };
 
 NORI_NAMESPACE_END
