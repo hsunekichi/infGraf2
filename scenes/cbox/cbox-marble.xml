@@ -45,11 +45,8 @@
 	<mesh type="obj">
 		<string name="filename" value="meshes/sphere1.obj"/>
 
-		<bsdf type="GGX">
-            <color name="internIOR" value="0.27105 0.67693 1.3164"/>
-			<color name="K" value="3.6092 2.6247 2.2921"/>
-            <color name="kd" value="0.9921 0.9647 0.549"/>
-            <float name="roughness" value="0.1"/>
+		<bsdf type="diffuse">
+			<color name="albedo" value="0.83 0.79 0.75"/>
 		</bsdf>
 
 	</mesh>
@@ -63,7 +60,6 @@
 			<color name="sigmaS" value="2.19 2.62 3.00"/>
 			<float name="g" value="0.85"/>
 			<float name="eta" value="1.5"/>
-			<float name="scale" value="0.001"/>
 		</bsdf>
 	</mesh>
 

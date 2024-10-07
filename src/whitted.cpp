@@ -123,7 +123,7 @@ public:
         Color3f direct = Pth::nextEventEstimation(scene, sampler, state, wi, false, false);
 
         ph.d = wi.normalized();
-        ph.radiance = direct / ph.pdf; 
+        ph.radiance = direct; 
         ph.n = intersection.shFrame.n;
     }
 

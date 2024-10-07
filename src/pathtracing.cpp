@@ -152,7 +152,7 @@ std::vector<Photon> Pth::generateSubsurfaceSamples(const Scene *scene, Sampler *
     {
         u_int32_t nTriangles = mesh->nTriangles();
 
-        for (u_int32_t i = 0; i < nTriangles; i++)
+        for (u_int32_t i = 0; i < nTriangles/10; i++)
         {
             float pdf;
             Point3f p; Normal3f n; Point2f uv;
@@ -185,28 +185,33 @@ void Pth::integrateSubsurface(const Scene *scene,
     
     int N_SAMPLES = 100;
     float photonPdf = 1.0f / photons.size();
+    int taken = 0;
+
     
-    for (int i = 0; i < N_SAMPLES; i++)
+    for (auto &photon : photons)
     {   
         // Choose random photon
-        int randomPhoton = sampler->next1D() * photons.size();
-        auto photon = photons[randomPhoton % photons.size()];
+        //int randomPhoton = sampler->next1D() * photons.size();
+        //auto photon = photons[randomPhoton % photons.size()];
 
         if (photon.radiance == Color3f(0.0f)
             || photon.mesh != state.intersection.mesh)
+            //|| (photon.p - state.intersection.p).norm() > 1.0f)
             continue;
 
         bsdfQuery.pi = photon.p;
         bsdfQuery.ni = state.intersection.toLocal(photon.n);
         bsdfQuery.wi = state.intersection.toLocal(photon.d);
         Color3f f = SSS.eval(bsdfQuery);
-        Color3f radiance = photon.radiance * f;
+        Color3f radiance = photon.radiance;
 
-        contributions += radiance;
+        contributions += radiance * f;
+        taken++;
     }
 
-    contributions = contributions / (N_SAMPLES * photonPdf);            
-    
+    contributions = contributions / (taken > 0 ? taken : 1);           
+    //contributions *= state.intersection.mesh->meshArea();
+
     state.radiance += contributions;
 }
 

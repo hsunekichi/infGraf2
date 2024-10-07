@@ -50,6 +50,10 @@ public:
             sigmaS = sigmaT * (1 - g);
             sigmaA = sigmaT - sigmaS;
         }
+
+        // Move mm^-1 to m^-1
+        sigmaA = sigmaA * 1.0f;
+        sigmaS = sigmaS * 1.0f;
     }
 
     /// Evaluate the BRDF model
@@ -72,9 +76,8 @@ public:
             return Color3f(0.0f);
 
         return computeMultipleScattering(bRec) 
-                * m_albedo->eval(bRec.uv) 
-                * Math::absCosTheta (bRec.wo)
-                * scale;
+                * m_albedo->eval(bRec.uv)
+                * Math::absCosTheta(bRec.wo);
     }
   
 
@@ -131,7 +134,7 @@ public:
         float r2 = Math::pow2(r);
 
         // Compute isotropic phase function
-        Color3f _sigmaS = (1 - g) * sigmaS;
+        Color3f _sigmaS = sigmaS;
         Color3f _sigmaT = _sigmaS + sigmaA;
         Color3f _alpha = _sigmaS / _sigmaT;
 
@@ -167,7 +170,8 @@ public:
         float r = (bRec.po - bRec.pi).norm();
         float eta = etaT;
 
-        Color3f Rd = betterAlternative(r);
+        Color3f Rd = dipoleDiffusionAproximation(r);
+        //std::cout << Rd.toString() + ", " + std::to_string(r) << std::endl;
 
         float cosWi = Math::absCos(bRec.wi, bRec.ni);
         float cosWo = Math::cosTheta(bRec.wo);
@@ -229,7 +233,7 @@ public:
 
     Color3f betterAlternative (float r) const
     {
-        Color3f sigmap_s = (1 - g) * sigmaS;
+        Color3f sigmap_s = sigmaS;
         Color3f sigmap_t = sigmap_s + sigmaA;
         Color3f alphap = sigmap_s / sigmap_t;
         float A = (1.0 + 3.0 * C2()) / (1.0 - 2.0 * C1());
