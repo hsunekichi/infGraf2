@@ -19,7 +19,6 @@ struct PathState
 
     Ray3f ray;
     int depth = 0;
-    bool isCameraRay = true;
 
     Color3f radiance = Color3f(0.0f);
     Color3f scatteringFactor = Color3f(1.0f);
@@ -28,6 +27,9 @@ struct PathState
 
 struct Pth
 {
+
+enum IntegrationType {EMITTER, DIFFUSE, SPECULAR, SUBSURFACE, NONE};
+
 
 static Color3f sampleRandomEmitter(const Scene *scene, Sampler *sampler, 
             const Point3f &surfaceP,
@@ -52,6 +54,13 @@ static Color3f nextEventEstimation(const Scene *scene, Sampler *sampler,
 
 static void sampleBSDF(const Scene *scene, Sampler *sampler,
             PathState &state, float &bsdfPdf);
+
+static IntegrationType getIntegrationType(const PathState &mesh); 
+
+
+static void integrateSubsurface(const Scene *scene,
+                const std::vector<Photon> &photons, 
+                Sampler *sampler, PathState &state);
 
 };
 

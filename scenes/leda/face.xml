@@ -1,0 +1,88 @@
+<?xml version="1.0" ?>
+<scene>
+	<integrator type="whitted"/>
+	<sampler type="independent">
+		<integer name="sampleCount" value="4"/>
+	</sampler>
+	<camera type="perspective">
+		<float name="fov" value="28.8415461278532"/>
+		<float name="nearClip" value="0.20000149011612"/>
+		<float name="farClip" value="2.0"/>
+		<integer name="width" value="700"/>
+		<integer name="height" value="900"/>
+		<transform name="toWorld">
+			<scale value="-1.000000 1.000000 -1.000000"/>
+			<matrix value="1.0,0.0,0.0,-0.001551799476146698,0.0,-4.371138828673793e-08,-1.0,-2.178997039794922,0.0,1.0,-4.371138828673793e-08,4.582374572753906,0.0,0.0,0.0,1.0"/>
+		</transform>
+	</camera>
+	<emitter type="pointlight">
+		<point name="position" value="-2.635149,-3.916426,3.125028"/>
+		<color name="radiance" value="149.500000,149.500000,149.500000"/>
+	</emitter>
+	<emitter type="pointlight">
+		<point name="position" value="2.410224,4.000275,2.715837"/>
+		<color name="radiance" value="84.699989,84.699989,84.699989"/>
+	</emitter>
+	<mesh type="obj">
+		<string name="filename" value="meshes/option1_hair_Hair.obj"/>
+		<bsdf type="subsurface">   <!-- Hair properties -->
+			<color name="sigmaA" value="0.032 0.17 0.48"/>
+			<color name="sigmaS" value="0.74 0.88 1.01"/>
+			<float name="g" value="0.85"/>
+			<float name="eta" value="1.3"/>
+			<color name="albedo" value="0.8 0.6518 0.1824"/>
+			<float name="scale" value="1"/>
+		</bsdf>
+	</mesh>
+	<mesh type="obj">
+		<string name="filename" value="meshes/option1_head_Skin.obj"/>
+		<bsdf type="subsurface">   <!-- Skin properties -->
+			<color name="sigmaA" value="0.032 0.17 0.48"/>
+			<color name="sigmaS" value="0.74 0.88 1.01"/>
+			<float name="g" value="0.85"/>
+			<float name="eta" value="1.3"/>
+			<color name="albedo" value="1 0.674 0.372"/>
+			<float name="scale" value="1"/>
+		</bsdf>
+	</mesh>
+	<mesh type="obj">
+		<string name="filename" value="meshes/option1_hair_eyebrows_Hair.obj"/>
+		<bsdf type="subsurface">   <!-- Hair properties -->
+			<color name="sigmaA" value="0.032 0.17 0.48"/>
+			<color name="sigmaS" value="0.74 0.88 1.01"/>
+			<float name="g" value="0.85"/>
+			<float name="eta" value="1.3"/>
+			<color name="albedo" value="0.8 0.6518 0.1824"/>
+			<float name="scale" value="1"/>
+		</bsdf>
+	</mesh>
+	<mesh type="obj">
+		<string name="filename" value="meshes/option1_hair_eyelashes_Hair.obj"/>
+		<bsdf type="subsurface">   <!-- Hair properties -->
+			<color name="sigmaA" value="0.032 0.17 0.48"/>
+			<color name="sigmaS" value="0.74 0.88 1.01"/>
+			<float name="g" value="0.85"/>
+			<float name="eta" value="1.3"/>
+			<color name="albedo" value="0.8 0.6518 0.1824"/>
+			<float name="scale" value="1"/>
+		</bsdf>
+	</mesh>
+	<mesh type="obj">
+		<string name="filename" value="meshes/option1_eyes_Eyes.obj"/>
+		<bsdf type="diffuse">
+			<texture type="textmap" name="albedo">
+				<string name="filename" value="Eyes.png"/>
+				<string name="interpolation" value="Linear"/>
+				<string name="extension" value="REPEAT"/>
+				<string name="projection" value="FLAT"/>
+			</texture>
+			<float name="roughness" value="0.099924"/>
+		</bsdf>
+	</mesh>
+	<mesh type="obj">
+		<string name="filename" value="meshes/Cube_Wall.obj"/>
+		<bsdf type="diffuse">
+			<color name="albedo" value="0.200,0.200,0.200"/>
+		</bsdf>
+	</mesh>
+</scene>

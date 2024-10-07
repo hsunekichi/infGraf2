@@ -59,15 +59,23 @@ public:
         if (bRec.measure != ESolidAngle)
             return Color3f(0.0f);
 
-        if (!bRec.isCameraRay) {
+        if (!bRec.isCameraRay)
             return m_albedo->eval(bRec.uv) * INV_PI;
-        }
         else
-        {
-            return computeMultipleScattering(bRec) * scale * m_albedo->eval(bRec.uv) * Math::absCosTheta (bRec.wo);
-        }
+            return evalSubsurface(bRec);
     }
 
+    Color3f evalSubsurface(const BSDFQueryRecord &bRec) const {
+        /* This is a smooth BRDF -- return zero if the measure
+           is wrong, or when queried for illumination on the backside */
+        if (bRec.measure != ESolidAngle)
+            return Color3f(0.0f);
+
+        return computeMultipleScattering(bRec) 
+                * m_albedo->eval(bRec.uv) 
+                * Math::absCosTheta (bRec.wo)
+                * scale;
+    }
   
 
     /// Compute the density of \ref sample() wrt. solid angles
@@ -100,6 +108,8 @@ public:
 
         /* Relative index of refraction: no change */
         bRec.eta = 1.0f;
+
+        bRec.isCameraRay = false;
 
         /* eval() / pdf() * cos(theta) = albedo. There
            is no need to call these functions. */

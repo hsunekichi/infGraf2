@@ -45,6 +45,8 @@ template <typename _PointType, typename _VectorType> struct TRay {
     Scalar mint;     ///< Minimum position on the ray segment
     Scalar maxt;     ///< Maximum position on the ray segment
 
+    bool isCameraRay = false;
+
     /// Construct a new ray
     TRay() : mint(Epsilon), 
         maxt(std::numeric_limits<Scalar>::infinity()) { }
@@ -64,11 +66,13 @@ template <typename _PointType, typename _VectorType> struct TRay {
     /// Copy constructor
     TRay(const TRay &ray) 
      : o(ray.o), d(ray.d), dRcp(ray.dRcp),
-       mint(ray.mint), maxt(ray.maxt) { }
+       mint(ray.mint), maxt(ray.maxt),
+       isCameraRay (ray.isCameraRay) { }
 
     /// Copy a ray, but change the covered segment of the copy
     TRay(const TRay &ray, Scalar mint, Scalar maxt) 
-     : o(ray.o), d(ray.d), dRcp(ray.dRcp), mint(mint), maxt(maxt) { }
+     : o(ray.o), d(ray.d), dRcp(ray.dRcp), mint(mint), maxt(maxt),
+     isCameraRay (ray.isCameraRay) { }
 
     /// Update the reciprocal ray directions after changing 'd'
     void update() {

@@ -85,6 +85,8 @@ public:
         /* Relative index of refraction: no change */
         bRec.eta = 1.0f;
 
+        bRec.isCameraRay = false;
+
         /* eval() / pdf() * cos(theta) = albedo. There
            is no need to call these functions. */
         return m_albedo->eval(bRec.uv);

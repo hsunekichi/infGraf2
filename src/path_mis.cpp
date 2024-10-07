@@ -21,7 +21,15 @@ public:
 
     Path_mis(const PropertyList &props) {}
 
+    void preprocess(const Scene *scene, Sampler *sampler) 
+    {
+        photons = Pth::generateSubsurfaceSamples(scene, sampler);
 
+        for (auto &photon : photons)
+        {
+            precomputeLi(scene, sampler, photon);
+        }
+    }
 
     void integrateDiffuse(const Scene *scene, 
                 Sampler *sampler,
@@ -57,6 +65,7 @@ public:
         }
     }
 
+
     void integrateSpecular(const Scene *scene, 
                 Sampler *sampler,
                 PathState &state) const
@@ -83,29 +92,21 @@ public:
 
     void sampleIntersection(const Scene *scene, Sampler *sampler, PathState &state) const
     {
-        enum IntegrationType {EMITTER, DIFFUSE, SPECULAR, NONE};
-        IntegrationType integrationType = NONE;
+        Pth::IntegrationType integrationType = Pth::getIntegrationType(state);
 
-        /* Retrieve the emitter associated with the surface */
-        const Emitter *emitter = state.intersection.mesh->getEmitter();
-        
-        if (emitter) // Render emitter 
-            integrationType = EMITTER;
-        else if (state.intersection.mesh->getBSDF()->isDiffuse()) // Render diffuse surface
-            integrationType = DIFFUSE;
-        else // Render specular surface
-            integrationType = SPECULAR;
-        
         switch (integrationType)
         {
-            case EMITTER:
+            case Pth::EMITTER:
                 integrateEmitter(scene, sampler, state);
                 break;
-            case DIFFUSE:
+            case Pth::DIFFUSE:
                 integrateDiffuse(scene, sampler, state);
                 break;
-            case SPECULAR:
+            case Pth::SPECULAR:
                 integrateSpecular(scene, sampler, state);
+                break;
+            case Pth::SUBSURFACE:
+                Pth::integrateSubsurface(scene, photons, sampler, state);
                 break;
             default:
                 break;
@@ -128,9 +129,8 @@ public:
            
             state.intersectionComputed = false;
 
-            if (state.depth > 3)
+            if (state.depth > 3)     // Apply roussian roulette
             {
-                // Apply roussian roulette
                 float roulettePdf = 0.95f;
                 if (sampler->next1D() > roulettePdf)
                 {
@@ -161,9 +161,44 @@ public:
         return state.radiance;
     }
 
+    void precomputeLi(const Scene *scene, Sampler *sampler,
+            Photon &ph) const
+    {
+        Vector3f off (0.0f, 0.0f, 1.0f);
+        Point3f o = ph.p + Epsilon*off;
+        Ray3f ray(o, -off); 
+
+        Intersection intersection;
+        if (!scene->rayIntersect(ray, intersection))
+            return;
+
+
+        PathState state;
+        state.ray = ray;
+        state.intersection = intersection;
+        ph.n = intersection.shFrame.n;
+
+        float nesPdf = 0.5f;
+        if (sampler->next1D() < nesPdf)
+        {
+            Vector3f wi;
+            Color3f direct = Pth::nextEventEstimation(scene, sampler, state, wi, false, false);
+
+            ph.d = wi.normalized();
+            ph.radiance = direct / (ph.pdf*nesPdf); 
+        }
+        else // Compute indirect light
+        {
+
+        }
+    }
+
     std::string toString() const {
         return "Path_mis[]";
     }
+
+    protected:
+        std::vector<Photon> photons;
 };
 
 NORI_REGISTER_CLASS(Path_mis, "path_mis");

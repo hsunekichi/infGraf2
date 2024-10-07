@@ -56,12 +56,12 @@ struct Intersection {
     Intersection() : mesh(nullptr) { }
 
     /// Transform a direction vector into the local shading frame
-    Vector3f toLocal(const Vector3f &d) const {
+    inline Vector3f toLocal(const Vector3f &d) const {
         return shFrame.toLocal(d);
     }
 
     /// Transform a direction vector from local to world coordinates
-    Vector3f toWorld(const Vector3f &d) const {
+    inline Vector3f toWorld(const Vector3f &d) const {
         return shFrame.toWorld(d);
     }
 

@@ -63,6 +63,7 @@ public:
     {
         Point2f sample = sampler->next2D();
         bRec.wo = Warp::squareToCosineHemisphere(sample);
+        bRec.isCameraRay = false;
         return eval(bRec);
     }
 

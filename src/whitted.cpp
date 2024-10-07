@@ -26,130 +26,72 @@ public:
         }
     }
 
-    // Integrate a diffuse surface
-    Color3f diffuseIntegration(const Scene *scene, Sampler *sampler, const Ray3f &ray,
-                Intersection &intersection) const
-    {
-        PathState state;
-        state.ray = ray;
-        state.intersection = intersection;
 
-        return Pth::nextEventEstimation(scene, sampler, state);
-    }
-
-    Color3f subsurfaceIntegration(const Scene *scene, Sampler *sampler, const Ray3f &ray,
-                Intersection &intersection, bool precomputing) const
-    {
-        PathState state;
-        state.ray = ray;
-        state.intersection = intersection;
-
-        if (precomputing)
-        {
-            return Pth::nextEventEstimation(scene, sampler, state);
-        }
-        else
-        {
-            BSDFQueryRecord bsdfQuery(intersection.toLocal(-ray.d));
-            bsdfQuery.po = intersection.p;
-            bsdfQuery.wo = intersection.toLocal(-ray.d);
-            bsdfQuery.measure = ESolidAngle;
-
-            Color3f contributions = Color3f(0.0f);
-            
-            //int N_SAMPLES = 1000;
-            //float photonPdf = 1.0f / photons.size();
-            
-            for (auto photon : photons)
-            {   
-                // Choose random photon
-                //int randomPhoton = sampler->next1D() * photons.size();
-                //auto photon = photons[randomPhoton % photons.size()];
-
-                if (photon.radiance == Color3f(0.0f)
-                    || photon.mesh != intersection.mesh)
-                    continue;
-
-                bsdfQuery.pi = photon.p;
-                bsdfQuery.ni = intersection.toLocal(photon.n);
-                bsdfQuery.wi = intersection.toLocal(photon.d);
-                Color3f f = intersection.mesh->getBSDF()->eval(bsdfQuery);
-                Color3f radiance = photon.radiance * f;
-
-                contributions += radiance;
-            }
-
-            contributions = contributions / photons.size();
-            
-          
-
-            return contributions;
-        }
-    }
-
-    Color3f specularIntegration(const Scene *scene, Sampler *sampler, const Ray3f &ray,
-                Intersection &intersection,
-                int &depth) const
+    void specularIntegration(const Scene *scene, Sampler *sampler,
+            PathState &state) const
     {
         // Apply roussian roulette
         float roulettePdf = 1.0f;
-        if (depth > 3)
+        if (state.depth > 3)
         {
             roulettePdf = 0.95f; 
             if (sampler->next1D() > roulettePdf)
-                return Color3f(0.0f);
+                return;
         }
 
-        Vector3f wi = intersection.toLocal(-ray.d).normalized();
+        Vector3f wi = state.intersection.toLocal(-state.ray.d).normalized();
 
         // Render non diffuse BSDF
         BSDFQueryRecord bsdfQuery(wi);
-        Color3f f = intersection.mesh->getBSDF()->sample(bsdfQuery, sampler->next2D());
+        Color3f f = state.intersection.mesh->getBSDF()->sample(bsdfQuery, sampler);
 
         // Compute the new ray
-        Ray3f newRay(intersection.p, intersection.toWorld(bsdfQuery.wo), Epsilon, INFINITY);
+        Ray3f newRay(state.intersection.p, state.intersection.toWorld(bsdfQuery.wo), Epsilon, INFINITY);
+        newRay.isCameraRay = state.ray.isCameraRay;
 
-        depth++;
+        state.depth++;
+        Color3f scatteringFactor = f / roulettePdf;
 
         // Compute the contribution
-        return f * Li(scene, sampler, newRay, depth) / roulettePdf;
+        Li(scene, sampler, state);
+        state.radiance *= scatteringFactor;
+        state.depth--;
     }
 
-    Color3f Li (const Scene *scene, Sampler *sampler, const Ray3f &ray, int depth, bool precomputing=false) const
+    void Li (const Scene *scene, Sampler *sampler, PathState &state) const
     {
         /* Find the surface that is visible in the requested direction */
-        Intersection intersection;
-        if (!scene->rayIntersect(ray, intersection))
-            return Color3f(0.0f);
+        if (!scene->rayIntersect(state.ray, state.intersection))
+            return;
 
-        /* Retrieve the emitter associated with the surface */
-        const Emitter *emitter = intersection.mesh->getEmitter();
-        
-        Color3f radiance = Color3f(0.0f);
+        Pth::IntegrationType type = Pth::getIntegrationType(state);        
 
-        if (emitter != nullptr)
+        switch(type)
         {
-            // Render emitter
-            EmitterQueryRecord emitterQuery(-ray.d, EDiscrete);
-            emitterQuery.lightP = intersection.p;
-            radiance += emitter->eval(emitterQuery);
-        } 
-        else if (intersection.mesh->getBSDF()->isDiffuse() && !intersection.mesh->hasSubsurfaceScattering()) 
-        {
-            // Render diffuse surface
-            radiance += diffuseIntegration(scene, sampler, ray, intersection);
-        }
-        else if (intersection.mesh->hasSubsurfaceScattering())
-        {
-            // Render subsurface scattering
-            radiance += subsurfaceIntegration(scene, sampler, ray, intersection, precomputing);
-        }
-        else // Render specular surface
-        {
-            radiance += specularIntegration(scene, sampler, ray, intersection, depth);
-        }
+            case Pth::EMITTER:
+            {
+                // Render emitter
+                EmitterQueryRecord emitterQuery(-state.ray.d, EDiscrete);
+                emitterQuery.lightP = state.intersection.p;
+                state.radiance += state.intersection.mesh->getEmitter()->eval(emitterQuery);
+                break;
+            }
+            case Pth::DIFFUSE:
+                // Render diffuse surface
+                state.radiance += Pth::nextEventEstimation(scene, sampler, state);
+                break;
 
-        return radiance;
+            case Pth::SUBSURFACE:
+                Pth::integrateSubsurface(scene, photons, sampler, state);
+                break;
+
+            case Pth::SPECULAR:
+                specularIntegration(scene, sampler, state);
+                break;
+            
+            default:
+                break;
+        }
     }
 
     Color3f Li(const Scene *scene, Sampler *sampler, const Ray3f &ray) const 
@@ -157,7 +99,8 @@ public:
         PathState state;
         state.ray = ray;
         
-        return Li(scene, sampler, ray, 0);
+        Li(scene, sampler, state);
+        return state.radiance;
     }
 
     void precomputeLi(const Scene *scene, Sampler *sampler,
@@ -175,7 +118,6 @@ public:
         PathState state;
         state.ray = ray;
         state.intersection = intersection;
-        state.isCameraRay = false;
         
         Vector3f wi;
         Color3f direct = Pth::nextEventEstimation(scene, sampler, state, wi, false, false);

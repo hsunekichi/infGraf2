@@ -52,7 +52,7 @@ struct BSDFQueryRecord {
     /// Measure associated with the sample
     EMeasure measure;
 
-    bool isCameraRay = true;
+    bool isCameraRay = false;
 
     /// Create a new record for sampling the BSDF
     BSDFQueryRecord(const Vector3f &wi, const Vector2f &uv = Vector2f() )
@@ -140,7 +140,6 @@ public:
      * or not to store photons on a surface
      */
     virtual bool isDiffuse() const { return false; }
-
     virtual bool isSubsurfaceScattering() const { return false; }
 };
 
