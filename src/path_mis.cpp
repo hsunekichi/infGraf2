@@ -189,7 +189,13 @@ public:
         }
         else // Compute indirect light
         {
+            float bsdfPdf;
+            Pth::sampleBSDF(scene, sampler, state, bsdfPdf);
+            ph.d = state.ray.d;
+            
+            Li(scene, sampler, state);
 
+            ph.radiance = state.radiance / (ph.pdf*(1-nesPdf));
         }
     }
 
