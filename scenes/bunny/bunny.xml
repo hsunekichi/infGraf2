@@ -5,26 +5,26 @@
 		<integer name="sampleCount" value="4"/>
 	</sampler>
 	<camera type="perspective">
-		<float name="fov" value="39.597755335771296"/>
-		<float name="nearClip" value="0.10000000149011612"/>
-		<float name="farClip" value="100.0"/>
-		<integer name="width" value="1280"/>
-		<integer name="height" value="720"/>
+		<!--  3D origin, target point, and 'up' vector  -->
 		<transform name="toWorld">
-			<scale value="-1.000000 1.000000 -1.000000"/>
-			<matrix value="0.6859206557273865,-0.32401347160339355,0.6515582203865051,0.8842024207115173,0.7276763319969177,0.305420845746994,-0.6141703724861145,-1.0299887657165527,0.0,0.8953956365585327,0.44527140259742737,0.865153968334198,0.0,0.0,0.0,1.0"/>
+			<lookat target="-0.0123771, 0.0540913, -0.239922" origin="-0.0315182, 0.284011, 0.7331" up="0.00717446, 0.973206, -0.229822"/>
 		</transform>
+		<!--  Field of view: 30 degrees  -->
+		<float name="fov" value="16"/>
+		<!--  768 x 768 pixels  -->
+		<integer name="width" value="768"/>
+		<integer name="height" value="768"/>
 	</camera>
 	<emitter type="pointlight">
-		<point name="position" value="-1.804833,-3.085467,2.813730"/>
-		<color name="radiance" value="40.500000,40.500000,40.500000"/>
+		<point name="position" value="-0.44559,-0.02627,0.31995"/>
+		<color name="radiance" value="1,1,1"/>
 	</emitter>
 	<mesh type="obj">
-		<string name="filename" value="meshes/bunny_Material.001.obj"/>
+		<string name="filename" value="meshes/bunny.obj"/>
 		<bsdf type="subsurface">   <!-- Marble properties -->
 			<color name="albedo" value="0.83 0.79 0.75"/>
-			<color name="sigmaA" value="2.1 4.1 7.1"/>
-			<color name="sigmaS" value="2190 2620 3000"/>
+			<color name="sigmaA" value="0.0021 0.0041 0.0071"/>
+			<color name="sigmaS" value="2.19 2.62 3.00"/>
 			<float name="g" value="0.85"/>
 			<float name="eta" value="1.5"/>
 		</bsdf>

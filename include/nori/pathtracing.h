@@ -5,6 +5,7 @@
 #include <nori/common.h>
 #include <nori/vector.h>
 #include <nori/scene.h>
+#include <nori/kdtree.h>
 
 
 
@@ -52,15 +53,32 @@ static Color3f nextEventEstimation(const Scene *scene, Sampler *sampler,
                 Vector3f &wi,
                 bool MIS = false, bool applyF = true);
 
+static Color3f nextEventEstimationBSSRDF(const Scene *scene, Sampler *sampler,
+                const PathState &state, const Point3f &pi,
+                Vector3f &wi,
+                bool MIS = false, bool applyF = true);
+
 static void sampleBSDF(const Scene *scene, Sampler *sampler,
             PathState &state, float &bsdfPdf);
 
 static IntegrationType getIntegrationType(const PathState &mesh); 
 
 
-static void integrateSubsurface(const Scene *scene,
-                const std::vector<Photon> &photons, 
+static void integrateSubsurfacePhotons(const Scene *scene,
+                const PhotonMap &photons, 
                 Sampler *sampler, PathState &state);
+
+
+static void sampleBSSRDF(const Scene *scene, 
+                Sampler *sampler, PathState &state,
+                float &pdf);
+
+static Point3f sampleBSSRDFpoint(const Scene *scene,
+                Sampler *sampler,
+                PathState &state,
+                float &pdf);
+
+
 
 };
 

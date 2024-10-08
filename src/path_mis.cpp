@@ -7,6 +7,7 @@
 #include <nori/emitter.h>
 #include <nori/sampler.h>
 #include <nori/bsdf.h>
+#include <nori/kdtree.h>
 
 #include <nori/pathtracing.h>
 
@@ -23,12 +24,18 @@ public:
 
     void preprocess(const Scene *scene, Sampler *sampler) 
     {
-        photons = Pth::generateSubsurfaceSamples(scene, sampler);
+        auto photons = Pth::generateSubsurfaceSamples(scene, sampler);
 
         for (auto &photon : photons)
         {
             precomputeLi(scene, sampler, photon);
         }
+
+        // Remove black photons
+        photons.erase(std::remove_if(photons.begin(), photons.end(), 
+            [](const Photon &photon) { return photon.radiance == Color3f(0.0f); }), photons.end());
+
+        photonMap = PhotonMap(photons);
     }
 
     void integrateDiffuse(const Scene *scene, 
@@ -90,6 +97,15 @@ public:
         state.scatteringFactor = Color3f(0.0f);
     }
 
+    void integrateSubsurface(const Scene *scene, 
+                Sampler *sampler,
+                PathState &state) const
+    {
+        // Sample the subsurface scattering BSDF
+        float bsdfPdf;
+        Pth::sampleBSSRDF(scene, sampler, state, bsdfPdf);
+    }
+
     void sampleIntersection(const Scene *scene, Sampler *sampler, PathState &state) const
     {
         Pth::IntegrationType integrationType = Pth::getIntegrationType(state);
@@ -106,7 +122,7 @@ public:
                 integrateSpecular(scene, sampler, state);
                 break;
             case Pth::SUBSURFACE:
-                Pth::integrateSubsurface(scene, photons, sampler, state);
+                integrateSubsurface(scene, sampler, state);
                 break;
             default:
                 break;
@@ -204,7 +220,7 @@ public:
     }
 
     protected:
-        std::vector<Photon> photons;
+        PhotonMap photonMap;
 };
 
 NORI_REGISTER_CLASS(Path_mis, "path_mis");

@@ -80,6 +80,9 @@ public:
                     int nWeights,
                     float sample, float &pdf,
                     float &sampleRemapped);
+
+    static float squareToSquaredDecay(const Point2f &sample, float sigmaT);
+    static float squareToSquaredDecayPdf(const float &sample, float sigmaT);
 };
 
 NORI_NAMESPACE_END

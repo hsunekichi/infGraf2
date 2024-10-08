@@ -19,7 +19,6 @@
     along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <nori/bsdf.h>
 #include <nori/frame.h>
 #include <nori/warp.h>
 #include <nori/texture.h>
@@ -27,13 +26,14 @@
 
 NORI_NAMESPACE_BEGIN
 
+
 /**
  * \brief SubsurfaceScattering / Lambertian BRDF model
  */
-class SubsurfaceScattering : public BSDF 
+class BSSRDF : public BSDF
 {
 public:
-    SubsurfaceScattering(const PropertyList &propList) 
+    BSSRDF(const PropertyList &propList) 
     {
         m_albedo = new ConstantSpectrumTexture(propList.getColor("albedo", Color3f(0.5f)));
 
@@ -50,10 +50,6 @@ public:
             sigmaS = sigmaT * (1 - g);
             sigmaA = sigmaT - sigmaS;
         }
-
-        // Move mm^-1 to m^-1
-        sigmaA = sigmaA * 1.0f;
-        sigmaS = sigmaS * 1.0f;
     }
 
     /// Evaluate the BRDF model
@@ -63,10 +59,12 @@ public:
         if (bRec.measure != ESolidAngle)
             return Color3f(0.0f);
 
-        if (!bRec.isCameraRay)
-            return m_albedo->eval(bRec.uv) * INV_PI;
-        else
-            return evalSubsurface(bRec);
+        return evalSubsurface(bRec);
+
+        //if (!bRec.isCameraRay)
+        //    return m_albedo->eval(bRec.uv) * INV_PI;
+        //else
+        //    return evalSubsurface(bRec);
     }
 
     Color3f evalSubsurface(const BSDFQueryRecord &bRec) const {
@@ -76,8 +74,7 @@ public:
             return Color3f(0.0f);
 
         return computeMultipleScattering(bRec) 
-                * m_albedo->eval(bRec.uv)
-                * Math::absCosTheta(bRec.wo);
+                * m_albedo->eval(bRec.uv);
     }
   
 
@@ -101,22 +98,86 @@ public:
     /// Draw a a sample from the BRDF model
     Color3f sample(BSDFQueryRecord &bRec, Sampler *sampler) const 
     {
+        float pdf;
+        return sample(bRec, sampler, pdf);
+    }
+
+    Point3f projectToSurface (BSDFQueryRecord &bRec, Point3f p) const
+    {
+        const Scene *scene = bRec.scene;
+
+        Ray3f rayUp(p, bRec.frame.n, Epsilon, INFINITY);
+        Ray3f rayDown(p, -bRec.frame.n, Epsilon, INFINITY);
+
+        Intersection itsUp, itsDown;
+        bool intersectsUp = scene->rayIntersect(rayUp, itsUp, true) && itsUp.mesh == bRec.mesh;
+        bool intersectsDown = scene->rayIntersect(rayDown, itsDown, true) && itsDown.mesh == bRec.mesh;
+
+        if (!intersectsUp && !intersectsDown)
+            return p;
+
+        Vector3f castDirection;
+        float tmin = std::min(itsUp.t, itsDown.t);
+
+        if (intersectsUp && tmin == itsUp.t) {
+            castDirection = bRec.frame.n;
+        }
+        else if (intersectsDown) {
+            castDirection = -bRec.frame.n;
+        }
+
+        Point3f casted = p + castDirection * tmin;
+
+        return casted;
+    }
+
+    void samplePoint(BSDFQueryRecord &bRec, Sampler *sampler, float &pdf) const
+    {
+        Color3f sigmaT = sigmaA + sigmaS;
+
+        // Select random sign
+        float signX = sampler->next1D() > 0.5f ? 1.0f : -1.0f;
+        float signY = sampler->next1D() > 0.5f ? 1.0f : -1.0f;
+
+        // Select random channel
+        int channel = sampler->next1D() * 3;
+        float sigma = sigmaT[channel];
+        float channelPdf = 1.0f / 3.0f;
+
+        // Sample an offset proportional to the sigmaT
+        Point2f sample = sampler->next2D();
+        float rx = signX * Warp::squareToSquaredDecay(sample.x(), sigma);
+        float ry = signY * Warp::squareToSquaredDecay(sample.y(), sigma);
+
+        // Clamp to account for highly curved surfaces
+        rx = std::max(rx, 1.0f/sigma);
+        ry = std::max(ry, 1.0f/sigma);
+
+        // Sampled offset (in mm) to world
+        Vector3f samplingOffset = Vector3f(rx, ry, 0.0f) / 1000.0f;
+        bRec.po = bRec.pi + bRec.frame.toWorld(samplingOffset); 
+        //bRec.po = projectToSurface(bRec, bRec.po);
+
+        //std::cout << bRec.pi.toString() + ", " + bRec.po.toString() << std::endl;
+
+        // Decay pdf * sign pdf * channel pdf
+        float pdfx = Warp::squareToSquaredDecayPdf(rx, sigma) * 0.5f;
+        float pdfy = Warp::squareToSquaredDecayPdf(ry, sigma) * 0.5f;
+        pdf = pdfx * pdfy * channelPdf;
+    }
+
+    Color3f sample(BSDFQueryRecord &bRec, Sampler *sampler, float &pdf) const
+    {
         bRec.measure = ESolidAngle;
 
-        Point2f sample = sampler->next2D();
+        samplePoint(bRec, sampler, pdf);
 
-        /* Warp a uniformly distributed sample on [0,1]^2
-           to a direction on a cosine-weighted hemisphere */
-        bRec.wo = Warp::squareToCosineHemisphere(sample);
+        bRec.wo = Warp::squareToCosineHemisphere(sampler->next2D());
+        bRec.ni = Vector3f(0.0f, 0.0f, 1.0f);
+        
+        pdf *= Warp::squareToCosineHemispherePdf(bRec.wo);
 
-        /* Relative index of refraction: no change */
-        bRec.eta = 1.0f;
-
-        bRec.isCameraRay = false;
-
-        /* eval() / pdf() * cos(theta) = albedo. There
-           is no need to call these functions. */
-        return eval(bRec);
+        return eval(bRec) * Frame::cosTheta(bRec.wo) / pdf;
     }
 
     bool isSubsurfaceScattering() const {
@@ -167,14 +228,14 @@ public:
 
     Color3f computeMultipleScattering(const BSDFQueryRecord &bRec) const
     {
-        float r = (bRec.po - bRec.pi).norm();
+        float r = (bRec.po - bRec.pi).norm() * 1000.0f;
         float eta = etaT;
 
-        Color3f Rd = dipoleDiffusionAproximation(r);
+        Color3f Rd = betterAlternative(r);
         //std::cout << Rd.toString() + ", " + std::to_string(r) << std::endl;
 
         float cosWi = Math::absCos(bRec.wi, bRec.ni);
-        float cosWo = Math::cosTheta(bRec.wo);
+        float cosWo = Math::absCosTheta(bRec.wo);
 
         double Ft_o = 1 - fresnel(cosWo, 1.0, eta);
         double Ft_i = 1 - fresnel(cosWi, 1.0, eta);
@@ -293,5 +354,5 @@ private:
     float g, etaT, scale;
 };
 
-NORI_REGISTER_CLASS(SubsurfaceScattering, "subsurface");
+NORI_REGISTER_CLASS(BSSRDF, "subsurface");
 NORI_NAMESPACE_END

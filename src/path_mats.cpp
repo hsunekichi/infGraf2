@@ -51,31 +51,32 @@ public:
         state.scatteringFactor = Color3f(0.0f);
     }
 
+    void integrateSubsurface(const Scene *scene, 
+            Sampler *sampler,
+            PathState &state) const
+    {
+        // Sample the subsurface scattering BSDF
+        float bsdfPdf;
+        Pth::sampleBSSRDF(scene, sampler, state, bsdfPdf);
+    }
+
     void sampleIntersection(const Scene *scene, Sampler *sampler, PathState &state) const
     {
-        enum IntegrationType {EMITTER, DIFFUSE, SPECULAR, NONE};
-        IntegrationType integrationType = NONE;
-
-        /* Retrieve the emitter associated with the surface */
-        const Emitter *emitter = state.intersection.mesh->getEmitter();
+        Pth::IntegrationType type = Pth::getIntegrationType(state);     
         
-        if (emitter) // Render emitter 
-            integrationType = EMITTER;
-        else if (state.intersection.mesh->getBSDF()->isDiffuse()) // Render diffuse surface
-            integrationType = DIFFUSE;
-        else // Render specular surface
-            integrationType = SPECULAR;
-        
-        switch (integrationType)
+        switch (type)
         {
-            case EMITTER:
+            case Pth::EMITTER:
                 integrateEmitter(scene, sampler, state);
                 break;
-            case DIFFUSE:
+            case Pth::DIFFUSE:
                 integrateDiffuse(scene, sampler, state);
                 break;
-            case SPECULAR:
+            case Pth::SPECULAR:
                 integrateSpecular(scene, sampler, state);
+                break;
+            case Pth::SUBSURFACE:
+                integrateSubsurface(scene, sampler, state);
                 break;
             default:
                 break;

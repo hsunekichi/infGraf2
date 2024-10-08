@@ -8,6 +8,7 @@
 #include <nori/sampler.h>
 #include <nori/bsdf.h>
 #include <nori/pathtracing.h>
+#include <nori/kdtree.h>
 
 NORI_NAMESPACE_BEGIN
 
@@ -18,12 +19,41 @@ public:
 
     void preprocess(const Scene *scene, Sampler *sampler) 
     {
-        photons = Pth::generateSubsurfaceSamples(scene, sampler);
+        /*
+        auto photons = Pth::generateSubsurfaceSamples(scene, sampler);
 
         for (auto &photon : photons)
         {
             precomputeLi(scene, sampler, photon);
         }
+
+        // Remove black photons
+        photons.erase(std::remove_if(photons.begin(), photons.end(), 
+            [](const Photon &photon) { return photon.radiance == Color3f(0.0f); }), photons.end());
+    
+        photonMap = PhotonMap(photons);
+        */
+    }
+
+    void integrateSubsurface(const Scene *scene, Sampler *sampler,
+            PathState &state) const
+    {
+        int nSamples = 32;
+
+        Color3f radiance = Color3f(0.0f);
+
+        for (int i = 0; i < nSamples; i++)
+        {
+            // Sample the subsurface scattering BSDF
+            float pointPdf;
+            Point3f pi = Pth::sampleBSSRDFpoint(scene, sampler, state, pointPdf);
+            Vector3f wi;
+
+            Color3f Li = Pth::nextEventEstimationBSSRDF(scene, sampler, state, pi, wi);
+            radiance += state.scatteringFactor * Li / pointPdf;
+        }
+
+        state.radiance += radiance / nSamples;
     }
 
 
@@ -82,7 +112,7 @@ public:
                 break;
 
             case Pth::SUBSURFACE:
-                Pth::integrateSubsurface(scene, photons, sampler, state);
+                integrateSubsurface(scene, sampler, state);
                 break;
 
             case Pth::SPECULAR:
@@ -132,7 +162,7 @@ public:
     }
 
     protected:
-        std::vector<Photon> photons;
+        PhotonMap photonMap;
 };
 
 NORI_REGISTER_CLASS(Whitted, "whitted");

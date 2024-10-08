@@ -1,7 +1,7 @@
 <scene>
 	<!-- Independent sample generator, 64 samples per pixel -->
 	<sampler type="independent">
-		<integer name="sampleCount" value="8"/>
+		<integer name="sampleCount" value="32"/>
 	</sampler>
 
 	<!-- Use the simple point light integrator -->
@@ -25,7 +25,7 @@
 		<string name="filename" value="light.obj"/>
 
 		<emitter type="area">
-            <color name="radiance" value="20 20 20"/>
+            <color name="radiance" value="10 10 10"/>
 		</emitter>
 	</mesh>
 

@@ -47,6 +47,39 @@ public:
         }
     }
 
+    void integrateSubsurface(const Scene *scene, 
+                Sampler *sampler,
+                PathState &state) const
+    {
+        // Sample the subsurface scattering BSDF
+        float pointPdf;
+        Point3f pi = Pth::sampleBSSRDFpoint(scene, sampler, state, pointPdf);
+        Vector3f wi;
+
+        Color3f Li = Pth::nextEventEstimationBSSRDF(scene, sampler, state, pi, wi);
+        state.radiance += state.scatteringFactor * Li * 0.5f / pointPdf;
+
+        // Sample the subsurface scattering BSDF
+        float bsdfPdf;
+        Pth::sampleBSSRDF(scene, sampler, state, bsdfPdf);
+
+        Point3f surfaceP = pi;
+        
+        state.intersected = scene->rayIntersect(state.ray, state.intersection);
+        state.intersectionComputed = true;
+
+        if (state.intersected && state.intersection.mesh->isEmitter())
+        {
+            const Emitter *emitter = state.intersection.mesh->getEmitter();
+
+            EmitterQueryRecord emitterQuery(surfaceP, state.intersection.p, state.intersection.toLocal(-state.ray.d), EMeasure::EDiscrete);
+            state.radiance += state.scatteringFactor * emitter->eval(emitterQuery) * 0.5f;
+            
+            // Terminate the path
+            state.scatteringFactor = Color3f(0.0f);
+        }
+    }
+
     void integrateSpecular(const Scene *scene, 
                 Sampler *sampler,
                 PathState &state) const
@@ -73,29 +106,21 @@ public:
 
     void sampleIntersection(const Scene *scene, Sampler *sampler, PathState &state) const
     {
-        enum IntegrationType {EMITTER, DIFFUSE, SPECULAR, NONE};
-        IntegrationType integrationType = NONE;
-
-        /* Retrieve the emitter associated with the surface */
-        const Emitter *emitter = state.intersection.mesh->getEmitter();
-        
-        if (emitter) // Render emitter 
-            integrationType = EMITTER;
-        else if (state.intersection.mesh->getBSDF()->isDiffuse()) // Render diffuse surface
-            integrationType = DIFFUSE;
-        else // Render specular surface
-            integrationType = SPECULAR;
+        Pth::IntegrationType integrationType = Pth::getIntegrationType(state);
         
         switch (integrationType)
         {
-            case EMITTER:
+            case Pth::EMITTER:
                 integrateEmitter(scene, sampler, state);
                 break;
-            case DIFFUSE:
+            case Pth::DIFFUSE:
                 integrateDiffuse(scene, sampler, state);
                 break;
-            case SPECULAR:
+            case Pth::SPECULAR:
                 integrateSpecular(scene, sampler, state);
+                break;
+            case Pth::SUBSURFACE:
+                integrateSubsurface(scene, sampler, state);
                 break;
             default:
                 break;

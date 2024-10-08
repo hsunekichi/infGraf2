@@ -34,6 +34,7 @@ public:
         EScene = 0,
         EMesh,
         EBSDF,
+        EBSSRDF,
         ETexture,
         EPhaseFunction,
         EEmitter,

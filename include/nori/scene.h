@@ -32,7 +32,7 @@ struct Photon
 {
     Point3f p;
     Vector3f d; Normal3f n;
-    float pdf, cosWi = 0.0f;
+    float pdf;
     
     Mesh *mesh = nullptr;
     Color3f radiance = Color3f(0.0f);
@@ -109,8 +109,8 @@ public:
      *
      * \return \c true if an intersection was found
      */
-    bool rayIntersect(const Ray3f &ray, Intersection &its) const {
-        return m_accel->rayIntersect(ray, its, false);
+    bool rayIntersect(const Ray3f &ray, Intersection &its, bool isShadowRay=false) const {
+        return m_accel->rayIntersect(ray, its, isShadowRay);
     }
 
     /**

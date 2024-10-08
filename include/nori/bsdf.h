@@ -24,6 +24,7 @@
 
 #include <nori/object.h>
 #include <nori/sampler.h>
+#include <nori/frame.h>
 
 NORI_NAMESPACE_BEGIN
 
@@ -44,14 +45,17 @@ struct BSDFQueryRecord {
     /// UV coordinates of the BRDF
     Vector2f uv;
 
-    // Global coordinates of the sampling points
-    Point3f po, pi;
-
-    Normal3f ni; // In the local frame
-
     /// Measure associated with the sample
     EMeasure measure;
 
+    /************* BSSRDF extension **************/
+
+    // Global coordinates of the sampling points
+    Point3f po, pi;
+    Normal3f ni; // In the local frame
+    Frame frame; 
+    const Scene *scene;
+    const Mesh *mesh;
     bool isCameraRay = false;
 
     /// Create a new record for sampling the BSDF

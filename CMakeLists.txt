@@ -68,6 +68,8 @@ add_executable(nori
   include/nori/vector.h
   include/nori/warp.h
   include/nori/pathtracing.h
+  include/nori/kdtree.h
+  include/nori/bssrdf.h
 
   # Source code files
   src/common.cpp
@@ -113,7 +115,6 @@ add_executable(nori
   src/pathtracing.cpp
   src/directWhitted.cpp
   src/depthIntegrator.cpp
-  src/subsurfaceScattering.cpp
 )
 
 add_definitions(${NANOGUI_EXTRA_DEFS})
@@ -138,6 +139,8 @@ else()
 endif()
 
 target_link_libraries(warptest tbb_static nanogui ${NANOGUI_EXTRA_LIBS})
+
+set_property(TARGET nori PROPERTY CXX_STANDARD 17)
 
 # Force colored output for the ninja generator
 if (CMAKE_GENERATOR STREQUAL "Ninja")

@@ -243,5 +243,15 @@ float Warp::squareToBeckmannPdf(const Vector3f &m, float alpha) {
     return std::exp(-tanTheta2 / (alpha * alpha)) / (M_PI * alpha * alpha * cosTheta3);
 }
 
+float Warp::squareToSquaredDecay(const Point2f &sample, float sigmaT)
+{
+    return -std::log(1 - sample.x()) / sigmaT;
+}
+
+float Warp::squareToSquaredDecayPdf(const float &sample, float sigmaT)
+{
+    return sigmaT * std::exp(-sigmaT * sample);
+}
+
 
 NORI_NAMESPACE_END

@@ -6,8 +6,8 @@ import math as Math
 def f(r):
     eta = 1.5
     r2 = r*r
-    sigmaS = 2.19
-    sigmaA = 0.0021
+    sigmaS = 2.6
+    sigmaA = 0.0041
     g = 0
 
     # Compute isotropic phase function
@@ -36,7 +36,7 @@ def f(r):
     C1 = zr * (1 + sigmaTrDr) * np.exp(-sigmaTrDr) / (dr*dr*dr)
     C2 = zv * (1 + sigmaTrDv) * np.exp(-sigmaTrDv) / (dv*dv*dv)
 
-    result = _alpha * (C1 - C2) / 4*np.pi
+    result = _alpha * (C1 - C2) / (4*np.pi)
 
     return result
 
@@ -55,6 +55,9 @@ plt.xlabel('r')
 plt.ylabel('f(r)')
 plt.title('Plot of f(r)')
 plt.legend()
+
+# plot y log
+plt.yscale('log')
 
 # Display the plot
 plt.grid(True)
