@@ -83,6 +83,9 @@ public:
 
     static float squareToSquaredDecay(const Point2f &sample, float sigmaT);
     static float squareToSquaredDecayPdf(const float &sample, float sigmaT);
+
+    static Point2f squareToSquaredDecayDisk(const Point2f &sample, float sigmaT);
+    static float squareToSquaredDecayDiskPdf(const Point2f &p, float sigmaT);
 };
 
 NORI_NAMESPACE_END

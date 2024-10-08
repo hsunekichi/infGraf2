@@ -57,7 +57,7 @@ plt.title('Plot of f(r)')
 plt.legend()
 
 # plot y log
-plt.yscale('log')
+#plt.yscale('log')
 
 # Display the plot
 plt.grid(True)

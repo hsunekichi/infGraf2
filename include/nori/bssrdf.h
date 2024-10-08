@@ -135,35 +135,23 @@ public:
     {
         Color3f sigmaT = sigmaA + sigmaS;
 
-        // Select random sign
-        float signX = sampler->next1D() > 0.5f ? 1.0f : -1.0f;
-        float signY = sampler->next1D() > 0.5f ? 1.0f : -1.0f;
-
         // Select random channel
         int channel = sampler->next1D() * 3;
         float sigma = sigmaT[channel];
         float channelPdf = 1.0f / 3.0f;
 
         // Sample an offset proportional to the sigmaT
-        Point2f sample = sampler->next2D();
-        float rx = signX * Warp::squareToSquaredDecay(sample.x(), sigma);
-        float ry = signY * Warp::squareToSquaredDecay(sample.y(), sigma);
+        Point2f sample = Warp::squareToSquaredDecayDisk(sampler->next2D(), sigma);
 
         // Clamp to account for highly curved surfaces
-        rx = std::max(rx, 1.0f/sigma);
-        ry = std::max(ry, 1.0f/sigma);
-
+        sample = Math::max(sample, Point2f(1.0f/sigma));
+   
         // Sampled offset (in mm) to world
-        Vector3f samplingOffset = Vector3f(rx, ry, 0.0f) / 1000.0f;
-        bRec.po = bRec.pi + bRec.frame.toWorld(samplingOffset); 
+        Vector3f sampled = Vector3f(sample.x(), sample.y(), 0.0f) / 1000.0f;
+        bRec.po = bRec.pi + bRec.frame.toWorld(sampled); 
         //bRec.po = projectToSurface(bRec, bRec.po);
 
-        //std::cout << bRec.pi.toString() + ", " + bRec.po.toString() << std::endl;
-
-        // Decay pdf * sign pdf * channel pdf
-        float pdfx = Warp::squareToSquaredDecayPdf(rx, sigma) * 0.5f;
-        float pdfy = Warp::squareToSquaredDecayPdf(ry, sigma) * 0.5f;
-        pdf = pdfx * pdfy * channelPdf;
+        pdf = Warp::squareToSquaredDecayDiskPdf(sample, sigma) * channelPdf;
     }
 
     Color3f sample(BSDFQueryRecord &bRec, Sampler *sampler, float &pdf) const

@@ -38,7 +38,7 @@ public:
     void integrateSubsurface(const Scene *scene, Sampler *sampler,
             PathState &state) const
     {
-        int nSamples = 32;
+        int nSamples = 128;
 
         Color3f radiance = Color3f(0.0f);
 

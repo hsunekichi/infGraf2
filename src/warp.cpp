@@ -125,7 +125,20 @@ Point2f Warp::squareToUniformDisk(const Point2f &sample)
     float r = std::sqrt(sample.x());
     float theta = 2 * M_PI * sample.y();
     return Point2f(r * std::cos(theta), r * std::sin(theta));
+}
 
+Point2f Warp::squareToSquaredDecayDisk(const Point2f &sample, float sigmaT) 
+{
+    float r = Warp::squareToSquaredDecay(sample.x(), sigmaT);
+    float theta = 2 * M_PI * sample.y();
+    return Point2f(r * std::cos(theta), r * std::sin(theta));
+}
+
+float Warp::squareToSquaredDecayDiskPdf(const Point2f &p, float sigmaT) 
+{
+    float rPdf = Warp::squareToSquaredDecayPdf(p.norm(), sigmaT);
+    float thetaPdf = 1.0f / (2 * M_PI);
+    return rPdf * thetaPdf;
 }
 
 float Warp::squareToUniformDiskPdf(const Point2f &p) 
