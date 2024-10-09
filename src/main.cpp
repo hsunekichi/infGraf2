@@ -92,7 +92,7 @@ static void render(Scene* scene, const std::string& filename, bool nogui) {
     std::thread render_thread([&] {
         tbb::task_scheduler_init init(threadCount);
 
-        cout << "Rendering .. ";
+        cout << "Rendering .. \n";
         cout.flush();
 
         Timer globalTimer;
@@ -141,7 +141,7 @@ static void render(Scene* scene, const std::string& filename, bool nogui) {
         /// (equivalent to the following single-threaded call)
         // map(range);
 
-        cout << "done. (took " << globalTimer.elapsedString() << ")" << endl;
+        cout << "Rendering done. (took " << globalTimer.elapsedString() << ")" << endl;
     });
 
     if (!nogui)
