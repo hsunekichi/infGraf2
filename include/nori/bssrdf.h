@@ -85,21 +85,7 @@ public:
         if (bRec.measure != ESolidAngle)
             return 0.0f;
 
-
-        /* Importance sampling density wrt. solid angles:
-           cos(theta) / pi.
-
-           Note that the directions in 'bRec' are in local coordinates,
-           so Frame::cosTheta() actually just returns the 'z' component.
-        */
-        return INV_PI * Frame::cosTheta(bRec.wo);
-    }
-
-    /// Draw a a sample from the BRDF model
-    Color3f sample(BSDFQueryRecord &bRec, Sampler *sampler) const 
-    {
-        float pdf;
-        return sample(bRec, sampler, pdf);
+        return Warp::squareToCosineHemispherePdf(bRec.wo);
     }
 
     Point3f projectToSurface (BSDFQueryRecord &bRec, Point3f p) const
@@ -154,9 +140,11 @@ public:
         pdf = Warp::squareToSquaredDecayDiskPdf(sample, sigma) * channelPdf;
     }
 
-    Color3f sample(BSDFQueryRecord &bRec, Sampler *sampler, float &pdf) const
+
+    Color3f sample(BSDFQueryRecord &bRec, Sampler *sampler) const
     {
         bRec.measure = ESolidAngle;
+        float pdf;
 
         samplePoint(bRec, sampler, pdf);
 

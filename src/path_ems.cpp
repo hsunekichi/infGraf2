@@ -47,6 +47,7 @@ public:
         }
     }
 
+    /*
     void integrateSubsurface(const Scene *scene, 
                 Sampler *sampler,
                 PathState &state) const
@@ -56,8 +57,8 @@ public:
         Point3f pi = Pth::sampleBSSRDFpoint(scene, sampler, state, pointPdf);
         Vector3f wi;
 
-        Color3f Li = Pth::nextEventEstimationBSSRDF(scene, sampler, state, pi, wi);
-        state.radiance += state.scatteringFactor * Li * 0.5f / pointPdf;
+        Color3f Li = Pth::nextEventEstimationBSSRDF(scene, sampler, state);
+        state.radiance += state.scatteringFactor * Li * 0.5f;
 
         // Sample the subsurface scattering BSDF
         float bsdfPdf;
@@ -79,6 +80,7 @@ public:
             state.scatteringFactor = Color3f(0.0f);
         }
     }
+    */
 
     void integrateSpecular(const Scene *scene, 
                 Sampler *sampler,
@@ -118,9 +120,6 @@ public:
                 break;
             case Pth::SPECULAR:
                 integrateSpecular(scene, sampler, state);
-                break;
-            case Pth::SUBSURFACE:
-                integrateSubsurface(scene, sampler, state);
                 break;
             default:
                 break;

@@ -22,28 +22,14 @@ public:
 
     Path_mis(const PropertyList &props) {}
 
-    void preprocess(const Scene *scene, Sampler *sampler) 
-    {
-        auto photons = Pth::generateSubsurfaceSamples(scene, sampler);
-
-        for (auto &photon : photons)
-        {
-            precomputeLi(scene, sampler, photon);
-        }
-
-        // Remove black photons
-        photons.erase(std::remove_if(photons.begin(), photons.end(), 
-            [](const Photon &photon) { return photon.radiance == Color3f(0.0f); }), photons.end());
-
-        photonMap = PhotonMap(photons);
-    }
-
     void integrateDiffuse(const Scene *scene, 
                 Sampler *sampler,
                 PathState &state) const
     {   
+        size_t nSamplesNES;
+
         // Sample the contribution of a random emitter
-        Color3f directLight = Pth::nextEventEstimation(scene, sampler, state, true);
+        Color3f directLight = Pth::nextEventEstimation(scene, sampler, state, nSamplesNES, true);
         state.radiance += state.scatteringFactor * directLight;
 
         // Sample the BSDF
@@ -64,7 +50,7 @@ public:
 
             // Compute Le
             float emitterPdf = emitter->pdf(emitterQuery);
-            float weight = Math::powerHeuristic(1, bsdfPdf, 1, emitterPdf);
+            float weight = Math::powerHeuristic(1, bsdfPdf, nSamplesNES, emitterPdf);
             state.radiance += state.scatteringFactor * weight * emitter->eval(emitterQuery);
             
             // Terminate the path
@@ -97,14 +83,41 @@ public:
         state.scatteringFactor = Color3f(0.0f);
     }
 
+    /*
     void integrateSubsurface(const Scene *scene, 
                 Sampler *sampler,
                 PathState &state) const
     {
+        // Sample the subsurface scattering Next Event Estimation
+        Color3f Li = Pth::nextEventEstimationBSSRDF(scene, sampler, state, true);
+        state.radiance += state.scatteringFactor * Li;
+    
         // Sample the subsurface scattering BSDF
         float bsdfPdf;
         Pth::sampleBSSRDF(scene, sampler, state, bsdfPdf);
+
+        // Check if next bounce is to a light source
+        Point3f prevSurfaceP = state.intersection.p;      
+        state.intersected = scene->rayIntersect(state.ray, state.intersection);
+        state.intersectionComputed = true;
+
+        if (state.intersected && state.intersection.mesh->isEmitter())
+        {
+            const Emitter *emitter = state.intersection.mesh->getEmitter();
+            EmitterQueryRecord emitterQuery(prevSurfaceP, state.intersection.p, 
+                    state.intersection.toLocal(-state.ray.d), EMeasure::ESolidAngle);
+
+
+            // Compute Le
+            float emitterPdf = emitter->pdf(emitterQuery);
+            float weight = Math::powerHeuristic(1, bsdfPdf, 1, emitterPdf);
+            state.radiance += state.scatteringFactor * weight * emitter->eval(emitterQuery);
+            
+            // Terminate the path
+            state.scatteringFactor = Color3f(0.0f);
+        }
     }
+    */
 
     void sampleIntersection(const Scene *scene, Sampler *sampler, PathState &state) const
     {
@@ -120,9 +133,6 @@ public:
                 break;
             case Pth::SPECULAR:
                 integrateSpecular(scene, sampler, state);
-                break;
-            case Pth::SUBSURFACE:
-                integrateSubsurface(scene, sampler, state);
                 break;
             default:
                 break;
@@ -177,43 +187,6 @@ public:
         return state.radiance;
     }
 
-    void precomputeLi(const Scene *scene, Sampler *sampler,
-            Photon &ph) const
-    {
-        Vector3f off (0.0f, 0.0f, 1.0f);
-        Point3f o = ph.p + Epsilon*off;
-        Ray3f ray(o, -off); 
-
-        Intersection intersection;
-        if (!scene->rayIntersect(ray, intersection))
-            return;
-
-
-        PathState state;
-        state.ray = ray;
-        state.intersection = intersection;
-        ph.n = intersection.shFrame.n;
-
-        float nesPdf = 0.5f;
-        if (sampler->next1D() < nesPdf)
-        {
-            Vector3f wi;
-            Color3f direct = Pth::nextEventEstimation(scene, sampler, state, wi, false, false);
-
-            ph.d = wi.normalized();
-            ph.radiance = direct / (ph.pdf*nesPdf); 
-        }
-        else // Compute indirect light
-        {
-            float bsdfPdf;
-            Pth::sampleBSDF(scene, sampler, state, bsdfPdf);
-            ph.d = state.ray.d;
-            
-            Li(scene, sampler, state);
-
-            ph.radiance = state.radiance / (ph.pdf*(1-nesPdf));
-        }
-    }
 
     std::string toString() const {
         return "Path_mis[]";

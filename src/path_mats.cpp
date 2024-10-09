@@ -51,6 +51,7 @@ public:
         state.scatteringFactor = Color3f(0.0f);
     }
 
+    /*
     void integrateSubsurface(const Scene *scene, 
             Sampler *sampler,
             PathState &state) const
@@ -59,6 +60,7 @@ public:
         float bsdfPdf;
         Pth::sampleBSSRDF(scene, sampler, state, bsdfPdf);
     }
+    */
 
     void sampleIntersection(const Scene *scene, Sampler *sampler, PathState &state) const
     {
@@ -74,9 +76,6 @@ public:
                 break;
             case Pth::SPECULAR:
                 integrateSpecular(scene, sampler, state);
-                break;
-            case Pth::SUBSURFACE:
-                integrateSubsurface(scene, sampler, state);
                 break;
             default:
                 break;

@@ -29,56 +29,27 @@ struct PathState
 struct Pth
 {
 
-enum IntegrationType {EMITTER, DIFFUSE, SPECULAR, SUBSURFACE, NONE};
+enum IntegrationType {EMITTER, DIFFUSE, SPECULAR, NONE};
 
 
-static Color3f sampleRandomEmitter(const Scene *scene, Sampler *sampler, 
-            const Point3f &surfaceP,
-            Emitter *&emitterMesh,
-            Point3f &lightP,
-            float &lightPdf);
-
-static Color3f nextEventEstimation(const Scene *scene, Sampler *sampler,
-                const PathState &state, 
-                bool MIS = false, bool applyF = true)
+static Color3f nextEventEstimation(const Scene *scene, 
+                Sampler *sampler,
+                PathState &state)
 {
-    Vector3f wi;
-    return nextEventEstimation(scene, sampler, state, wi, MIS, applyF);
+    size_t nSamplesNes;
+    return nextEventEstimation(scene, sampler, state, nSamplesNes, false);
 }
 
-static std::vector<Photon> generateSubsurfaceSamples(const Scene *scene, Sampler *sampler);
-
-static Color3f nextEventEstimation(const Scene *scene, Sampler *sampler,
-                const PathState &state, 
-                Vector3f &wi,
-                bool MIS = false, bool applyF = true);
-
-static Color3f nextEventEstimationBSSRDF(const Scene *scene, Sampler *sampler,
-                const PathState &state, const Point3f &pi,
-                Vector3f &wi,
-                bool MIS = false, bool applyF = true);
+static Color3f nextEventEstimation(const Scene *scene, 
+                Sampler *sampler,
+                const PathState &state,
+                size_t &nSamplesNes,
+                bool MIS);
 
 static void sampleBSDF(const Scene *scene, Sampler *sampler,
             PathState &state, float &bsdfPdf);
 
 static IntegrationType getIntegrationType(const PathState &mesh); 
-
-
-static void integrateSubsurfacePhotons(const Scene *scene,
-                const PhotonMap &photons, 
-                Sampler *sampler, PathState &state);
-
-
-static void sampleBSSRDF(const Scene *scene, 
-                Sampler *sampler, PathState &state,
-                float &pdf);
-
-static Point3f sampleBSSRDFpoint(const Scene *scene,
-                Sampler *sampler,
-                PathState &state,
-                float &pdf);
-
-
 
 };
 

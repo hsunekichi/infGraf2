@@ -35,28 +35,6 @@ public:
         */
     }
 
-    void integrateSubsurface(const Scene *scene, Sampler *sampler,
-            PathState &state) const
-    {
-        int nSamples = 128;
-
-        Color3f radiance = Color3f(0.0f);
-
-        for (int i = 0; i < nSamples; i++)
-        {
-            // Sample the subsurface scattering BSDF
-            float pointPdf;
-            Point3f pi = Pth::sampleBSSRDFpoint(scene, sampler, state, pointPdf);
-            Vector3f wi;
-
-            Color3f Li = Pth::nextEventEstimationBSSRDF(scene, sampler, state, pi, wi);
-            radiance += state.scatteringFactor * Li / pointPdf;
-        }
-
-        state.radiance += radiance / nSamples;
-    }
-
-
     void specularIntegration(const Scene *scene, Sampler *sampler,
             PathState &state) const
     {
@@ -111,10 +89,6 @@ public:
                 state.radiance += Pth::nextEventEstimation(scene, sampler, state);
                 break;
 
-            case Pth::SUBSURFACE:
-                integrateSubsurface(scene, sampler, state);
-                break;
-
             case Pth::SPECULAR:
                 specularIntegration(scene, sampler, state);
                 break;
@@ -136,6 +110,7 @@ public:
     void precomputeLi(const Scene *scene, Sampler *sampler,
             Photon &ph) const
     {
+        /*
         Vector3f off (0.0f, 0.0f, 1.0f);
         Point3f o = ph.p + Epsilon*off;
         Ray3f ray(o, -off); 
@@ -155,6 +130,7 @@ public:
         ph.d = wi.normalized();
         ph.radiance = direct; 
         ph.n = intersection.shFrame.n;
+        */
     }
 
     std::string toString() const {
