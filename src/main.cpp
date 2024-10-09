@@ -46,9 +46,12 @@ static void renderBlock(const Scene *scene, Sampler *sampler, ImageBlock &block)
     block.clear();
 
     /* For each pixel and pixel sample sample */
-    for (int y=0; y<size.y(); ++y) {
-        for (int x=0; x<size.x(); ++x) {
-            for (uint32_t i=0; i<sampler->getSampleCount(); ++i) {
+    for (int y=0; y<size.y(); ++y) 
+    {
+        for (int x=0; x<size.x(); ++x) 
+        {
+            for (uint32_t i=0; i<sampler->getSampleCount(); ++i) 
+            {
                 Point2f pixelSample = Point2f((float) (x + offset.x()), (float) (y + offset.y())) + sampler->next2D();
                 Point2f apertureSample = sampler->next2D();
 
@@ -71,9 +74,6 @@ static void render(Scene* scene, const std::string& filename, bool nogui) {
     Vector2i outputSize = camera->getOutputSize();
     scene->getIntegrator()->preprocess(scene, scene->getSampler());
 
-    /* Create a block generator (i.e. a work scheduler) */
-    BlockGenerator blockGenerator(outputSize, NORI_BLOCK_SIZE);
-
     /* Allocate memory for the entire output image and clear it */
     ImageBlock result(outputSize, camera->getReconstructionFilter());
     result.clear();
@@ -94,42 +94,54 @@ static void render(Scene* scene, const std::string& filename, bool nogui) {
 
         cout << "Rendering .. ";
         cout.flush();
-        Timer timer;
 
-        tbb::blocked_range<int> range(0, blockGenerator.getBlockCount());
+        Timer globalTimer;
 
-        auto map = [&](const tbb::blocked_range<int>& range) {
-            /* Allocate memory for a small image block to be rendered
-               by the current thread */
-            ImageBlock block(Vector2i(NORI_BLOCK_SIZE),
-                camera->getReconstructionFilter());
+        for (uint32_t i = 0; i < scene->getSampler()->nPasses(); i++)
+        {
+            Timer timer;
 
-            /* Create a clone of the sampler for the current thread */
-            std::unique_ptr<Sampler> sampler(scene->getSampler()->clone());
+            /* Create a block generator (i.e. a work scheduler) */
+            BlockGenerator blockGenerator(outputSize, NORI_BLOCK_SIZE);
 
-            for (int i = range.begin(); i < range.end(); ++i) {
-                /* Request an image block from the block generator */
-                blockGenerator.next(block);
+            tbb::blocked_range<int> range(0, blockGenerator.getBlockCount());
 
-                /* Inform the sampler about the block to be rendered */
-                sampler->prepare(block);
+            auto map = [&](const tbb::blocked_range<int>& range) {
+                /* Allocate memory for a small image block to be rendered
+                by the current thread */
+                ImageBlock block(Vector2i(NORI_BLOCK_SIZE),
+                    camera->getReconstructionFilter());
 
-                /* Render all contained pixels */
-                renderBlock(scene, sampler.get(), block);
+                /* Create a clone of the sampler for the current thread */
+                std::unique_ptr<Sampler> sampler(scene->getSampler()->clone());
 
-                /* The image block has been processed. Now add it to
-                   the "big" block that represents the entire image */
-                result.put(block);
-            }
-        };
+                for (int i = range.begin(); i < range.end(); ++i) {
+                    /* Request an image block from the block generator */
+                    blockGenerator.next(block);
 
-        /// Default: parallel rendering
-        tbb::parallel_for(range, map);
+                    /* Inform the sampler about the block to be rendered */
+                    sampler->prepare(block);
+
+                    /* Render all contained pixels */
+                    renderBlock(scene, sampler.get(), block);
+
+                    /* The image block has been processed. Now add it to
+                    the "big" block that represents the entire image */
+                    result.put(block);
+                }
+            };
+
+            /// Default: parallel rendering
+            tbb::parallel_for(range, map);
+            scene->getSampler()->next_pass();
+
+            std::cout << "Pass " << i << " done. (took " << timer.elapsedString() << ")" << std::endl;
+        }
 
         /// (equivalent to the following single-threaded call)
         // map(range);
 
-        cout << "done. (took " << timer.elapsedString() << ")" << endl;
+        cout << "done. (took " << globalTimer.elapsedString() << ")" << endl;
     });
 
     if (!nogui)
