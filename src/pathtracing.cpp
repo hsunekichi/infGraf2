@@ -210,7 +210,7 @@ Color3f Pth::nextEventEstimation(const Scene *scene,
     }
     else
     {
-        nSamplesNes = 1;
+        nSamplesNes = 8;
 
         for (size_t i = 0; i < nSamplesNes; i++)
         {
