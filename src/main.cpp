@@ -135,7 +135,9 @@ static void render(Scene* scene, const std::string& filename, bool nogui) {
             tbb::parallel_for(range, map);
             scene->getSampler()->next_pass();
 
-            std::cout << "Pass " << i << " done. (took " << timer.elapsedString() << ")" << std::endl;
+            if (scene->getSampler()->nPasses() > 1) {
+                std::cout << "Pass " << i << " done. (took " << timer.elapsedString() << ")" << std::endl;
+            }
         }
 
         /// (equivalent to the following single-threaded call)
