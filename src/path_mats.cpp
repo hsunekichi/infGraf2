@@ -64,7 +64,7 @@ public:
 
     void sampleIntersection(const Scene *scene, Sampler *sampler, PathState &state) const
     {
-        Pth::IntegrationType type = Pth::getIntegrationType(state);     
+        Pth::IntegrationType type = Pth::getIntegrationType(state.intersection);     
         
         switch (type)
         {

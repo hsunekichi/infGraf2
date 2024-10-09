@@ -47,41 +47,6 @@ public:
         }
     }
 
-    /*
-    void integrateSubsurface(const Scene *scene, 
-                Sampler *sampler,
-                PathState &state) const
-    {
-        // Sample the subsurface scattering BSDF
-        float pointPdf;
-        Point3f pi = Pth::sampleBSSRDFpoint(scene, sampler, state, pointPdf);
-        Vector3f wi;
-
-        Color3f Li = Pth::nextEventEstimationBSSRDF(scene, sampler, state);
-        state.radiance += state.scatteringFactor * Li * 0.5f;
-
-        // Sample the subsurface scattering BSDF
-        float bsdfPdf;
-        Pth::sampleBSSRDF(scene, sampler, state, bsdfPdf);
-
-        Point3f surfaceP = pi;
-        
-        state.intersected = scene->rayIntersect(state.ray, state.intersection);
-        state.intersectionComputed = true;
-
-        if (state.intersected && state.intersection.mesh->isEmitter())
-        {
-            const Emitter *emitter = state.intersection.mesh->getEmitter();
-
-            EmitterQueryRecord emitterQuery(surfaceP, state.intersection.p, state.intersection.toLocal(-state.ray.d), EMeasure::EDiscrete);
-            state.radiance += state.scatteringFactor * emitter->eval(emitterQuery) * 0.5f;
-            
-            // Terminate the path
-            state.scatteringFactor = Color3f(0.0f);
-        }
-    }
-    */
-
     void integrateSpecular(const Scene *scene, 
                 Sampler *sampler,
                 PathState &state) const
@@ -108,7 +73,7 @@ public:
 
     void sampleIntersection(const Scene *scene, Sampler *sampler, PathState &state) const
     {
-        Pth::IntegrationType integrationType = Pth::getIntegrationType(state);
+        Pth::IntegrationType integrationType = Pth::getIntegrationType(state.intersection);
         
         switch (integrationType)
         {

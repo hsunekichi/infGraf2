@@ -47,11 +47,11 @@ bool checkVisibility (const Scene *scene,
 {
     Ray3f shadowRay(state.intersection.p, g_wi.normalized(), Epsilon, g_wi.norm() + Epsilon);
 
-    // Check visibility
-    bool objectSeesEmitter = true; // surface_wiNormalized.z() > 0.0f;
-
     Intersection lightIntersection;
     bool intersects = scene->rayIntersect(shadowRay, lightIntersection);
+
+    // Check visibility
+    bool objectSeesEmitter = true; //state.intersection.toLocal(g_wi).z() > 0.0f;
 
     //*********************** Compute Le ******************************
     return (objectSeesEmitter && !intersects)
@@ -210,7 +210,7 @@ Color3f Pth::nextEventEstimation(const Scene *scene,
     }
     else
     {
-        nSamplesNes = 8;
+        nSamplesNes = 1;
 
         for (size_t i = 0; i < nSamplesNes; i++)
         {
@@ -218,7 +218,11 @@ Color3f Pth::nextEventEstimation(const Scene *scene,
         }
     }
 
-    float weight = Math::powerHeuristic(nSamplesNes, lightPdf, 1, bsdfPdf);
+    float weight = 1.0f;
+
+    if (MIS)
+        weight = Math::powerHeuristic(nSamplesNes, lightPdf, 1, bsdfPdf);
+    
     return radiance * weight / nSamplesNes;
 }
 
@@ -285,9 +289,9 @@ void Pth::sampleBSDF(const Scene *scene, Sampler *sampler, PathState &state, flo
 }
 
 
-Pth::IntegrationType Pth::getIntegrationType(const PathState &state)
+Pth::IntegrationType Pth::getIntegrationType(const Intersection &its)
 {
-    const Mesh *mesh = state.intersection.mesh;
+    const Mesh *mesh = its.mesh;
     const Emitter *emitter = mesh->getEmitter();
 
     if (emitter) { // Render emitter 

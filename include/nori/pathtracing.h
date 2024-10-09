@@ -49,7 +49,7 @@ static Color3f nextEventEstimation(const Scene *scene,
 static void sampleBSDF(const Scene *scene, Sampler *sampler,
             PathState &state, float &bsdfPdf);
 
-static IntegrationType getIntegrationType(const PathState &mesh); 
+static IntegrationType getIntegrationType(const Intersection &its); 
 
 };
 

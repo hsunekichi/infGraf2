@@ -83,45 +83,9 @@ public:
         state.scatteringFactor = Color3f(0.0f);
     }
 
-    /*
-    void integrateSubsurface(const Scene *scene, 
-                Sampler *sampler,
-                PathState &state) const
-    {
-        // Sample the subsurface scattering Next Event Estimation
-        Color3f Li = Pth::nextEventEstimationBSSRDF(scene, sampler, state, true);
-        state.radiance += state.scatteringFactor * Li;
-    
-        // Sample the subsurface scattering BSDF
-        float bsdfPdf;
-        Pth::sampleBSSRDF(scene, sampler, state, bsdfPdf);
-
-        // Check if next bounce is to a light source
-        Point3f prevSurfaceP = state.intersection.p;      
-        state.intersected = scene->rayIntersect(state.ray, state.intersection);
-        state.intersectionComputed = true;
-
-        if (state.intersected && state.intersection.mesh->isEmitter())
-        {
-            const Emitter *emitter = state.intersection.mesh->getEmitter();
-            EmitterQueryRecord emitterQuery(prevSurfaceP, state.intersection.p, 
-                    state.intersection.toLocal(-state.ray.d), EMeasure::ESolidAngle);
-
-
-            // Compute Le
-            float emitterPdf = emitter->pdf(emitterQuery);
-            float weight = Math::powerHeuristic(1, bsdfPdf, 1, emitterPdf);
-            state.radiance += state.scatteringFactor * weight * emitter->eval(emitterQuery);
-            
-            // Terminate the path
-            state.scatteringFactor = Color3f(0.0f);
-        }
-    }
-    */
-
     void sampleIntersection(const Scene *scene, Sampler *sampler, PathState &state) const
     {
-        Pth::IntegrationType integrationType = Pth::getIntegrationType(state);
+        Pth::IntegrationType integrationType = Pth::getIntegrationType(state.intersection);
 
         switch (integrationType)
         {
