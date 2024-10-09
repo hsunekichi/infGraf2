@@ -15,8 +15,8 @@
 	</camera>
 
 	<sampler type="independent">
-		<integer name="sampleCount" value="64"/>
-		<integer name="nPasses" value="8"/>
+		<integer name="sampleCount" value="32"/>
+		<integer name="nPasses" value="2"/>
 	</sampler>
 
 	<mesh type="obj">

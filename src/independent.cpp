@@ -25,10 +25,6 @@ public:
     {
         m_sampleCount = propList.getInteger("sampleCount", 1);
         _nPasses = propList.getInteger("nPasses", 1);
-        
-        // If there are several passes the first one will be only 1 sample
-        if (_nPasses > 1)
-            _nPasses++;
     }
 
     virtual ~Independent() { }

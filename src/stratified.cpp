@@ -22,10 +22,6 @@ public:
         m_sampleCount = propList.getInteger("sampleCount", 1);
         _nPasses = propList.getInteger("nPasses", 1);
         nStrats = (size_t) propList.getInteger("stratsX", 2);        
-
-        // If there are several passes the first one will be only 1 sample
-        if (_nPasses > 1)
-            _nPasses++;
     }
 
     void _initialize(const Bitmap *initialImage) override
