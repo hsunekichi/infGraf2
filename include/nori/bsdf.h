@@ -50,12 +50,10 @@ struct BSDFQueryRecord {
 
     /************* BSSRDF extension **************/
 
-    // Global coordinates of the sampling points
-    Point3f po, pi;
-    Normal3f ni; // In the local frame
-    Frame frame; 
-    const Scene *scene;
-    const Mesh *mesh;
+    Point3f po, pi; // Global coordinates of the sampling points
+    Frame fro, fri; // Shading frames
+    const Mesh *mesh = nullptr; 
+    const Scene *scene = nullptr;
     bool isCameraRay = false;
 
     BSDFQueryRecord() : eta(1.f), measure(EUnknownMeasure) { }
@@ -101,6 +99,13 @@ public:
      *         failed.
      */
     virtual Color3f sample(BSDFQueryRecord &bRec, Sampler *sampler) const = 0;
+    virtual bool samplePoint(BSDFQueryRecord &bRec, Sampler *sampler, float &pdf) const
+    {
+        bRec.po = bRec.pi;
+        bRec.fro = bRec.fri;
+        pdf = 1.0f;
+        return true;
+    }
 
     Color3f sample(BSDFQueryRecord &bRec, const Point2f &sample) const {
         throw NoriException("BSDF::sample(point) not implemented!");

@@ -29,13 +29,14 @@ public:
         size_t nSamplesNES;
 
         // Sample the contribution of a random emitter
-        BSDFQueryRecord bsdfQuery;
-        Color3f directLight = Pth::nextEventEstimation(scene, sampler, state, bsdfQuery);
+        BSDFQueryRecord query = Pth::initBSDFQuery(scene, state);
+        Color3f directLight = Pth::nextEventEstimation(scene, sampler, state, query);
         state.radiance += state.scatteringFactor * directLight;
 
         // Sample the BSDF
         float bsdfPdf;
-        Pth::sampleBSDF(scene, sampler, state, bsdfPdf);
+        Color3f f = Pth::sampleBSDF(state, sampler, query, bsdfPdf);   
+        state.scatteringFactor *= f;
 
         // Check if next bounce is to a light source
         Point3f prevSurfaceP = state.intersection.p;      
@@ -46,7 +47,7 @@ public:
         {
             const Emitter *emitter = state.intersection.mesh->getEmitter();
             EmitterQueryRecord emitterQuery(prevSurfaceP, state.intersection.p, 
-                    state.intersection.toLocal(-state.ray.d), EMeasure::ESolidAngle);
+                    state.intersection.vtoLocal(-state.ray.d), EMeasure::ESolidAngle);
 
 
             // Compute Le
@@ -66,7 +67,9 @@ public:
     {
         // Sample the specular BSDF
         float bsdfPdf;
-        Pth::sampleBSDF(scene, sampler, state, bsdfPdf);        
+        BSDFQueryRecord query = Pth::initBSDFQuery(scene, state);
+        Color3f f = Pth::sampleBSDF(state, sampler, query, bsdfPdf);   
+        state.scatteringFactor *= f;  
     }
 
     void integrateEmitter(const Scene *scene, 
@@ -76,7 +79,7 @@ public:
         // Retrieve the emitter associated with the surface
         const Emitter *emitter = state.intersection.mesh->getEmitter();
 
-        EmitterQueryRecord emitterQuery (state.intersection.toLocal(-state.ray.d), EMeasure::EDiscrete);
+        EmitterQueryRecord emitterQuery (state.intersection.vtoLocal(-state.ray.d), EMeasure::EDiscrete);
         emitterQuery.lightP = state.intersection.p;
         state.radiance += state.scatteringFactor * emitter->eval(emitterQuery);
 

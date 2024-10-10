@@ -303,8 +303,6 @@ void Accel::addMesh(Mesh *mesh) {
 }
 
 void Accel::clear() {
-	for (auto mesh : m_meshes)
-		delete mesh;
 	m_meshes.clear();
 	m_meshOffset.clear();
 	m_meshOffset.push_back(0u);

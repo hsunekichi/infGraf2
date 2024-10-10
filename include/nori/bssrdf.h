@@ -75,7 +75,7 @@ public:
 
         return computeMultipleScattering(bRec) 
                 * m_albedo->eval(bRec.uv)
-                / Math::absCos(bRec.frame.n, bRec.ni);
+                / Math::absCos(bRec.fri.n, bRec.fro.n);
     }
   
 
@@ -140,8 +140,8 @@ public:
         Point3f target = Point3f (diskSample.x(), diskSample.y(), -lhalf);
 
         // Sphere to world
-        Point3f w_base = bRec.frame.toWorld(base);
-        Point3f w_target = bRec.frame.toWorld(target);
+        Point3f w_base = bRec.fri.ptoWorld(base);
+        Point3f w_target = bRec.fri.ptoWorld(target);
  
 
         /************ Project point to shape ****************/
@@ -149,15 +149,16 @@ public:
         Vector3f d = (w_target - w_base).normalized();
         Ray3f ray = Ray3f(w_base, d, 0.0f, lhalf*2.0f);
 
-        float t;
-        bool intersected = bRec.mesh->rayIntersect(ray, t, bRec.ni);
-        
+        Intersection its;
+        bool intersected = bRec.scene->rayIntersect(ray, bRec.mesh, its);
+
         if (!intersected)
         {
             return false;
         }
-        
-        bRec.po = ray(t);
+
+        bRec.fro = its.shFrame;
+        bRec.po = ray(its.t);
 
         /*********************** Pdf *************************/
 
@@ -176,14 +177,8 @@ public:
         bRec.measure = ESolidAngle;
         float pdf;
 
-        bool intersected = samplePoint(bRec, sampler, pdf);
-        if (!intersected)
-            return Color3f(0.0f);
-
         bRec.wo = Warp::squareToCosineHemisphere(sampler->next2D());
-        bRec.ni = Vector3f(0.0f, 0.0f, 1.0f);
-        
-        pdf *= Warp::squareToCosineHemispherePdf(bRec.wo);
+        pdf = Warp::squareToCosineHemispherePdf(bRec.wo);
 
         return eval(bRec) * Frame::cosTheta(bRec.wo) / pdf;
     }
@@ -242,7 +237,8 @@ public:
         Color3f Rd = betterAlternative(r);
         //std::cout << Rd.toString() + ", " + std::to_string(r) << std::endl;
 
-        float cosWi = Math::absCos(bRec.wi, bRec.ni);
+        Vector3f w_wi = bRec.fro.vtoWorld(bRec.wi);
+        float cosWi = Math::absCos(w_wi, bRec.fri.n);
         float cosWo = Math::absCosTheta(bRec.wo);
 
         double Ft_o = 1 - fresnel(cosWo, 1.0, eta);

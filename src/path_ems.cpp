@@ -23,13 +23,15 @@ public:
                 PathState &state) const
     {   
         // Sample the contribution of a random emitter
-        BSDFQueryRecord bsdfQuery;
-        Color3f directLight = Pth::nextEventEstimation(scene, sampler, state, bsdfQuery);
+        BSDFQueryRecord query = Pth::initBSDFQuery(scene, state);
+        Color3f directLight = Pth::nextEventEstimation(scene, sampler, state, query);
         state.radiance += state.scatteringFactor * directLight * 0.5f;
 
         // Sample the BSDF
         float bsdfPdf;
-        Pth::sampleBSDF(scene, sampler, state, bsdfPdf);
+        Color3f f = Pth::sampleBSDF(state, sampler, query, bsdfPdf);   
+        state.scatteringFactor *= f;
+
 
         Point3f surfaceP = state.intersection.p;
         
@@ -40,7 +42,7 @@ public:
         {
             const Emitter *emitter = state.intersection.mesh->getEmitter();
 
-            EmitterQueryRecord emitterQuery(surfaceP, state.intersection.p, state.intersection.toLocal(-state.ray.d), EMeasure::EDiscrete);
+            EmitterQueryRecord emitterQuery(surfaceP, state.intersection.p, state.intersection.vtoLocal(-state.ray.d), EMeasure::EDiscrete);
             state.radiance += state.scatteringFactor * emitter->eval(emitterQuery) * 0.5f;
             
             // Terminate the path
@@ -54,7 +56,9 @@ public:
     {
         // Sample the specular BSDF
         float bsdfPdf;
-        Pth::sampleBSDF(scene, sampler, state, bsdfPdf);        
+        BSDFQueryRecord query = Pth::initBSDFQuery(scene, state);
+        Color3f f = Pth::sampleBSDF(state, sampler, query, bsdfPdf); 
+        state.scatteringFactor *= f;    
     }
 
     void integrateEmitter(const Scene *scene, 
@@ -64,7 +68,7 @@ public:
         // Retrieve the emitter associated with the surface
         const Emitter *emitter = state.intersection.mesh->getEmitter();
 
-        EmitterQueryRecord emitterQuery (state.intersection.toLocal(-state.ray.d), EMeasure::EDiscrete);
+        EmitterQueryRecord emitterQuery (state.intersection.vtoLocal(-state.ray.d), EMeasure::EDiscrete);
         emitterQuery.lightP = state.intersection.p;
         state.radiance += state.scatteringFactor * emitter->eval(emitterQuery);
 

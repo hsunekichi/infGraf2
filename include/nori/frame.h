@@ -30,9 +30,9 @@ NORI_NAMESPACE_BEGIN
  * quantities (e.g. \ref cosTheta(), \ref tanTheta, ..).
  */
 struct Frame {
+    Point3f o;
     Vector3f s, t;
     Normal3f n;
-    Point3f o;
 
     /// Default constructor -- performs no initialization!
     Frame() { }
@@ -51,24 +51,24 @@ struct Frame {
     }
 
     /// Convert from world coordinates to local coordinates
-    Vector3f toLocal(const Vector3f &v) const {
+    Vector3f vtoLocal(const Vector3f &v) const {
         return Vector3f(
             v.dot(s), v.dot(t), v.dot(n)
         );
     }
 
     /// Convert from local coordinates to world coordinates
-    Vector3f toWorld(const Vector3f &v) const {
+    Vector3f vtoWorld(const Vector3f &v) const {
         return s * v.x() + t * v.y() + n * v.z();
     }
 
-    Point3f toLocal(const Point3f &p) const 
+    Point3f ptoLocal(const Point3f &p) const 
     {
         Vector3f offset = p - o;
         return Point3f(offset.dot(s), offset.dot(t), offset.dot(n));
     }
 
-    Point3f toWorld(const Point3f &p) const {
+    Point3f ptoWorld(const Point3f &p) const {
         return o + s * p.x() + t * p.y() + n * p.z();
     }
 

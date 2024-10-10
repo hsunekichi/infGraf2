@@ -24,7 +24,9 @@ public:
     {   
         // Sample the BSDF
         float bsdfPdf;
-        Pth::sampleBSDF(scene, sampler, state, bsdfPdf);
+        BSDFQueryRecord query = Pth::initBSDFQuery(scene, state);
+        Color3f f = Pth::sampleBSDF(state, sampler, query, bsdfPdf);   
+        state.scatteringFactor *= f;
     }
 
     void integrateSpecular(const Scene *scene, 
@@ -33,7 +35,9 @@ public:
     {
         // Sample the specular BSDF
         float bsdfPdf;
-        Pth::sampleBSDF(scene, sampler, state, bsdfPdf);        
+        BSDFQueryRecord query = Pth::initBSDFQuery(scene, state);
+        Color3f f = Pth::sampleBSDF(state, sampler, query, bsdfPdf);   
+        state.scatteringFactor *= f;    
     }
 
     void integrateEmitter(const Scene *scene, 
@@ -43,7 +47,7 @@ public:
         // Retrieve the emitter associated with the surface
         const Emitter *emitter = state.intersection.mesh->getEmitter();
 
-        EmitterQueryRecord emitterQuery (state.intersection.toLocal(-state.ray.d), EMeasure::EDiscrete);
+        EmitterQueryRecord emitterQuery (state.intersection.vtoLocal(-state.ray.d), EMeasure::EDiscrete);
         emitterQuery.lightP = state.intersection.p;
         state.radiance += state.scatteringFactor * emitter->eval(emitterQuery);
 

@@ -32,20 +32,28 @@ public:
                 return Color3f(0.0f);
         }
 
-        Vector3f wi = its.toLocal(-ray.d).normalized();
+        PathState state;
+        state.intersection = its;
+        state.ray = ray;
+        
+        // Sample the BSDF
+        float pointPdf; 
+        const BSDF *bsdf = state.intersection.mesh->getBSDF();
+        
+        auto query = Pth::initBSDFQuery(scene, state);
+        bool valid = bsdf->samplePoint(query, sampler, pointPdf);
 
-        // Render non diffuse BSDF
-        BSDFQueryRecord bsdfQuery(wi);
-        Color3f f = its.mesh->getBSDF()->sample(bsdfQuery, sampler);
+        if (!valid)
+            return Color3f(0.0f);
 
-        // Compute the new ray
-        Ray3f newRay(its.p, its.toWorld(bsdfQuery.wo), Epsilon, INFINITY);
-        newRay.isCameraRay = ray.isCameraRay;
+        float pdf;
+        Color3f f = Pth::sampleBSDF(state, sampler, query, pdf);
 
+        pdf = pdf * roulettePdf * pointPdf;
         depth++;
 
         // Compute the contribution
-        return f * Li(scene, sampler, newRay, depth) / roulettePdf;
+        return f * Li(scene, sampler, state.ray, depth) / pdf;
     }
 
     Color3f integrateDiffuse(const Scene *scene, 
@@ -57,8 +65,16 @@ public:
         state.intersection = its;
         state.ray = ray;
 
-        BSDFQueryRecord bsdfQuery;
-        return Pth::nextEventEstimation(scene, sampler, state, bsdfQuery);
+        float pointPdf; 
+        const BSDF *bsdf = state.intersection.mesh->getBSDF();
+        
+        auto query = Pth::initBSDFQuery(scene, state);
+        bool valid = bsdf->samplePoint(query, sampler, pointPdf);
+
+        if (!valid)
+            return Color3f(0.0f);
+
+        return Pth::nextEventEstimation(scene, sampler, state, query) / pointPdf;
     }
 
     Color3f integrateSubsurface(const Scene *scene, 
@@ -70,13 +86,16 @@ public:
         state.intersection = its;
         state.ray = ray;
 
-        BSDFQueryRecord bsdfQuery; float pointPdf;
-        bool valid = Pth::sampleBSSRDFpoint(scene, sampler, state, bsdfQuery, pointPdf);
+        float pointPdf; 
+        const BSDF *bsdf = state.intersection.mesh->getBSDF();
+        
+        auto query = Pth::initBSDFQuery(scene, state);
+        bool valid = bsdf->samplePoint(query, sampler, pointPdf);
 
         if (!valid)
             return Color3f(0.0f);
 
-        return Pth::nextEventEstimation(scene, sampler, state, bsdfQuery) / pointPdf;
+        return Pth::nextEventEstimation(scene, sampler, state, query) / pointPdf;
     }
 
     Color3f Li (const Scene *scene, Sampler *sampler,

@@ -35,10 +35,17 @@ Scene::Scene(const PropertyList &) {
 }
 
 Scene::~Scene() {
+
     delete m_accel;
     delete m_sampler;
     delete m_camera;
     delete m_integrator;
+
+    for (size_t i=0; i<sss_accelerators.size(); ++i)
+        delete sss_accelerators[i];
+
+    for (size_t i=0; i<m_meshes.size(); ++i)
+        delete m_meshes[i];
 }
 
 void Scene::activate() 
@@ -55,11 +62,18 @@ void Scene::activate()
 
         if (m_meshes[i]->hasSubsurfaceScattering())
         {
-            SS_meshes.push_back(m_meshes[i]);
+            sss_meshes.push_back(m_meshes[i]);
         }
     }
 
     m_accel->build();
+
+    for (size_t i=0; i<sss_meshes.size(); ++i)
+    {
+        sss_accelerators.push_back(new Accel());
+        sss_accelerators.back()->addMesh(sss_meshes[i]);
+        sss_accelerators.back()->build();
+    }
 
     if (!m_integrator)
         throw NoriException("No integrator was specified!");

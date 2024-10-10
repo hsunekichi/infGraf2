@@ -79,7 +79,7 @@ public:
 
 	/// Return a reference to an array containing all lights
 	const std::vector<Emitter *> &getLights() const { return m_emitters; }
-    const std::vector<Mesh *> &getSSMeshes() const { return SS_meshes; }
+    const std::vector<Mesh *> &getSSMeshes() const { return sss_meshes; }
 
 	/// Return a the scene background
 	Color3f getBackground(const Ray3f& ray) const;
@@ -111,6 +111,25 @@ public:
      */
     bool rayIntersect(const Ray3f &ray, Intersection &its, bool isShadowRay=false) const {
         return m_accel->rayIntersect(ray, its, isShadowRay);
+    }
+
+    bool rayIntersect(const Ray3f &ray, const Mesh *mesh, Intersection &its, bool isShadowRay=false) const 
+    {
+        int id = -1;
+
+        for (int i = 0; i < (int)sss_meshes.size(); i++)
+        {
+            if (sss_meshes[i] == mesh)
+            {
+                id = i;
+                break;
+            }
+        }
+
+        if (id == -1)
+            throw NoriException("Requesting ray intersection for a non sss mesh");
+    
+        return sss_accelerators[id]->rayIntersect(ray, its, isShadowRay);
     }
 
     /**
@@ -155,7 +174,7 @@ public:
     EClassType getClassType() const { return EScene; }
 private:
     std::vector<Mesh *> m_meshes;
-    std::vector<Mesh *> SS_meshes;
+    std::vector<Mesh *> sss_meshes;
 	std::vector<Emitter *> m_emitters;
 
 	Emitter *m_enviromentalEmitter = nullptr;
@@ -164,6 +183,7 @@ private:
     Sampler *m_sampler = nullptr;
     Camera *m_camera = nullptr;
     Accel *m_accel = nullptr;
+    std::vector<Accel *> sss_accelerators;
 };
 
 NORI_NAMESPACE_END

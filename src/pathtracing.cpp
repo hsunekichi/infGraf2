@@ -67,28 +67,22 @@ bool checkVisibility (const Scene *scene,
 }
 
 
-bool Pth::sampleBSSRDFpoint(const Scene *scene,
-                Sampler *sampler,
-                const PathState &state,
-                BSDFQueryRecord &bsdfQuery,
-                float &pdf)
+BSDFQueryRecord Pth::initBSDFQuery(const Scene *scene, const PathState &state)
 {
-    // Static cast to SubsurfaceScattering bsdf
-    const BSSRDF &SSS = *static_cast<const BSSRDF *>(state.intersection.mesh->getBSDF());
-    
-    bsdfQuery.wi = state.intersection.toLocal(-state.ray.d);
+    BSDFQueryRecord bsdfQuery;
+    bsdfQuery.wi = state.intersection.vtoLocal(-state.ray.d);
     bsdfQuery.pi = state.intersection.p;
-    bsdfQuery.po = state.intersection.p;
+    bsdfQuery.fri = state.intersection.shFrame;
+
     bsdfQuery.measure = ESolidAngle;
     bsdfQuery.isCameraRay = state.ray.isCameraRay;
     bsdfQuery.uv = state.intersection.uv;
-    bsdfQuery.frame = state.intersection.shFrame;
-    bsdfQuery.scene = scene;
+    
     bsdfQuery.mesh = state.intersection.mesh;
+    bsdfQuery.scene = scene;
 
-    return SSS.samplePoint(bsdfQuery, sampler, pdf);
+    return bsdfQuery;
 }
-
 
 
 Color3f Pth::nextEventEstimation(const Scene *scene, 
@@ -101,32 +95,31 @@ Color3f Pth::nextEventEstimation(const Scene *scene,
     Emitter *emitterMesh = nullptr;
 
     // Sample a point on a random emitter
-    Color3f Le = sampleRandomEmitter(scene, sampler, state.intersection.p, 
+    Color3f Le = sampleRandomEmitter(scene, sampler, bsdfQuery.po, 
             emitterMesh, lightP, lightPdf);
     
     if (Le == Color3f(0.0f))
         return Color3f(0.0f);
 
 
-    Vector3f g_wi = (lightP - state.intersection.p);
-    Vector3f surface_wiNormalized = state.intersection.toLocal(g_wi).normalized();
+    Vector3f g_wo = (lightP - state.intersection.p);
+    Vector3f l_wo = bsdfQuery.fro.vtoLocal(g_wo).normalized();
 
     //*********************** Sample emitter ******************************
-    if (checkVisibility(scene, state, emitterMesh, g_wi))
+    if (checkVisibility(scene, state, emitterMesh, g_wo))
     {
         // Evaluate bsdf
         const BSDF *bsdf = state.intersection.mesh->getBSDF();
-        bsdfQuery.wo = surface_wiNormalized;
-        bsdfQuery.wi = state.intersection.toLocal(-state.ray.d);
+        bsdfQuery.wo = l_wo;
+        bsdfQuery.wi = bsdfQuery.fro.vtoLocal(-state.ray.d);
         bsdfQuery.measure = ESolidAngle;
         
         Color3f f = bsdf->eval(bsdfQuery);
         bsdfPdf = bsdf->pdf(bsdfQuery);
 
-
         // Compute the geometric term
-        float cosThetaP = Math::absCosTheta(surface_wiNormalized);
-        float G = cosThetaP / g_wi.squaredNorm();
+        float cosThetaP = Math::absCosTheta(l_wo);
+        float G = cosThetaP / g_wo.squaredNorm();
         
         return Le * f * G;
     }
@@ -135,28 +128,27 @@ Color3f Pth::nextEventEstimation(const Scene *scene,
 }
 
 
-void Pth::sampleBSDF(const Scene *scene, Sampler *sampler, PathState &state, float &pdf)
+Color3f Pth::sampleBSDF(
+        PathState &state,
+        Sampler *sampler, 
+        BSDFQueryRecord &bsdfQuery, 
+        float &pdf)
 {
-    Vector3f wi = state.intersection.toLocal(-state.ray.d).normalized();
+    const BSDF *bsdf = state.intersection.mesh->getBSDF();
 
-    // Render non diffuse BSDF
-    BSDFQueryRecord bsdfQuery(wi);
-    bsdfQuery.pi = state.intersection.p;
-    bsdfQuery.measure = ESolidAngle;
-    bsdfQuery.isCameraRay = state.ray.isCameraRay;
-    bsdfQuery.uv = state.intersection.uv;
-    bsdfQuery.frame = state.intersection.shFrame;
+    Vector3f w_wi = bsdfQuery.fri.vtoWorld(bsdfQuery.wi);
+    bsdfQuery.wi = bsdfQuery.fro.vtoLocal(w_wi).normalized();
 
-    Color3f f = state.intersection.mesh->getBSDF()->sample(bsdfQuery, sampler);
-    pdf = state.intersection.mesh->getBSDF()->pdf(bsdfQuery);
+    Color3f f = bsdf->sample(bsdfQuery, sampler);
+    pdf = bsdf->pdf(bsdfQuery);
 
     // Create the new ray
-    Ray3f newRay(state.intersection.p, state.intersection.toWorld(bsdfQuery.wo), Epsilon, INFINITY);
+    Ray3f newRay(bsdfQuery.po, bsdfQuery.fro.vtoWorld(bsdfQuery.wo), Epsilon, INFINITY);
     newRay.isCameraRay = bsdfQuery.isCameraRay;
 
     // Apply scattering factor
-    state.scatteringFactor *= f;
     state.ray = newRay;
+    return f;
 }
 
 

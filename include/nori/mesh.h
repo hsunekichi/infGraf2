@@ -56,21 +56,21 @@ struct Intersection {
     Intersection() : mesh(nullptr) { }
 
     /// Transform a direction vector into the local shading frame
-    inline Vector3f toLocal(const Vector3f &d) const {
-        return shFrame.toLocal(d);
+    inline Vector3f vtoLocal(const Vector3f &d) const {
+        return shFrame.vtoLocal(d);
     }
 
     /// Transform a direction vector from local to world coordinates
-    inline Vector3f toWorld(const Vector3f &d) const {
-        return shFrame.toWorld(d);
+    inline Vector3f vtoWorld(const Vector3f &d) const {
+        return shFrame.vtoWorld(d);
     }
 
-    inline Point3f toLocalPoint(const Point3f &p) const {
-        return shFrame.toLocal(p);
+    inline Point3f ptoLocal(const Point3f &p) const {
+        return shFrame.ptoLocal(p);
     }
 
-    inline Point3f toWorldPoint(const Point3f &p) const {
-        return shFrame.toWorld(p);
+    inline Point3f ptoWorld(const Point3f &p) const {
+        return shFrame.ptoWorld(p);
     }
 
     /// Return a human-readable summary of the intersection record
@@ -170,7 +170,6 @@ public:
      *   \c true if an intersection has been detected
      */
     bool rayIntersect(n_UINT index, const Ray3f &ray, float &u, float &v, float &t) const;
-    bool rayIntersect(const Ray3f &ray, float &t, Normal3f &ni) const;
 
     /// Return a pointer to the vertex positions
     const MatrixXf &getVertexPositions() const { return m_V; }
