@@ -69,7 +69,6 @@ add_executable(nori
   include/nori/warp.h
   include/nori/pathtracing.h
   include/nori/kdtree.h
-  include/nori/bssrdf.h
 
   # Source code files
   src/common.cpp
@@ -115,6 +114,7 @@ add_executable(nori
   src/pathtracing.cpp
   src/directWhitted.cpp
   src/depthIntegrator.cpp
+  src/subsurface.cpp
 )
 
 add_definitions(${NANOGUI_EXTRA_DEFS})

@@ -4,7 +4,6 @@
 #include <nori/integrator.h>
 #include <nori/sampler.h>
 #include <nori/bsdf.h>
-#include <nori/bssrdf.h>
 
 #include <nori/scene.h>
 #include <nori/math.h>

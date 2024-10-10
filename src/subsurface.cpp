@@ -30,10 +30,10 @@ NORI_NAMESPACE_BEGIN
 /**
  * \brief SubsurfaceScattering / Lambertian BRDF model
  */
-class BSSRDF : public BSDF
+class subsurface : public BSDF
 {
 public:
-    BSSRDF(const PropertyList &propList) 
+    subsurface(const PropertyList &propList) 
     {
         m_albedo = new ConstantSpectrumTexture(propList.getColor("albedo", Color3f(0.5f)));
 
@@ -358,5 +358,5 @@ private:
     float g, etaT, scale;
 };
 
-NORI_REGISTER_CLASS(BSSRDF, "subsurface");
+NORI_REGISTER_CLASS(subsurface, "subsurface");
 NORI_NAMESPACE_END
