@@ -76,7 +76,7 @@ public:
         if (!valid)
             return Color3f(0.0f);
 
-        return Pth::nextEventEstimation(scene, sampler, state, bsdfQuery);
+        return Pth::nextEventEstimation(scene, sampler, state, bsdfQuery) / pointPdf;
     }
 
     Color3f Li (const Scene *scene, Sampler *sampler,
