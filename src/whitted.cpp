@@ -82,20 +82,28 @@ public:
                 const Ray3f &ray,
                 Intersection &its) const
     {
-        PathState state;
-        state.intersection = its;
-        state.ray = ray;
+        int nSamples = 32;
+        Color3f radiance = Color3f(0.0f);
 
-        float pointPdf; 
-        const BSDF *bsdf = state.intersection.mesh->getBSDF();
-        
-        auto query = Pth::initBSDFQuery(scene, state);
-        bool valid = bsdf->samplePoint(query, sampler, pointPdf);
+        for (int i = 0; i < nSamples ; i++)
+        {
+            PathState state;
+            state.intersection = its;
+            state.ray = ray;
 
-        if (!valid)
-            return Color3f(0.0f);
+            float pointPdf; 
+            const BSDF *bsdf = state.intersection.mesh->getBSDF();
+            
+            auto query = Pth::initBSDFQuery(scene, state);
+            bool valid = bsdf->samplePoint(query, sampler, pointPdf);
 
-        return Pth::nextEventEstimation(scene, sampler, state, query) / pointPdf;
+            if (!valid)
+                continue;
+
+            radiance += Pth::nextEventEstimation(scene, sampler, state, query) / pointPdf;
+        }
+
+        return radiance / nSamples;
     }
 
     Color3f Li (const Scene *scene, Sampler *sampler,

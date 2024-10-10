@@ -117,37 +117,61 @@ public:
     {
         Color3f sigmaT = sigmaA + sigmaS;
 
+        // Select random frame
+        Vector3f vx, vy, vz;
+        float rnd = sampler->next1D();
+        if (rnd < 0.5f) 
+        {
+            vx = bRec.fri.s;
+            vy = bRec.fri.t;
+            vz = bRec.fri.n;
+            rnd *= 2; // Adjust random sample
+        } 
+        else if (rnd < 0.75f) 
+        {
+            vx = bRec.fri.t;
+            vy = bRec.fri.n;
+            vz = bRec.fri.s;
+            rnd = (rnd - 0.5f) * 4; // Adjust random sample
+        } 
+        else 
+        {
+            vx = bRec.fri.n;
+            vy = bRec.fri.s;
+            vz = bRec.fri.t;
+            rnd = (rnd - 0.75f) * 4; // Adjust random sample
+        }
+
         // Select random channel
-        int channel =  sampler->next1D() * 3;
+        int channel =  rnd * 3;
         float sigma = sigmaT[channel];
-        float channelPdf = 1.0f / 3.0f;
+        rnd = rnd * 3.0f - channel; // Adjust random sample
 
         // Select sphere radius
-        float rMax = Warp::squareToSrDecay(sampler->next1D(), sigma);
-        float rMin = 1.0f/sigma;
+        float rMax = Warp::squareToSrDecay(0.999f, sigma);
         float r = Warp::squareToSrDecay(sampler->next1D(), sigma);
 
+        if (r > rMax)
+            return false;
+
         // Clamp to account for highly curved surfaces, change to meters
-        rMax = Math::max(rMax, rMin) / 1000.0f;
-        r = Math::clamp(r, rMin, rMax) / 1000.0f;
+        rMax /= 1000.0f;
+        r /= 1000.0f;
 
         // Sample a point on the disk
-        Point2f diskSample = Warp::SrToDisk(sampler->next1D(), r);
-        float lhalf = Math::sqrt(Math::pow2(rMax) - Math::pow2(r)); // * 2 / 2
+        float l = 2.0f * Math::sqrt(Math::pow2(rMax) - Math::pow2(r));
+        float th = 2 * M_PI * sampler->next1D();
 
         // Project to sphere
-        Point3f base = Point3f (diskSample.x(), diskSample.y(), lhalf);
-        Point3f target = Point3f (diskSample.x(), diskSample.y(), -lhalf);
-
-        // Sphere to world
-        Point3f w_base = bRec.fri.ptoWorld(base);
-        Point3f w_target = bRec.fri.ptoWorld(target);
+        Point3f w_center = bRec.pi + r * (vx*std::cos(th) + vy*std::sin(th));
+        Point3f w_base = w_center - l*vz*0.5f;
+        Point3f w_target = w_base + l*vz;
  
 
         /************ Project point to shape ****************/
 
         Vector3f d = (w_target - w_base).normalized();
-        Ray3f ray = Ray3f(w_base, d, 0.0f, lhalf*2.0f);
+        Ray3f ray = Ray3f(w_base, d, 0.0f, l);
 
         Intersection its;
         bool intersected = bRec.scene->rayIntersect(ray, bRec.mesh, its);
@@ -162,15 +186,38 @@ public:
 
         /*********************** Pdf *************************/
 
-        float rMaxPdf = Warp::squareToSrDecayPdf(rMax*1000, sigma);
-        float rPdf = Warp::squareToSrDecayPdf(r*1000, sigma);
-        float diskPdf = Warp::SrToDiskPdf(diskSample);
-
-        pdf = rMaxPdf * rPdf * diskPdf * channelPdf;
+        pdf = pointPdf(bRec);
 
         return true;
     }
 
+    float pointPdf(BSDFQueryRecord &bRec) const
+    {
+        Color3f sigmaT = sigmaA + sigmaS;
+
+        Vector3f d = bRec.po - bRec.pi;
+        Vector3f l_d(Math::dot(bRec.fri.s, d), Math::dot(bRec.fri.t, d), Math::dot(bRec.fri.n, d));
+        Normal3f l_n(Math::dot(bRec.fri.s, bRec.fro.n), Math::dot(bRec.fri.t, bRec.fro.n), Math::dot(bRec.fri.n, bRec.fro.n));
+
+        float rProjected[3] = { std::sqrt(l_d.y()*l_d.y() + l_d.z()*l_d.z()),
+                                std::sqrt(l_d.z()*l_d.z() + l_d.x()*l_d.x()),
+                                std::sqrt(l_d.x()*l_d.x() + l_d.y()*l_d.y()) };
+
+        float pdf = 0, axisPdf[3] = { .25f, .25f, .5f };
+        float chProb = 1 / 3.0f; // 3 channels
+
+        for (int axis = 0; axis < 3; axis++)
+        {
+            for (int ch = 0; ch < 3; ch++)
+            {
+                pdf += Warp::squareToSrDecayPdf(rProjected[axis], sigmaT[ch]) 
+                        * std::abs(l_n[axis]) 
+                        * chProb * axisPdf[axis];
+            }
+        }
+        
+        return pdf;
+    }
 
     Color3f sample(BSDFQueryRecord &bRec, Sampler *sampler) const
     {
@@ -234,8 +281,7 @@ public:
         float r = (bRec.po - bRec.pi).norm() * 1000.0f;
         float eta = etaT;
 
-        Color3f Rd = betterAlternative(r);
-        //std::cout << Rd.toString() + ", " + std::to_string(r) << std::endl;
+        Color3f Rd = dipoleDiffusionAproximation(r);
 
         Vector3f w_wi = bRec.fro.vtoWorld(bRec.wi);
         float cosWi = Math::absCos(w_wi, bRec.fri.n);
