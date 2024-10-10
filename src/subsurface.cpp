@@ -210,7 +210,7 @@ public:
         {
             for (int ch = 0; ch < 3; ch++)
             {
-                pdf += Warp::squareToSrDecayPdf(rProjected[axis], sigmaT[ch]) 
+                pdf += Warp::squareToSrDecayPdf(rProjected[axis]*1000, sigmaT[ch]) 
                         * std::abs(l_n[axis]) 
                         * chProb * axisPdf[axis];
             }
