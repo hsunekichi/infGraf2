@@ -161,8 +161,8 @@ public:
 
         /*********************** Pdf *************************/
 
-        float rMaxPdf = Warp::squareToSrDecayPdf(rMax, sigma);
-        float rPdf = Warp::squareToSrDecayPdf(r, sigma);
+        float rMaxPdf = Warp::squareToSrDecayPdf(rMax*1000, sigma);
+        float rPdf = Warp::squareToSrDecayPdf(r*1000, sigma);
         float diskPdf = Warp::SrToDiskPdf(diskSample);
 
         pdf = rMaxPdf * rPdf * diskPdf * channelPdf;
