@@ -49,7 +49,7 @@ public:
         float pdf;
         Color3f f = Pth::sampleBSDF(state, sampler, query, pdf);
 
-        pdf = pdf * roulettePdf * pointPdf;
+        pdf = roulettePdf * pointPdf;
         depth++;
 
         // Compute the contribution
