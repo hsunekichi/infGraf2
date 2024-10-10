@@ -480,7 +480,7 @@ bool Accel::rayIntersect(const Ray3f &_ray, Intersection &its, bool shadowRay) c
 			bary.z() * UV.col(idx2);
 
 		/* Compute the geometry frame */
-		its.geoFrame = Frame((p1 - p0).cross(p2 - p0).normalized());
+		its.geoFrame = Frame(its.p, (p1 - p0).cross(p2 - p0).normalized());
 
 		if (N.size() > 0) {
 			/* Compute the shading frame. Note that for simplicity,
@@ -489,7 +489,7 @@ bool Accel::rayIntersect(const Ray3f &_ray, Intersection &its, bool shadowRay) c
 			   means that this code will need to be modified to be able
 			   use anisotropic BRDFs, which need tangent continuity */
 
-			its.shFrame = Frame(
+			its.shFrame = Frame(its.p,
 				(bary.x() * N.col(idx0) +
 					bary.y() * N.col(idx1) +
 					bary.z() * N.col(idx2)).normalized());

@@ -65,6 +65,14 @@ struct Intersection {
         return shFrame.toWorld(d);
     }
 
+    inline Point3f toLocalPoint(const Point3f &p) const {
+        return shFrame.toLocal(p);
+    }
+
+    inline Point3f toWorldPoint(const Point3f &p) const {
+        return shFrame.toWorld(p);
+    }
+
     /// Return a human-readable summary of the intersection record
     std::string toString() const;
 };
@@ -162,6 +170,7 @@ public:
      *   \c true if an intersection has been detected
      */
     bool rayIntersect(n_UINT index, const Ray3f &ray, float &u, float &v, float &t) const;
+    bool rayIntersect(const Ray3f &ray, float &t, Normal3f &ni) const;
 
     /// Return a pointer to the vertex positions
     const MatrixXf &getVertexPositions() const { return m_V; }

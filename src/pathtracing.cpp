@@ -67,61 +67,18 @@ bool checkVisibility (const Scene *scene,
 }
 
 
-Color3f nextEventEstimationBRDF(const Scene *scene, 
+bool Pth::sampleBSSRDFpoint(const Scene *scene,
                 Sampler *sampler,
                 const PathState &state,
-                float &lightPdf, float &bsdfPdf)
-{
-    Point3f lightP;
-    Emitter *emitterMesh = nullptr;
-
-
-    // Sample a point on a random emitter
-    Color3f Le = sampleRandomEmitter(scene, sampler, state.intersection.p, 
-            emitterMesh, lightP, lightPdf);
-    
-    if (Le == Color3f(0.0f))
-        return Color3f(0.0f);
-
-
-    Vector3f g_wi = (lightP - state.intersection.p);
-    Vector3f surface_wiNormalized = state.intersection.toLocal(g_wi).normalized();
-
-    //*********************** Sample emitter ******************************
-    if (checkVisibility(scene, state, emitterMesh, g_wi))
-    {
-        // Evaluate bsdf
-        const BSDF *bsdf = state.intersection.mesh->getBSDF();
-        BSDFQueryRecord bsdfQuery(state.intersection.toLocal(-state.ray.d), 
-                surface_wiNormalized, ESolidAngle);
-        bsdfQuery.uv = state.intersection.uv;
-        
-        
-        Color3f f = bsdf->eval(bsdfQuery);
-        bsdfPdf = bsdf->pdf(bsdfQuery);
-
-
-        // Compute the geometric term
-        float cosThetaP = Math::absCosTheta(surface_wiNormalized);
-        float G = cosThetaP / g_wi.squaredNorm();
-
-        return Le * f * G;
-    }
-
-    return Color3f(0.0f);
-}
-
-
-Point3f sampleBSSRDFpoint(const Scene *scene,
-                Sampler *sampler,
-                const PathState &state,
+                BSDFQueryRecord &bsdfQuery,
                 float &pdf)
 {
     // Static cast to SubsurfaceScattering bsdf
     const BSSRDF &SSS = *static_cast<const BSSRDF *>(state.intersection.mesh->getBSDF());
     
-    BSDFQueryRecord bsdfQuery(state.intersection.toLocal(-state.ray.d));
+    bsdfQuery.wi = state.intersection.toLocal(-state.ray.d);
     bsdfQuery.pi = state.intersection.p;
+    bsdfQuery.po = state.intersection.p;
     bsdfQuery.measure = ESolidAngle;
     bsdfQuery.isCameraRay = state.ray.isCameraRay;
     bsdfQuery.uv = state.intersection.uv;
@@ -129,32 +86,23 @@ Point3f sampleBSSRDFpoint(const Scene *scene,
     bsdfQuery.scene = scene;
     bsdfQuery.mesh = state.intersection.mesh;
 
-
-    SSS.samplePoint(bsdfQuery, sampler, pdf);
-
-    return bsdfQuery.po;
+    return SSS.samplePoint(bsdfQuery, sampler, pdf);
 }
 
 
 
-Color3f nextEventEstimationBSSRDF(const Scene *scene, 
+Color3f Pth::nextEventEstimation(const Scene *scene, 
                 Sampler *sampler,
                 const PathState &state,
+                BSDFQueryRecord &bsdfQuery,
                 float &lightPdf, float &bsdfPdf)
 {
-    float pointPdf;
-    Point3f pi = sampleBSSRDFpoint(scene, sampler, state, pointPdf);
-    Vector3f wi;
-
     Point3f lightP;
     Emitter *emitterMesh = nullptr;
-
 
     // Sample a point on a random emitter
     Color3f Le = sampleRandomEmitter(scene, sampler, state.intersection.p, 
             emitterMesh, lightP, lightPdf);
-
-    Le /= pointPdf;
     
     if (Le == Color3f(0.0f))
         return Color3f(0.0f);
@@ -162,23 +110,15 @@ Color3f nextEventEstimationBSSRDF(const Scene *scene,
 
     Vector3f g_wi = (lightP - state.intersection.p);
     Vector3f surface_wiNormalized = state.intersection.toLocal(g_wi).normalized();
-    wi = g_wi;
 
     //*********************** Sample emitter ******************************
     if (checkVisibility(scene, state, emitterMesh, g_wi))
     {
         // Evaluate bsdf
         const BSDF *bsdf = state.intersection.mesh->getBSDF();
-        BSDFQueryRecord bsdfQuery(surface_wiNormalized,
-            state.intersection.toLocal(-state.ray.d), ESolidAngle);
-
-        bsdfQuery.uv = state.intersection.uv;
-        bsdfQuery.isCameraRay = state.ray.isCameraRay;
-        bsdfQuery.po = state.intersection.p;
-        bsdfQuery.pi = pi;
-        bsdfQuery.scene = scene;
-        bsdfQuery.mesh = state.intersection.mesh;
-        bsdfQuery.ni = Vector3f(0.0f, 0.0f, 1.0f);
+        bsdfQuery.wo = surface_wiNormalized;
+        bsdfQuery.wi = state.intersection.toLocal(-state.ray.d);
+        bsdfQuery.measure = ESolidAngle;
         
         Color3f f = bsdf->eval(bsdfQuery);
         bsdfPdf = bsdf->pdf(bsdfQuery);
@@ -194,98 +134,29 @@ Color3f nextEventEstimationBSSRDF(const Scene *scene,
     return Color3f(0.0f);
 }
 
-Color3f Pth::nextEventEstimation(const Scene *scene, 
-                Sampler *sampler,
-                const PathState &state,
-                size_t &nSamplesNes,
-                bool MIS)
+
+void Pth::sampleBSDF(const Scene *scene, Sampler *sampler, PathState &state, float &pdf)
 {
-    float lightPdf, bsdfPdf;
-    Color3f radiance = Color3f(0.0f);
+    Vector3f wi = state.intersection.toLocal(-state.ray.d).normalized();
 
-    if (!state.intersection.mesh->hasSubsurfaceScattering())
-    {
-        nSamplesNes = 1; 
-        radiance = nextEventEstimationBRDF(scene, sampler, state, lightPdf, bsdfPdf);
-    }
-    else
-    {
-        nSamplesNes = 8;
-
-        for (size_t i = 0; i < nSamplesNes; i++)
-        {
-            radiance += nextEventEstimationBSSRDF(scene, sampler, state, lightPdf, bsdfPdf);
-        }
-    }
-
-    float weight = 1.0f;
-
-    if (MIS)
-        weight = Math::powerHeuristic(nSamplesNes, lightPdf, 1, bsdfPdf);
-    
-    return radiance * weight / nSamplesNes;
-}
-
-
-
-void sampleBSSRDF(const Scene *scene,
-                Sampler *sampler,
-                PathState &state,
-                float &pdf)
-{
-    // Static cast to SubsurfaceScattering bsdf
-    const BSDF &SSS = *state.intersection.mesh->getBSDF();
-    
-    BSDFQueryRecord bsdfQuery(state.intersection.toLocal(-state.ray.d));
+    // Render non diffuse BSDF
+    BSDFQueryRecord bsdfQuery(wi);
     bsdfQuery.pi = state.intersection.p;
     bsdfQuery.measure = ESolidAngle;
     bsdfQuery.isCameraRay = state.ray.isCameraRay;
     bsdfQuery.uv = state.intersection.uv;
     bsdfQuery.frame = state.intersection.shFrame;
 
+    Color3f f = state.intersection.mesh->getBSDF()->sample(bsdfQuery, sampler);
+    pdf = state.intersection.mesh->getBSDF()->pdf(bsdfQuery);
 
-    Color3f f = SSS.sample(bsdfQuery, sampler);
-    pdf = SSS.pdf(bsdfQuery);
-
-
-    // Compute the new ray
-    Ray3f newRay(bsdfQuery.po, state.intersection.toWorld(bsdfQuery.wo), Epsilon, INFINITY);
+    // Create the new ray
+    Ray3f newRay(state.intersection.p, state.intersection.toWorld(bsdfQuery.wo), Epsilon, INFINITY);
     newRay.isCameraRay = bsdfQuery.isCameraRay;
-
 
     // Apply scattering factor
     state.scatteringFactor *= f;
     state.ray = newRay;
-}
-
-
-void Pth::sampleBSDF(const Scene *scene, Sampler *sampler, PathState &state, float &pdf)
-{
-    if (!state.intersection.mesh->hasSubsurfaceScattering())
-    {
-        Vector3f wi = state.intersection.toLocal(-state.ray.d).normalized();
-
-        // Render non diffuse BSDF
-        BSDFQueryRecord bsdfQuery(wi);
-        bsdfQuery.isCameraRay = state.ray.isCameraRay;
-        bsdfQuery.uv = state.intersection.uv;
-
-        Color3f f = state.intersection.mesh->getBSDF()->sample(bsdfQuery, sampler);
-        pdf = state.intersection.mesh->getBSDF()->pdf(bsdfQuery);
-
-        // Create the new ray
-        Ray3f newRay(state.intersection.p, state.intersection.toWorld(bsdfQuery.wo), Epsilon, INFINITY);
-        newRay.isCameraRay = bsdfQuery.isCameraRay;
-
-        // Apply scattering factor
-        state.scatteringFactor *= f;
-        state.ray = newRay;
-    }
-    else
-    {
-        sampleBSSRDF(scene, sampler, state, pdf);
-        return;
-    }
 }
 
 
@@ -297,10 +168,14 @@ Pth::IntegrationType Pth::getIntegrationType(const Intersection &its)
     if (emitter) { // Render emitter 
         return EMITTER;
     }
-    else if (mesh->getBSDF()->isDiffuse()) 
+    else if (mesh->getBSDF()->isDiffuse()
+        && !mesh->hasSubsurfaceScattering()) 
     { 
         // Render diffuse surface
         return DIFFUSE;
+    }
+    else if (mesh->hasSubsurfaceScattering()) { // Render subsurface scattering
+        return SUBSURFACE;
     }
     else { // Render specular surface
         return SPECULAR;

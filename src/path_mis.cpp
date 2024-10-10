@@ -29,7 +29,8 @@ public:
         size_t nSamplesNES;
 
         // Sample the contribution of a random emitter
-        Color3f directLight = Pth::nextEventEstimation(scene, sampler, state, nSamplesNES, true);
+        BSDFQueryRecord bsdfQuery;
+        Color3f directLight = Pth::nextEventEstimation(scene, sampler, state, bsdfQuery);
         state.radiance += state.scatteringFactor * directLight;
 
         // Sample the BSDF

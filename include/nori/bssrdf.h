@@ -74,7 +74,8 @@ public:
             return Color3f(0.0f);
 
         return computeMultipleScattering(bRec) 
-                * m_albedo->eval(bRec.uv);
+                * m_albedo->eval(bRec.uv)
+                / Math::absCos(bRec.frame.n, bRec.ni);
     }
   
 
@@ -88,56 +89,85 @@ public:
         return Warp::squareToCosineHemispherePdf(bRec.wo);
     }
 
-    Point3f projectToSurface (BSDFQueryRecord &bRec, Point3f p) const
+
+    void samplePointOld(BSDFQueryRecord &bRec, Sampler *sampler, float &pdf) const
     {
-        const Scene *scene = bRec.scene;
+        //Color3f sigmaT = sigmaA + sigmaS;
 
-        Ray3f rayUp(p, bRec.frame.n, Epsilon, INFINITY);
-        Ray3f rayDown(p, -bRec.frame.n, Epsilon, INFINITY);
+        // Select random channel
+        //int channel = sampler->next1D() * 3;
+        //float sigma = sigmaT[channel];
+        //float channelPdf = 1.0f / 3.0f;
 
-        Intersection itsUp, itsDown;
-        bool intersectsUp = scene->rayIntersect(rayUp, itsUp, true) && itsUp.mesh == bRec.mesh;
-        bool intersectsDown = scene->rayIntersect(rayDown, itsDown, true) && itsDown.mesh == bRec.mesh;
+        // Sample an offset proportional to the sigmaT
+        //Point2f sample = Warp::squareToSquaredDecayDisk(sampler->next2D(), sigma);
 
-        if (!intersectsUp && !intersectsDown)
-            return p;
+        // Clamp to account for highly curved surfaces
+        //sample = Math::max(sample, Point2f(1.0f/sigma));
+   
+        // Sampled offset (in mm) to world
+        //Vector3f sampled = Vector3f(sample.x(), sample.y(), 0.0f) / 1000.0f;
+        //bRec.po = bRec.pi + bRec.frame.toWorld(sampled); 
+        //bRec.po = projectToSurface(bRec, bRec.po);
 
-        Vector3f castDirection;
-        float tmin = std::min(itsUp.t, itsDown.t);
-
-        if (intersectsUp && tmin == itsUp.t) {
-            castDirection = bRec.frame.n;
-        }
-        else if (intersectsDown) {
-            castDirection = -bRec.frame.n;
-        }
-
-        Point3f casted = p + castDirection * tmin;
-
-        return casted;
+        //pdf = Warp::squareToSquaredDecayDiskPdf(sample, sigma) * channelPdf;
     }
 
-    void samplePoint(BSDFQueryRecord &bRec, Sampler *sampler, float &pdf) const
+    bool samplePoint(BSDFQueryRecord &bRec, Sampler *sampler, float &pdf) const
     {
         Color3f sigmaT = sigmaA + sigmaS;
 
         // Select random channel
-        int channel = sampler->next1D() * 3;
+        int channel =  sampler->next1D() * 3;
         float sigma = sigmaT[channel];
         float channelPdf = 1.0f / 3.0f;
 
-        // Sample an offset proportional to the sigmaT
-        Point2f sample = Warp::squareToSquaredDecayDisk(sampler->next2D(), sigma);
+        // Select sphere radius
+        float rMax = Warp::squareToSrDecay(sampler->next1D(), sigma);
+        float rMin = 1.0f/sigma;
+        float r = Warp::squareToSrDecay(sampler->next1D(), sigma);
 
-        // Clamp to account for highly curved surfaces
-        sample = Math::max(sample, Point2f(1.0f/sigma));
-   
-        // Sampled offset (in mm) to world
-        Vector3f sampled = Vector3f(sample.x(), sample.y(), 0.0f) / 1000.0f;
-        bRec.po = bRec.pi + bRec.frame.toWorld(sampled); 
-        //bRec.po = projectToSurface(bRec, bRec.po);
+        // Clamp to account for highly curved surfaces, change to meters
+        rMax = Math::max(rMax, rMin) / 1000.0f;
+        r = Math::clamp(r, rMin, rMax) / 1000.0f;
 
-        pdf = Warp::squareToSquaredDecayDiskPdf(sample, sigma) * channelPdf;
+        // Sample a point on the disk
+        Point2f diskSample = Warp::SrToDisk(sampler->next1D(), r);
+        float lhalf = Math::sqrt(Math::pow2(rMax) - Math::pow2(r)); // * 2 / 2
+
+        // Project to sphere
+        Point3f base = Point3f (diskSample.x(), diskSample.y(), lhalf);
+        Point3f target = Point3f (diskSample.x(), diskSample.y(), -lhalf);
+
+        // Sphere to world
+        Point3f w_base = bRec.frame.toWorld(base);
+        Point3f w_target = bRec.frame.toWorld(target);
+ 
+
+        /************ Project point to shape ****************/
+
+        Vector3f d = (w_target - w_base).normalized();
+        Ray3f ray = Ray3f(w_base, d, 0.0f, lhalf*2.0f);
+
+        float t;
+        bool intersected = bRec.mesh->rayIntersect(ray, t, bRec.ni);
+        
+        if (!intersected)
+        {
+            return false;
+        }
+        
+        bRec.po = ray(t);
+
+        /*********************** Pdf *************************/
+
+        float rMaxPdf = Warp::squareToSrDecayPdf(rMax, sigma);
+        float rPdf = Warp::squareToSrDecayPdf(r, sigma);
+        float diskPdf = Warp::SrToDiskPdf(diskSample);
+
+        pdf = rMaxPdf * rPdf * diskPdf * channelPdf;
+
+        return true;
     }
 
 
@@ -146,7 +176,9 @@ public:
         bRec.measure = ESolidAngle;
         float pdf;
 
-        samplePoint(bRec, sampler, pdf);
+        bool intersected = samplePoint(bRec, sampler, pdf);
+        if (!intersected)
+            return Color3f(0.0f);
 
         bRec.wo = Warp::squareToCosineHemisphere(sampler->next2D());
         bRec.ni = Vector3f(0.0f, 0.0f, 1.0f);

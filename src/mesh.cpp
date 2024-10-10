@@ -288,6 +288,27 @@ bool Mesh::rayIntersect(n_UINT index, const Ray3f &ray, float &u, float &v, floa
     return t >= ray.mint && t <= ray.maxt;
 }
 
+bool Mesh::rayIntersect(const Ray3f &ray, float &t, Normal3f &ni) const
+{
+    Normal3f minN;
+    float tmin = ray.maxt;
+    for (uint32_t i = 0; i < m_F.cols(); ++i) {
+        float u, v, _t;
+        if (rayIntersect(i, ray, u, v, _t) && _t < tmin) {
+            minN = getNormal(i, Point2f(u, v));
+            tmin = _t;
+        }
+    }
+
+    if (tmin == ray.maxt)
+        return false;
+
+    ni = minN;
+    t = tmin;
+    return true;
+}
+
+
 BoundingBox3f Mesh::getBoundingBox(n_UINT index) const {
     BoundingBox3f result(m_V.col(m_F(0, index)));
     result.expandBy(m_V.col(m_F(1, index)));

@@ -127,18 +127,16 @@ Point2f Warp::squareToUniformDisk(const Point2f &sample)
     return Point2f(r * std::cos(theta), r * std::sin(theta));
 }
 
-Point2f Warp::squareToSquaredDecayDisk(const Point2f &sample, float sigmaT) 
+Point2f Warp::SrToDisk(float sample, float r) 
 {
-    float r = Warp::squareToSquaredDecay(sample.x(), sigmaT);
-    float theta = 2 * M_PI * sample.y();
+    float theta = 2 * M_PI * sample;
     return Point2f(r * std::cos(theta), r * std::sin(theta));
 }
 
-float Warp::squareToSquaredDecayDiskPdf(const Point2f &p, float sigmaT) 
+float Warp::SrToDiskPdf(const Point2f &p) 
 {
-    float rPdf = Warp::squareToSquaredDecayPdf(p.norm(), sigmaT);
     float thetaPdf = 1.0f / (2 * M_PI);
-    return rPdf * thetaPdf;
+    return thetaPdf;
 }
 
 float Warp::squareToUniformDiskPdf(const Point2f &p) 
@@ -256,12 +254,12 @@ float Warp::squareToBeckmannPdf(const Vector3f &m, float alpha) {
     return std::exp(-tanTheta2 / (alpha * alpha)) / (M_PI * alpha * alpha * cosTheta3);
 }
 
-float Warp::squareToSquaredDecay(const Point2f &sample, float sigmaT)
+float Warp::squareToSrDecay(const float &sample, float sigmaT)
 {
-    return -std::log(1 - sample.x()) / sigmaT;
+    return -std::log(1 - sample) / sigmaT;
 }
 
-float Warp::squareToSquaredDecayPdf(const float &sample, float sigmaT)
+float Warp::squareToSrDecayPdf(const float &sample, float sigmaT)
 {
     return sigmaT * std::exp(-sigmaT * sample);
 }

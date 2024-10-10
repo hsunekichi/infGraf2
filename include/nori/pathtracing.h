@@ -29,22 +29,29 @@ struct PathState
 struct Pth
 {
 
-enum IntegrationType {EMITTER, DIFFUSE, SPECULAR, NONE};
+enum IntegrationType {EMITTER, DIFFUSE, SUBSURFACE, SPECULAR, NONE};
 
-
-static Color3f nextEventEstimation(const Scene *scene, 
-                Sampler *sampler,
-                PathState &state)
-{
-    size_t nSamplesNes;
-    return nextEventEstimation(scene, sampler, state, nSamplesNes, false);
-}
 
 static Color3f nextEventEstimation(const Scene *scene, 
                 Sampler *sampler,
                 const PathState &state,
-                size_t &nSamplesNes,
-                bool MIS);
+                BSDFQueryRecord &bsdfQuery)
+{
+    float lightPdf, bsdfPdf;
+    return nextEventEstimation(scene, sampler, state, bsdfQuery, lightPdf, bsdfPdf);
+}
+
+static bool sampleBSSRDFpoint(const Scene *scene,
+                Sampler *sampler,
+                const PathState &state,
+                BSDFQueryRecord &bsdfQuery,
+                float &pdf);
+
+static Color3f nextEventEstimation(const Scene *scene, 
+                Sampler *sampler,
+                const PathState &state,
+                BSDFQueryRecord &bsdfQuery,
+                float &lightPdf, float &bsdfPdf);
 
 static void sampleBSDF(const Scene *scene, Sampler *sampler,
             PathState &state, float &bsdfPdf);

@@ -57,7 +57,26 @@ public:
         state.intersection = its;
         state.ray = ray;
 
-        return Pth::nextEventEstimation(scene, sampler, state);
+        BSDFQueryRecord bsdfQuery;
+        return Pth::nextEventEstimation(scene, sampler, state, bsdfQuery);
+    }
+
+    Color3f integrateSubsurface(const Scene *scene, 
+                Sampler *sampler,
+                const Ray3f &ray,
+                Intersection &its) const
+    {
+        PathState state;
+        state.intersection = its;
+        state.ray = ray;
+
+        BSDFQueryRecord bsdfQuery; float pointPdf;
+        bool valid = Pth::sampleBSSRDFpoint(scene, sampler, state, bsdfQuery, pointPdf);
+
+        if (!valid)
+            return Color3f(0.0f);
+
+        return Pth::nextEventEstimation(scene, sampler, state, bsdfQuery);
     }
 
     Color3f Li (const Scene *scene, Sampler *sampler,
@@ -86,6 +105,10 @@ public:
             case Pth::DIFFUSE:
                 // Render diffuse surface
                 radiance = integrateDiffuse(scene, sampler, ray, its);
+                break;
+
+            case Pth::SUBSURFACE:
+                radiance = integrateSubsurface(scene, sampler, ray, its);
                 break;
 
             case Pth::SPECULAR:

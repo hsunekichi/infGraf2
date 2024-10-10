@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 
 <scene>
-	<integrator type="path_mis"/>
+	<integrator type="whitted"/>
 
 	<camera type="perspective">
 		<float name="fov" value="27.7856"/>
@@ -15,8 +15,8 @@
 	</camera>
 
 	<sampler type="independent">
-		<integer name="sampleCount" value="512"/>
-		<integer name="nPasses" value="32"/>
+		<integer name="sampleCount" value="4"/>
+		<!--<integer name="nPasses" value="32"/>-->
 	</sampler>
 
 	<mesh type="obj">

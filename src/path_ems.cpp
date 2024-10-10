@@ -23,7 +23,8 @@ public:
                 PathState &state) const
     {   
         // Sample the contribution of a random emitter
-        Color3f directLight = Pth::nextEventEstimation(scene, sampler, state);
+        BSDFQueryRecord bsdfQuery;
+        Color3f directLight = Pth::nextEventEstimation(scene, sampler, state, bsdfQuery);
         state.radiance += state.scatteringFactor * directLight * 0.5f;
 
         // Sample the BSDF

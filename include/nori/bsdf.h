@@ -58,6 +58,8 @@ struct BSDFQueryRecord {
     const Mesh *mesh;
     bool isCameraRay = false;
 
+    BSDFQueryRecord() : eta(1.f), measure(EUnknownMeasure) { }
+
     /// Create a new record for sampling the BSDF
     BSDFQueryRecord(const Vector3f &wi, const Vector2f &uv = Vector2f() )
         : wi(wi), eta(1.f), uv(uv), measure(EUnknownMeasure) { }
