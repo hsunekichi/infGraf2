@@ -82,7 +82,7 @@ public:
                 const Ray3f &ray,
                 Intersection &its) const
     {
-        int nSamples = 32;
+        int nSamples = 4;
         Color3f radiance = Color3f(0.0f);
 
         for (int i = 0; i < nSamples ; i++)

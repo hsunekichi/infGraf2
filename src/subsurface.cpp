@@ -90,27 +90,33 @@ public:
     }
 
 
-    void samplePointOld(BSDFQueryRecord &bRec, Sampler *sampler, float &pdf) const
+    bool samplePointOld(BSDFQueryRecord &bRec, Sampler *sampler, float &pdf) const
     {
-        //Color3f sigmaT = sigmaA + sigmaS;
+        Color3f sigmaT = sigmaA + sigmaS;
 
         // Select random channel
-        //int channel = sampler->next1D() * 3;
-        //float sigma = sigmaT[channel];
-        //float channelPdf = 1.0f / 3.0f;
+        int channel = sampler->next1D() * 3;
+        float sigma = sigmaT[channel];
+        float channelPdf = 1.0f / 3.0f;
 
         // Sample an offset proportional to the sigmaT
-        //Point2f sample = Warp::squareToSquaredDecayDisk(sampler->next2D(), sigma);
+        float r = Warp::squareToSrDecay(sampler->next1D(), sigma);
+        Point2f sample = Warp::SrToDisk(sampler->next1D(), r);
 
         // Clamp to account for highly curved surfaces
-        //sample = Math::max(sample, Point2f(1.0f/sigma));
+        sample = Math::max(sample, Point2f(1.0f/sigma));
    
         // Sampled offset (in mm) to world
-        //Vector3f sampled = Vector3f(sample.x(), sample.y(), 0.0f) / 1000.0f;
-        //bRec.po = bRec.pi + bRec.frame.toWorld(sampled); 
+        Vector3f sampled = Vector3f(sample.x(), sample.y(), 0.0f) / 1000.0f;
+        bRec.po = bRec.pi + bRec.fri.ptoWorld(sampled);
+        bRec.fro = bRec.fri; 
         //bRec.po = projectToSurface(bRec, bRec.po);
 
-        //pdf = Warp::squareToSquaredDecayDiskPdf(sample, sigma) * channelPdf;
+        pdf = Warp::SrToDiskPdf(sample) 
+                * Warp::squareToSrDecayPdf(r, sigma)
+                * channelPdf;
+
+        return true;
     }
 
     bool samplePoint(BSDFQueryRecord &bRec, Sampler *sampler, float &pdf) const
