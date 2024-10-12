@@ -37,19 +37,18 @@ public:
         state.ray = ray;
         
         // Sample the BSDF
-        float pointPdf; 
         const BSDF *bsdf = state.intersection.mesh->getBSDF();
         
         auto query = Pth::initBSDFQuery(scene, state);
-        bool valid = bsdf->samplePoint(query, sampler, pointPdf);
+        Color3f fp = bsdf->samplePoint(query, sampler);
 
-        if (!valid)
+        if (fp == Color3f(0.0f))
             return Color3f(0.0f);
 
         float pdf;
         Color3f f = Pth::sampleBSDF(state, sampler, query, pdf);
 
-        pdf = roulettePdf * pointPdf;
+        pdf = roulettePdf;
         depth++;
 
         // Compute the contribution
@@ -65,16 +64,12 @@ public:
         state.intersection = its;
         state.ray = ray;
 
-        float pointPdf; 
         const BSDF *bsdf = state.intersection.mesh->getBSDF();
         
         auto query = Pth::initBSDFQuery(scene, state);
-        bool valid = bsdf->samplePoint(query, sampler, pointPdf);
+        Color3f fp = bsdf->samplePoint(query, sampler);
 
-        if (!valid)
-            return Color3f(0.0f);
-
-        return Pth::nextEventEstimation(scene, sampler, state, query) / pointPdf;
+        return fp * Pth::nextEventEstimation(scene, sampler, state, query);
     }
 
     Color3f integrateSubsurface(const Scene *scene, 
@@ -91,16 +86,15 @@ public:
             state.intersection = its;
             state.ray = ray;
 
-            float pointPdf; 
             const BSDF *bsdf = state.intersection.mesh->getBSDF();
             
             auto query = Pth::initBSDFQuery(scene, state);
-            bool valid = bsdf->samplePoint(query, sampler, pointPdf);
+            Color3f fp = bsdf->samplePoint(query, sampler);
 
-            if (!valid)
+            if (fp == Color3f(0.0f))
                 continue;
 
-            radiance += Pth::nextEventEstimation(scene, sampler, state, query) / pointPdf;
+            radiance += fp * Pth::nextEventEstimation(scene, sampler, state, query);
         }
 
         return radiance / nSamples;

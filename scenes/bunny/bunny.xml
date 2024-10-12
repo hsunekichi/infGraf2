@@ -2,7 +2,7 @@
 <scene>
 	<integrator type="whitted"/>
 	<sampler type="independent">
-		<integer name="sampleCount" value="4"/>
+		<integer name="sampleCount" value="8"/>
 	</sampler>
 	<camera type="perspective">
 		<!--  3D origin, target point, and 'up' vector  -->

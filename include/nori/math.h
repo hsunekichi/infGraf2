@@ -46,6 +46,8 @@ class Math
 
     /// Compute the square root of a float
     inline static float sqrt(float a) { return std::sqrt(a); }
+
+    inline static float exp(float a) { return std::exp(a); }
     inline static Color3f sqrt(const Color3f &a) { return Color3f(std::sqrt(a.x()), std::sqrt(a.y()), std::sqrt(a.z())); }
     inline static Color3f exp(const Color3f &a) { return Color3f(std::exp(a.x()), std::exp(a.y()), std::exp(a.z())); }
 
@@ -87,6 +89,8 @@ class Math
     inline static Color3f max (const Color3f &a, float b) { return Color3f(std::max(a.x(), b), std::max(a.y(), b), std::max(a.z(), b)); }
     inline static Color3f min (const Color3f &a, float b) { return Color3f(std::min(a.x(), b), std::min(a.y(), b), std::min(a.z(), b)); }
 
+    inline static float lerp(float a, float b, float t) { return a + (b - a) * t; }
+
 
     // Compute sin of a vector in local coordinates
     inline static float sin2Theta(const Vector3f &w) {
@@ -121,6 +125,9 @@ class Math
     {
         return sin2Theta(w) / cos2Theta(w);
     }
+
+    inline static float floor(float a) { return std::floor(a); }
+    inline static float ceil(float a) { return std::ceil(a); }
 
     inline static bool sameSign(float a, float b) { return a * b > 0; }
     inline static int sign(float a) { return (a > 0) - (a < 0); }
@@ -247,6 +254,10 @@ class Math
     static Eigen::MatrixXf luminanceMatrix(const Bitmap *image);
 
     static Eigen::MatrixXf equalize(const Eigen::MatrixXf &m);
+
+    // Finds a root for the function f using the secant method.
+    //  Input: Function f, initial x0
+    static float findRoot(std::function<float(float)> f, float x0);
 
     static Color3f fresnel(float cosThetaI, const Color3f &extIOR, const Color3f &intIOR)
     {

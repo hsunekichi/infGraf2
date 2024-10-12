@@ -99,12 +99,11 @@ public:
      *         failed.
      */
     virtual Color3f sample(BSDFQueryRecord &bRec, Sampler *sampler) const = 0;
-    virtual bool samplePoint(BSDFQueryRecord &bRec, Sampler *sampler, float &pdf) const
+    virtual Color3f samplePoint(BSDFQueryRecord &bRec, Sampler *sampler) const
     {
         bRec.po = bRec.pi;
         bRec.fro = bRec.fri;
-        pdf = 1.0f;
-        return true;
+        return Color3f(1.0f);
     }
 
     Color3f sample(BSDFQueryRecord &bRec, const Point2f &sample) const {

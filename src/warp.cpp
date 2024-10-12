@@ -256,7 +256,7 @@ float Warp::squareToBeckmannPdf(const Vector3f &m, float alpha) {
 
 float Warp::squareToSrDecay(const float &sample, float sigmaT)
 {
-    return -std::log(1 - sample) / sigmaT;
+    return (-std::log(1 - sample) / sigmaT);
 }
 
 float Warp::squareToSrDecayPdf(const float &sample, float sigmaT)
