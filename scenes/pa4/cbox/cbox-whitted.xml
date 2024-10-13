@@ -21,8 +21,7 @@
 	</camera>
 
 	<sampler type="independent">
-		<integer name="FirstPassSpp" value="16"/>
-		<integer name="stratsX" value="8"/>
+		<integer name="sampleCount" value="256"/>
 	</sampler>
 
 

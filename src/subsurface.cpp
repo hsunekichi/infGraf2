@@ -165,7 +165,7 @@ public:
     }
 
     /*
-    bool samplePointOld(BSDFQueryRecord &bRec, Sampler *sampler, float &pdf) const
+    Color3f samplePointOld(BSDFQueryRecord &bRec, Sampler *sampler) const
     {
         Color3f sigmaT = sigmaA + sigmaS;
 
@@ -187,13 +187,14 @@ public:
         bRec.fro = bRec.fri; 
         //bRec.po = projectToSurface(bRec, bRec.po);
 
-        pdf = Warp::SrToDiskPdf(sample) 
+        float pdf = Warp::SrToDiskPdf(sample) 
                 * Warp::squareToSrDecayPdf(r, sigma)
                 * channelPdf;
 
-        return true;
+        return Color3f(1.0f / pdf);
     }
     */
+    
 
     Color3f samplePoint(BSDFQueryRecord &bRec, Sampler *sampler) const
     {
@@ -269,9 +270,11 @@ public:
     float pointPdf(const BSDFQueryRecord &bRec) const
     {
         Vector3f d = bRec.po - bRec.pi;
-        Vector3f l_d(Math::dot(bRec.fri.s, d), Math::dot(bRec.fri.t, d), Math::dot(bRec.fri.n, d));
-        Normal3f l_n(Math::dot(bRec.fri.s, bRec.fro.n), Math::dot(bRec.fri.t, bRec.fro.n), Math::dot(bRec.fri.n, bRec.fro.n));
+        Vector3f l_d = bRec.fri.vtoLocal(d);
+        Vector3f l_n = bRec.fri.vtoLocal(bRec.fro.n);
 
+        // Compute the radius that has been sampled for each axis
+        //  (d projected into each axis)
         float rProjected[3] = { std::sqrt(l_d.y()*l_d.y() + l_d.z()*l_d.z()),
                                 std::sqrt(l_d.z()*l_d.z() + l_d.x()*l_d.x()),
                                 std::sqrt(l_d.x()*l_d.x() + l_d.y()*l_d.y()) };
@@ -298,12 +301,10 @@ public:
         bRec.measure = ESolidAngle;
         float pdf;
 
-        Color3f fp = samplePoint(bRec, sampler);
-
         bRec.wo = Warp::squareToCosineHemisphere(sampler->next2D());
         pdf = Warp::squareToCosineHemispherePdf(bRec.wo);
 
-        return fp * Frame::cosTheta(bRec.wo) / pdf;
+        return Frame::cosTheta(bRec.wo) / pdf;
     }
 
     bool isSubsurfaceScattering() const {
@@ -347,8 +348,8 @@ public:
         float cosWi = Math::absCos(w_wi, bRec.fri.n);
         float cosWo = Math::absCosTheta(bRec.wo);
 
-        double Ft_o = 1 - fresnel(cosWo, 1.0, eta);
-        double Ft_i = 1 - fresnel(cosWi, 1.0, eta);
+        float Ft_o = 1 - fresnel(cosWo, 1.0, eta);
+        float Ft_i = 1 - fresnel(cosWi, 1.0, eta);
 
         // Compute the diffusion term
         Color3f Sd = INV_PI * Ft_i * Rd * Ft_o;
@@ -358,44 +359,58 @@ public:
         return Sd * m_albedo->eval(bRec.uv);
     } 
 
-    double Fdr() const {
-        const double eta = etaT;
-        const double eta2 = eta * eta;
-        const double eta3 = eta2 * eta;
-        if (eta >= 1.0) {
+    float Fdr() const 
+    {
+        const float eta = etaT;
+        const float eta2 = eta * eta;
+        const float eta3 = eta2 * eta;
+
+        if (eta >= 1.0) 
+        {
             return -1.4399 / eta2 + 0.7099 / eta + 0.6681 +
                     0.0636 * eta;
-        } else {
+        } 
+        else 
+        {
             return -0.4399 + 0.7099 / eta - 0.3319 / eta2 +
                     0.0636 / eta3;
         }
     }
 
-    double C1() const {
-        const double eta = etaT;
-        const double eta2 = eta * eta;
-        const double eta3 = eta2 * eta;
-        const double eta4 = eta3 * eta;
-        const double eta5 = eta4 * eta;
-        if (eta < 1.0) {
+    float C1() const 
+    {
+        const float eta = etaT;
+        const float eta2 = eta * eta;
+        const float eta3 = eta2 * eta;
+        const float eta4 = eta3 * eta;
+        const float eta5 = eta4 * eta;
+
+        if (eta < 1.0) 
+        {
             return (0.919317 - 3.4793 * eta + 6.75335 * eta2
                     -7.80989 * eta3 + 4.98554 * eta4 - 1.36881 * eta5) / 2.0;
-        } else {
+        } 
+        else 
+        {
             return (-9.23372 + 22.2272 * eta - 20.9292 * eta2 + 10.2291 * eta3
                     - 2.54396 * eta4 + 0.254913 * eta5) / 2.0;
         }
     }
 
-    double C2() const {
-        const double eta = etaT;
-        const double eta2 = eta * eta;
-        const double eta3 = eta2 * eta;
-        const double eta4 = eta3 * eta;
-        const double eta5 = eta4 * eta;
-        if (eta < 1.0) {
+    float C2() const 
+    {
+        const float eta = etaT;
+        const float eta2 = eta * eta;
+        const float eta3 = eta2 * eta;
+        const float eta4 = eta3 * eta;
+        const float eta5 = eta4 * eta;
+
+        if (eta < 1.0) 
+        {
             return (0.828421 - 2.62051 * eta + 3.36231 * eta2 - 1.95284 * eta3
                     + 0.236494 * eta4 + 0.145787 * eta5) / 3.0;
-        } else {
+        } 
+        else {
             return (-1641.1 + 135.926 / eta3 - 656.175 / eta2 + 1376.53 / eta
                     + 1213.67 * eta - 568.556 * eta2 + 164.798 * eta3
                     - 27.0181 * eta4 + 1.91826 * eta5) / 3.0;
@@ -405,11 +420,13 @@ public:
     Color3f betterAlternative (float r) const
     {
         r *= 1000.0f; // Convert to mm
+        const float r2 = r * r;
 
         Color3f sigmap_s = sigmaS;
         Color3f sigmap_t = sigmap_s + sigmaA;
         Color3f alphap = sigmap_s / sigmap_t;
         float A = (1.0 + 3.0 * C2()) / (1.0 - 2.0 * C1());
+
         Color3f D = (2.0 * sigmaA + sigmap_s) / (3.0 * sigmap_t * sigmap_t);
         Color3f sigma_tr = Math::sqrt(sigmaA / D);
         Color3f zr = 1.0 / sigmap_t;
@@ -418,13 +435,13 @@ public:
         Color3f Cphi = 0.25 * (1.0 - 2.0 * C1());
         Color3f CE   = 0.50 * (1.0 - 3.0 * C2());
 
-        const double r2 = r * r;
         const Color3f dr = Math::sqrt(r2 + zr * zr);
         const Color3f dv = Math::sqrt(r2 + zv * zv);
         const Color3f ar = zr * (sigma_tr * dr + 1.0) / (dr * dr);
         const Color3f av = zv * (sigma_tr * dv + 1.0) / (dv * dv);
         const Color3f br = Math::exp(-sigma_tr * dr) / dr;
         const Color3f bv = Math::exp(-sigma_tr * dv) / dv;
+
         return (alphap * alphap / (4.0 * M_PI)) *
                ((CE * ar + Cphi / D) * br -
                 (CE * av + Cphi / D) * bv);
@@ -432,7 +449,8 @@ public:
     
 
     /// Return a human-readable summary
-    std::string toString() const {
+    std::string toString() const 
+    {
         return tfm::format(
             "SubsurfaceScattering[\n"
             "  albedo = %s\n"

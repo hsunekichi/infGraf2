@@ -26,15 +26,27 @@ public:
                 Sampler *sampler,
                 PathState &state) const
     {   
-        size_t nSamplesNES;
+        /*************** Sample outgoing point *******************/
+        const BSDF *bsdf = state.intersection.mesh->getBSDF();
+        
+        auto query = Pth::initBSDFQuery(scene, state);
+        Color3f fp = bsdf->samplePoint(query, sampler);
 
-        // Sample the contribution of a random emitter
-        BSDFQueryRecord query = Pth::initBSDFQuery(scene, state);
-        Color3f directLight = Pth::nextEventEstimation(scene, sampler, state, query);
-        state.radiance += state.scatteringFactor * directLight;
+        if (fp == Color3f(0.0f))
+            return;
 
-        // Sample the BSDF
-        float bsdfPdf;
+        state.scatteringFactor *= fp;
+
+
+        /**************** Compute next event estimation ******************/
+        float lightPdf, bsdfPdf;
+        Color3f directLight = Pth::nextEventEstimation(scene, sampler, state, query, lightPdf, bsdfPdf);
+        float weightLight = Math::powerHeuristic(1, lightPdf, 1, bsdfPdf);
+        state.radiance += state.scatteringFactor * directLight; // * weightLight;
+
+        return;
+
+        /************************* Sample indirect light *******************/
         Color3f f = Pth::sampleBSDF(state, sampler, query, bsdfPdf);   
         state.scatteringFactor *= f;
 
@@ -43,6 +55,7 @@ public:
         state.intersected = scene->rayIntersect(state.ray, state.intersection);
         state.intersectionComputed = true;
 
+        /*********************** Check for double counting *********************/
         if (state.intersected && state.intersection.mesh->isEmitter())
         {
             const Emitter *emitter = state.intersection.mesh->getEmitter();
@@ -51,9 +64,9 @@ public:
 
 
             // Compute Le
-            float emitterPdf = emitter->pdf(emitterQuery);
-            float weight = Math::powerHeuristic(1, bsdfPdf, nSamplesNES, emitterPdf);
-            state.radiance += state.scatteringFactor * weight * emitter->eval(emitterQuery);
+            lightPdf = emitter->pdf(emitterQuery);
+            float weightBSDF = Math::powerHeuristic(1, bsdfPdf, 1, lightPdf);
+            state.radiance += state.scatteringFactor * weightBSDF * emitter->eval(emitterQuery);
             
             // Terminate the path
             state.scatteringFactor = Color3f(0.0f);
@@ -66,10 +79,18 @@ public:
                 PathState &state) const
     {
         // Sample the specular BSDF
-        float bsdfPdf;
-        BSDFQueryRecord query = Pth::initBSDFQuery(scene, state);
-        Color3f f = Pth::sampleBSDF(state, sampler, query, bsdfPdf);   
-        state.scatteringFactor *= f;  
+        // Sample the BSDF
+        const BSDF *bsdf = state.intersection.mesh->getBSDF();
+        
+        auto query = Pth::initBSDFQuery(scene, state);
+        Color3f fp = bsdf->samplePoint(query, sampler);
+
+        if (fp == Color3f(0.0f))
+            return;
+
+        float pdf;
+        Color3f f = Pth::sampleBSDF(state, sampler, query, pdf);
+        state.scatteringFactor *= (f * fp);
     }
 
     void integrateEmitter(const Scene *scene, 
@@ -97,6 +118,9 @@ public:
                 integrateEmitter(scene, sampler, state);
                 break;
             case Pth::DIFFUSE:
+                integrateDiffuse(scene, sampler, state);
+                break;
+            case Pth::SUBSURFACE:
                 integrateDiffuse(scene, sampler, state);
                 break;
             case Pth::SPECULAR:

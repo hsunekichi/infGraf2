@@ -52,7 +52,7 @@ public:
         depth++;
 
         // Compute the contribution
-        return f * Li(scene, sampler, state.ray, depth) / pdf;
+        return f * fp * Li(scene, sampler, state.ray, depth);
     }
 
     Color3f integrateDiffuse(const Scene *scene, 

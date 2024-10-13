@@ -22,11 +22,17 @@ public:
                 Sampler *sampler,
                 PathState &state) const
     {   
-        // Sample the BSDF
+        const BSDF *bsdf = state.intersection.mesh->getBSDF();
+        
+        auto query = Pth::initBSDFQuery(scene, state);
+        Color3f fp = bsdf->samplePoint(query, sampler);
+
+        if (fp == Color3f(0.0f))
+            return;
+
         float bsdfPdf;
-        BSDFQueryRecord query = Pth::initBSDFQuery(scene, state);
         Color3f f = Pth::sampleBSDF(state, sampler, query, bsdfPdf);   
-        state.scatteringFactor *= f;
+        state.scatteringFactor *= (f * fp);
     }
 
     void integrateSpecular(const Scene *scene, 
@@ -34,10 +40,17 @@ public:
                 PathState &state) const
     {
         // Sample the specular BSDF
+        const BSDF *bsdf = state.intersection.mesh->getBSDF();
+        
+        auto query = Pth::initBSDFQuery(scene, state);
+        Color3f fp = bsdf->samplePoint(query, sampler);
+
+        if (fp == Color3f(0.0f))
+            return;
+
         float bsdfPdf;
-        BSDFQueryRecord query = Pth::initBSDFQuery(scene, state);
         Color3f f = Pth::sampleBSDF(state, sampler, query, bsdfPdf);   
-        state.scatteringFactor *= f;    
+        state.scatteringFactor *= (f * fp);
     }
 
     void integrateEmitter(const Scene *scene, 
@@ -55,16 +68,6 @@ public:
         state.scatteringFactor = Color3f(0.0f);
     }
 
-    /*
-    void integrateSubsurface(const Scene *scene, 
-            Sampler *sampler,
-            PathState &state) const
-    {
-        // Sample the subsurface scattering BSDF
-        float bsdfPdf;
-        Pth::sampleBSSRDF(scene, sampler, state, bsdfPdf);
-    }
-    */
 
     void sampleIntersection(const Scene *scene, Sampler *sampler, PathState &state) const
     {
@@ -76,6 +79,9 @@ public:
                 integrateEmitter(scene, sampler, state);
                 break;
             case Pth::DIFFUSE:
+                integrateDiffuse(scene, sampler, state);
+                break;
+            case Pth::SUBSURFACE:
                 integrateDiffuse(scene, sampler, state);
                 break;
             case Pth::SPECULAR:
