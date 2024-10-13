@@ -48,6 +48,24 @@ def Rdipole(r):
     return result
 
 
+def pow4(x):
+    return x*x*x*x
+
+def Sr_(r):
+    s = 3.5 + 100.0 * pow4(3 - 0.33)
+
+    D = (2 * sigmaA) / (3.0 * _sigmaT*_sigmaT)
+    d = 1.0 / math.sqrt(sigmaA/D)
+
+    num1 = math.exp(-r / d)
+    num2 = math.exp(-r / (3 * d))
+    den = 8.0 * math.pi * d * r
+    
+
+    result = (num1 + num2) / den
+
+    return result
+
 def expDecay(epsilon):
     # Define the decay constant
     decay_constant = _sigmaT
@@ -57,11 +75,10 @@ def expDecay(epsilon):
 
     return decay 
 
-def F(r, xi):
+def SrCdf(r, xi):
 
     return 1.0 - 0.25 * math.exp(-r) - 0.75 * math.exp(-r/3) - xi
 
-  
 
 steps = 1024
 x0 = 0
@@ -73,7 +90,7 @@ XI= np.array([])
 def computeInverse(xi):
     global x0, R, XI
 
-    r = scipy.optimize.newton(F,x0,args=(xi,))
+    r = scipy.optimize.newton(SrCdf,x0,args=(xi,))
     x0 = r
 
     XI = np.append(XI, xi)
@@ -90,7 +107,7 @@ computeInverse(full)
 #print(R * 1/sigmaTr)
 
 
-def sampleF(rnd):
+def sampleSr(rnd):
 
     # Compute index
     i_xi = np.floor(rnd * steps).astype(int)
@@ -109,6 +126,8 @@ def sampleF(rnd):
     sigmaTr = math.sqrt(sigmaA/D)
     d = 1 / sigmaTr
 
+    d = d
+
     return r * d
 
 
@@ -121,7 +140,7 @@ def generate_random_samples(size=10000):
     # Generates random samples from a uniform [0-1) distribution
     samples = np.random.rand(size)
 
-    return sampleF(samples)
+    return sampleSr(samples)
 
 # Generate random samples
 samples = generate_random_samples()

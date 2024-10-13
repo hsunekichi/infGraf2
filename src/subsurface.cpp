@@ -100,16 +100,19 @@ public:
 
     Color3f Sr_(float r) const
     {        
-        Color3f s = 3.5f + 100.0f * Math::pow4(3 - 0.33f);
-        Color3f d = ld / s;
+        // THIS FUNCTION HAS A SINGULARITY ON r=0????????
 
-        std::cout << d.toString() << std::endl;
+        r *= 1000.0f; // Convert to mm
+        //Color3f s = 3.5f + 100.0f * Math::pow4(R - 0.33f);
+        Color3f d = ld;
 
         Color3f num1 = Math::exp(-r / d);
         Color3f num2 = Math::exp(-r / (3 * d));
         Color3f den = 8.0f * M_PI * d * r;
-
-        return (num1 + num2) / den;
+        
+        Color3f result = (num1 + num2) / den;
+    
+        return result;
     }
 
     float sampleSr(float rnd, int channel) const
@@ -124,18 +127,20 @@ public:
         float x2 = XICdfInverse[i_xi + 1];
 
         float r = Math::lerp(r1, r2, (rnd - x1) / (x2 - x1));
-
-        Color3f s = 3.5f + 100.0f * Math::pow4(r - 0.33f);
-        Color3f d = ld / s;
-
-        std::cout << d.toString() << std::endl;
-
-        return r * d[channel];
+        
+        //Color3f s = 3.5f + 100.0f * Math::pow4(R - 0.33f);
+        Color3f d = ld;
+        r *= d[channel];
+        
+        return r / 1000.0f; // Convert to meters
     }
 
     float sampleSrPdf(float r, int channel) const
     {
-        return Sr_(r)[channel];
+        // We use dipole as pdf, although the sampling is for a different Sr function.
+        //  They are modeling the same effect so they are pretty close, 
+        //  so it is good enough for now
+        return dipoleDiffusionAproximation(r)[channel];
     }
 
     /// Evaluate the BRDF model
@@ -146,11 +151,6 @@ public:
             return Color3f(0.0f);
 
         return evalMS(bRec);
-
-        //if (!bRec.isCameraRay)
-        //    return m_albedo->eval(bRec.uv) * INV_PI;
-        //else
-        //    return evalSubsurface(bRec);
     }
 
 
@@ -164,7 +164,7 @@ public:
         return Warp::squareToCosineHemispherePdf(bRec.wo);
     }
 
-
+    /*
     bool samplePointOld(BSDFQueryRecord &bRec, Sampler *sampler, float &pdf) const
     {
         Color3f sigmaT = sigmaA + sigmaS;
@@ -193,6 +193,7 @@ public:
 
         return true;
     }
+    */
 
     Color3f samplePoint(BSDFQueryRecord &bRec, Sampler *sampler) const
     {
@@ -232,10 +233,6 @@ public:
         if (r > rMax)
             return Color3f(0.0f);
 
-        // Clamp to account for highly curved surfaces, change to meters
-        rMax /= 1000.0f;
-        r /= 1000.0f;
-
         // Sample a point on the disk
         float l = 2.0f * Math::sqrt(Math::pow2(rMax) - Math::pow2(r));
         float th = 2 * M_PI * sampler->next1D();
@@ -266,11 +263,6 @@ public:
 
         float pdf = pointPdf(bRec);
 
-        if (std::isnan(pdf))
-        {
-            std::cout << "NAN PDF" << std::endl;
-        }
-
         return Color3f(1.0f / pdf);
     }
 
@@ -291,7 +283,7 @@ public:
         {
             for (int ch = 0; ch < 3; ch++)
             {
-                pdf += sampleSrPdf(rProjected[axis]*1000, ch) 
+                pdf += sampleSrPdf(rProjected[axis], ch) 
                         * std::abs(l_n[axis]) 
                         * chProb * axisPdf[axis];
             }
@@ -412,6 +404,8 @@ public:
 
     Color3f betterAlternative (float r) const
     {
+        r *= 1000.0f; // Convert to mm
+
         Color3f sigmap_s = sigmaS;
         Color3f sigmap_t = sigmap_s + sigmaA;
         Color3f alphap = sigmap_s / sigmap_t;
