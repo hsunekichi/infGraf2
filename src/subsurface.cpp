@@ -101,6 +101,8 @@ public:
     Color3f Sr_(float r) const
     {        
         // THIS FUNCTION HAS A SINGULARITY ON r=0????????
+        if (r < 1e-4)
+            return Color3f(1.0f);
 
         r *= 1000.0f; // Convert to mm
         //Color3f s = 3.5f + 100.0f * Math::pow4(R - 0.33f);
@@ -135,11 +137,8 @@ public:
         return r / 1000.0f; // Convert to meters
     }
 
-    float sampleSrPdf(float r, int channel) const
+    double sampleSrPdf(float r, int channel) const
     {
-        // We use dipole as pdf, although the sampling is for a different Sr function.
-        //  They are modeling the same effect so they are pretty close, 
-        //  so it is good enough for now
         return dipoleDiffusionAproximation(r)[channel];
     }
 
@@ -270,12 +269,12 @@ public:
 
         /*********************** Pdf *************************/
 
-        float pdf = pointPdf(bRec) * itsPdf;
+        double pdf = pointPdf(bRec) * itsPdf;
 
         return Color3f(1.0f / pdf);
     }
 
-    float pointPdf(const BSDFQueryRecord &bRec) const
+    double pointPdf(const BSDFQueryRecord &bRec) const
     {
         Vector3f d = bRec.po - bRec.pi;
         Vector3f l_d = bRec.fri.vtoLocal(d);
@@ -283,18 +282,18 @@ public:
 
         // Compute the radius that has been sampled for each axis
         //  (d projected into each axis)
-        float rProjected[3] = { std::sqrt(l_d.y()*l_d.y() + l_d.z()*l_d.z()),
+        double rProjected[3] = { std::sqrt(l_d.y()*l_d.y() + l_d.z()*l_d.z()),
                                 std::sqrt(l_d.z()*l_d.z() + l_d.x()*l_d.x()),
                                 std::sqrt(l_d.x()*l_d.x() + l_d.y()*l_d.y()) };
 
-        float pdf = 0, axisPdf[3] = { .25f, .25f, .5f };
-        float chProb = 1 / 3.0f; // 3 channels
+        double pdf = 0, axisPdf[3] = { .25f, .25f, .5f };
+        double chProb = 1 / 3.0f; // 3 channels
 
         for (int axis = 0; axis < 3; axis++)
         {
             for (int ch = 0; ch < 3; ch++)
             {
-                pdf += sampleSrPdf(rProjected[axis], ch) 
+                pdf += sampleSrPdf(rProjected[axis], ch)
                         * std::abs(l_n[axis]) 
                         * chProb * axisPdf[axis];
             }

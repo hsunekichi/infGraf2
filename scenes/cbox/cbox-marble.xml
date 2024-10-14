@@ -53,7 +53,7 @@
 	<mesh type="obj">
 		<string name="filename" value="meshes/sphere2.obj"/>
 
-		<bsdf type="subsurfacePbrt">   <!-- Marble properties -->
+		<bsdf type="subsurface">   <!-- Marble properties -->
 			<color name="sigmaA" value="0.0021 0.0041 0.0071"/>
 			<color name="sigmaS" value="2.19 2.62 3.00"/>
 			<float name="eta" value="1.5"/>
