@@ -27,9 +27,6 @@ public:
         auto query = Pth::initBSDFQuery(scene, state);
         Color3f fp = bsdf->samplePoint(query, sampler);
 
-        if (fp == Color3f(0.0f))
-            return;
-
         float bsdfPdf;
         Color3f f = Pth::sampleBSDF(state, sampler, query, bsdfPdf);   
         state.scatteringFactor *= (f * fp);
@@ -44,9 +41,6 @@ public:
         
         auto query = Pth::initBSDFQuery(scene, state);
         Color3f fp = bsdf->samplePoint(query, sampler);
-
-        if (fp == Color3f(0.0f))
-            return;
 
         float bsdfPdf;
         Color3f f = Pth::sampleBSDF(state, sampler, query, bsdfPdf);   

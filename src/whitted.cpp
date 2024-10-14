@@ -91,9 +91,6 @@ public:
             auto query = Pth::initBSDFQuery(scene, state);
             Color3f fp = bsdf->samplePoint(query, sampler);
 
-            if (fp == Color3f(0.0f))
-                continue;
-
             radiance += fp * Pth::nextEventEstimation(scene, sampler, state, query);
         }
 
@@ -129,7 +126,7 @@ public:
                 break;
 
             case Pth::SUBSURFACE:
-                radiance = integrateSubsurface(scene, sampler, ray, its);
+                radiance = integrateDiffuse(scene, sampler, ray, its);
                 break;
 
             case Pth::SPECULAR:

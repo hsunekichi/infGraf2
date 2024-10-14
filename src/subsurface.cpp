@@ -229,10 +229,12 @@ public:
 
         // Select sphere radius
         float rMax = sampleSr(0.999f, channel);
-        float r = sampleSr(sampler->next1D(), channel);
 
-        if (r > rMax)
-            return Color3f(0.0f);
+        float r;
+        do {
+            r = sampleSr(sampler->next1D(), channel);
+        }
+        while (r > rMax);
 
         // Sample a point on the disk
         float l = 2.0f * Math::sqrt(Math::pow2(rMax) - Math::pow2(r));
@@ -254,7 +256,9 @@ public:
 
         if (!intersected)
         {
-            return Color3f(0.0f);
+            // This is inefficient, 
+            //  but it should not happen frequently 
+            return samplePoint(bRec, sampler);
         }
 
         bRec.fro = its.shFrame;
@@ -304,7 +308,7 @@ public:
         bRec.wo = Warp::squareToCosineHemisphere(sampler->next2D());
         pdf = Warp::squareToCosineHemispherePdf(bRec.wo);
 
-        return Frame::cosTheta(bRec.wo) / pdf;
+        return eval(bRec) * Frame::cosTheta(bRec.wo) / pdf;
     }
 
     bool isSubsurfaceScattering() const {

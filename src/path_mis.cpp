@@ -31,20 +31,14 @@ public:
         
         auto query = Pth::initBSDFQuery(scene, state);
         Color3f fp = bsdf->samplePoint(query, sampler);
-
-        if (fp == Color3f(0.0f))
-            return;
-
         state.scatteringFactor *= fp;
-
 
         /**************** Compute next event estimation ******************/
         float lightPdf, bsdfPdf;
         Color3f directLight = Pth::nextEventEstimation(scene, sampler, state, query, lightPdf, bsdfPdf);
         float weightLight = Math::powerHeuristic(1, lightPdf, 1, bsdfPdf);
-        state.radiance += state.scatteringFactor * directLight; // * weightLight;
+        state.radiance += state.scatteringFactor * directLight * weightLight;
 
-        return;
 
         /************************* Sample indirect light *******************/
         Color3f f = Pth::sampleBSDF(state, sampler, query, bsdfPdf);   
@@ -79,17 +73,13 @@ public:
                 PathState &state) const
     {
         // Sample the specular BSDF
-        // Sample the BSDF
         const BSDF *bsdf = state.intersection.mesh->getBSDF();
         
         auto query = Pth::initBSDFQuery(scene, state);
         Color3f fp = bsdf->samplePoint(query, sampler);
 
-        if (fp == Color3f(0.0f))
-            return;
-
-        float pdf;
-        Color3f f = Pth::sampleBSDF(state, sampler, query, pdf);
+        float bsdfPdf;
+        Color3f f = Pth::sampleBSDF(state, sampler, query, bsdfPdf);   
         state.scatteringFactor *= (f * fp);
     }
 
