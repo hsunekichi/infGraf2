@@ -12,7 +12,7 @@
 	<mesh type="obj">
 		<string name="filename" value="ajax.obj"/>
 
-		<bsdf type="subsurface">   <!-- Marble properties -->
+		<bsdf type="subsurfacePbrt">   <!-- Marble properties -->
 			<color name="albedo" value="0.83 0.79 0.75"/>
 			<color name="sigmaA" value="0.0021 0.0041 0.0071"/>
 			<color name="sigmaS" value="2.19 2.62 3.00"/>

@@ -30,10 +30,10 @@ NORI_NAMESPACE_BEGIN
 /**
  * \brief SubsurfaceScattering / Lambertian BRDF model
  */
-class subsurface : public BSDF
+class subsurfacePbrt : public BSDF
 {
 public:
-    subsurface(const PropertyList &propList) 
+    subsurfacePbrt(const PropertyList &propList) 
     {
         m_albedo = new ConstantSpectrumTexture(propList.getColor("albedo", Color3f(0.5f)));
 
@@ -140,7 +140,7 @@ public:
         // We use dipole as pdf, although the sampling is for a different Sr function.
         //  They are modeling the same effect so they are pretty close, 
         //  so it is good enough for now
-        return dipoleDiffusionAproximation(r)[channel];
+        return beamDiffusionMs(r)[channel];
     }
 
     /// Evaluate the BRDF model
@@ -163,37 +163,6 @@ public:
 
         return Warp::squareToCosineHemispherePdf(bRec.wo);
     }
-
-    /*
-    Color3f samplePointOld(BSDFQueryRecord &bRec, Sampler *sampler) const
-    {
-        Color3f sigmaT = sigmaA + sigmaS;
-
-        // Select random channel
-        int channel = sampler->next1D() * 3;
-        float sigma = sigmaT[channel];
-        float channelPdf = 1.0f / 3.0f;
-
-        // Sample an offset proportional to the sigmaT
-        float r = Warp::squareToSrDecay(sampler->next1D(), sigma);
-        Point2f sample = Warp::SrToDisk(sampler->next1D(), r);
-
-        // Clamp to account for highly curved surfaces
-        sample = Math::max(sample, Point2f(1.0f/sigma));
-   
-        // Sampled offset (in mm) to world
-        Vector3f sampled = Vector3f(sample.x(), sample.y(), 0.0f) / 1000.0f;
-        bRec.po = bRec.pi + bRec.fri.ptoWorld(sampled);
-        bRec.fro = bRec.fri; 
-        //bRec.po = projectToSurface(bRec, bRec.po);
-
-        float pdf = Warp::SrToDiskPdf(sample) 
-                * Warp::squareToSrDecayPdf(r, sigma)
-                * channelPdf;
-
-        return Color3f(1.0f / pdf);
-    }
-    */
     
 
     Color3f samplePoint(BSDFQueryRecord &bRec, Sampler *sampler) const
@@ -323,34 +292,89 @@ public:
         return true;
     }
 
-
-    Color3f dipoleDiffusionAproximation(float r) const
+    float fresnelMoment1(float eta) const
     {
-        r *= 1000.0f; // Convert to mm
-        float r2 = Math::pow2(r);
+        float eta2 = eta * eta, eta3 = eta2 * eta, eta4 = eta3 * eta,
+            eta5 = eta4 * eta;
 
-        Color3f dr = Math::sqrt(r2 + Math::pow2(zr)); 
-        Color3f dv = Math::sqrt(r2 + Math::pow2(zv)); 
-
-        Color3f sigmaTrDr = sigmaTr * dr;
-        Color3f sigmaTrDv = sigmaTr * dv;
-
-        // Compute main formula
-        Color3f C1 = zr * (1 + sigmaTrDr) * Math::exp(-sigmaTrDr) / Math::pow3(dr);
-        Color3f C2 = zv * (1 + sigmaTrDv) * Math::exp(-sigmaTrDv) / Math::pow3(dv);
-
-        Color3f result = alpha_4pi * (C1 - C2);
-
-        return result;
+        if (eta < 1) 
+        {
+            return 0.45966f - 1.73965f * eta + 3.37668f * eta2 - 3.904945 * eta3 +
+                2.49277f * eta4 - 0.68441f * eta5;
+        }
+        else
+        {
+            return -4.61686f + 11.1136f * eta - 10.4646f * eta2 + 5.11455f * eta3 -
+                1.27198f * eta4 + 0.12746f * eta5;
+        }
     }
 
+    float fresnelMoment2(float eta) const
+    {
+        float eta2 = eta * eta, eta3 = eta2 * eta, eta4 = eta3 * eta,
+            eta5 = eta4 * eta;
+
+        if (eta < 1) 
+        {
+            return 0.27614f - 0.87350f * eta + 1.12077f * eta2 - 0.65095f * eta3 +
+                0.07883f * eta4 + 0.04860f * eta5;
+        } 
+        else 
+        {
+            float r_eta = 1 / eta, r_eta2 = r_eta * r_eta, r_eta3 = r_eta2 * r_eta;
+            return -547.033f + 45.3087f * r_eta3 - 218.725f * r_eta2 +
+                458.843f * r_eta + 404.557f * eta - 189.519f * eta2 +
+                54.9327f * eta3 - 9.00603f * eta4 + 0.63942f * eta5;
+        }
+    }
+
+    Color3f beamDiffusionMs(float r) const
+    {
+        float eta = etaT;
+        const int nSamples = 100;
+        Color3f Ed = 0;
+
+        Color3f _sigmaS = sigmaS;
+        Color3f _sigmaT = sigmaA + _sigmaS;
+        Color3f rhop = _sigmaS / _sigmaT;
+
+        Color3f D_g = (2 * sigmaA + _sigmaS) / (3 * _sigmaT * _sigmaT);
+
+        Color3f sigmaTR = Math::sqrt(sigmaA / D_g);
+
+        Color3f fm1 = fresnelMoment1(eta), fm2 = fresnelMoment2(eta);
+        Color3f ze = -2 * D_g * (1 + 3 * fm2) / (1 - 2 * fm1);
+
+        Color3f cPhi = .25f * (1 - 2 * fm1), cE  = .5f  * (1 - 3 * fm2);
+
+        for (int i = 0; i < nSamples; ++i) {
+
+            Color3f zr = -std::log(1 - (i + .5f) / nSamples) / _sigmaT;
+
+            Color3f zv = -zr + 2 * ze;
+            Color3f dr = Math::sqrt(r * r + zr * zr), dv = Math::sqrt(r * r + zv * zv);
+
+            Color3f phiD = INV_FOURPI / D_g *
+                (Math::exp(-sigmaTR * dr) / dr - Math::exp(-sigmaTR * dv) / dv);
+
+            Color3f EDn = INV_FOURPI *
+                (zr * (1 + sigmaTR * dr) * Math::exp(-sigmaTR * dr) / (dr*dr*dr) -
+                zv * (1 + sigmaTR * dv) * Math::exp(-sigmaTR * dv) / (dv*dv*dv));
+
+            Color3f E = phiD * cPhi + EDn * cE;
+            Color3f kappa = 1 - Math::exp(-2 * _sigmaT * (dr + zr));
+            Ed += kappa * rhop * rhop * E;
+        }
+
+        return Ed / nSamples;
+    }
 
     Color3f evalMS(const BSDFQueryRecord &bRec) const
     {
         float r = (bRec.po - bRec.pi).norm();
         float eta = etaT;
 
-        Color3f Rd = dipoleDiffusionAproximation(r);
+        Color3f Rd = beamDiffusionMs(r);
 
         Vector3f w_wi = bRec.fro.vtoWorld(bRec.wi);
         float cosWi = Math::absCos(w_wi, bRec.fri.n);
@@ -407,5 +431,5 @@ private:
     std::vector<float> SrCdfInverse, XICdfInverse;
 };
 
-NORI_REGISTER_CLASS(subsurface, "subsurface");
+NORI_REGISTER_CLASS(subsurfacePbrt, "subsurfacePbrt");
 NORI_NAMESPACE_END

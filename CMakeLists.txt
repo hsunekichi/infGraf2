@@ -115,6 +115,7 @@ add_executable(nori
   src/directWhitted.cpp
   src/depthIntegrator.cpp
   src/subsurface.cpp
+  src/subsurfacePbrt.cpp
 )
 
 add_definitions(${NANOGUI_EXTRA_DEFS})
