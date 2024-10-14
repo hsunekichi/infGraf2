@@ -113,7 +113,7 @@ public:
         return m_accel->rayIntersect(ray, its, isShadowRay);
     }
 
-    bool rayIntersect(const Ray3f &ray, const Mesh *mesh, Intersection &its, bool isShadowRay=false) const 
+    bool rayProbe(const Ray3f &ray, const Mesh *mesh, std::vector<Intersection> &its) const 
     {
         int id = -1;
 
@@ -129,7 +129,7 @@ public:
         if (id == -1)
             throw NoriException("Requesting ray intersection for a non sss mesh");
     
-        return sss_accelerators[id]->rayIntersect(ray, its, isShadowRay);
+        return sss_accelerators[id]->rayProbe(ray, its);
     }
 
     /**

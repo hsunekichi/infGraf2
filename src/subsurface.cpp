@@ -251,8 +251,8 @@ public:
         Vector3f d = (w_target - w_base).normalized();
         Ray3f ray = Ray3f(w_base, d, 0.0f, l);
 
-        Intersection its;
-        bool intersected = bRec.scene->rayIntersect(ray, bRec.mesh, its);
+        std::vector<Intersection> its; its.reserve(4);
+        bool intersected = bRec.scene->rayProbe(ray, bRec.mesh, its);
 
         if (!intersected)
         {
@@ -261,12 +261,16 @@ public:
             return samplePoint(bRec, sampler);
         }
 
-        bRec.fro = its.shFrame;
-        bRec.po = ray(its.t);
+        // Select random intersection
+        int iIts = sampler->next1D() * its.size();
+        float itsPdf = 1.0f / its.size();
+        
+        bRec.po = its[iIts].p;
+        bRec.fro = its[iIts].shFrame;
 
         /*********************** Pdf *************************/
 
-        float pdf = pointPdf(bRec);
+        float pdf = pointPdf(bRec) * itsPdf;
 
         return Color3f(1.0f / pdf);
     }
