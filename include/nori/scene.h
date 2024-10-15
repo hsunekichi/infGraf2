@@ -22,8 +22,24 @@
 #pragma once
 
 #include <nori/accel.h>
+#include <nori/common.h>
+
 
 NORI_NAMESPACE_BEGIN
+
+
+struct Photon
+{
+    Point3f p;
+    Vector3f d; Normal3f n;
+    float pdf;
+    
+    Mesh *mesh = nullptr;
+    Color3f radiance = Color3f(0.0f);
+
+    Photon (const Point3f &p, float pdf, Mesh *mesh) : p(p), pdf(pdf), mesh(mesh) {}
+};
+
 
 /**
  * \brief Main scene data structure
@@ -63,6 +79,7 @@ public:
 
 	/// Return a reference to an array containing all lights
 	const std::vector<Emitter *> &getLights() const { return m_emitters; }
+    const std::vector<Mesh *> &getSSMeshes() const { return sss_meshes; }
 
 	/// Return a the scene background
 	Color3f getBackground(const Ray3f& ray) const;
@@ -92,8 +109,27 @@ public:
      *
      * \return \c true if an intersection was found
      */
-    bool rayIntersect(const Ray3f &ray, Intersection &its) const {
-        return m_accel->rayIntersect(ray, its, false);
+    bool rayIntersect(const Ray3f &ray, Intersection &its, bool isShadowRay=false) const {
+        return m_accel->rayIntersect(ray, its, isShadowRay);
+    }
+
+    bool rayProbe(const Ray3f &ray, const Mesh *mesh, std::vector<Intersection> &its) const 
+    {
+        int id = -1;
+
+        for (int i = 0; i < (int)sss_meshes.size(); i++)
+        {
+            if (sss_meshes[i] == mesh)
+            {
+                id = i;
+                break;
+            }
+        }
+
+        if (id == -1)
+            throw NoriException("Requesting ray intersection for a non sss mesh");
+    
+        return sss_accelerators[id]->rayProbe(ray, its);
     }
 
     /**
@@ -138,13 +174,16 @@ public:
     EClassType getClassType() const { return EScene; }
 private:
     std::vector<Mesh *> m_meshes;
+    std::vector<Mesh *> sss_meshes;
 	std::vector<Emitter *> m_emitters;
+
 	Emitter *m_enviromentalEmitter = nullptr;
 	
     Integrator *m_integrator = nullptr;
     Sampler *m_sampler = nullptr;
     Camera *m_camera = nullptr;
     Accel *m_accel = nullptr;
+    std::vector<Accel *> sss_accelerators;
 };
 
 NORI_NAMESPACE_END

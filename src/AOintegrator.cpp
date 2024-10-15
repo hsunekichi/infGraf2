@@ -24,7 +24,7 @@ public:
         // Generate random ray
         Point2f sample = sampler->next2D();
         Vector3f direction = Warp::squareToCosineHemisphere(sample);
-        Ray3f w_sampleRay = Ray3f(its.p, its.shFrame.toWorld(direction));
+        Ray3f w_sampleRay = Ray3f(its.p, its.shFrame.vtoWorld(direction));
         
         // Intersect shadow ray
         float visibility = 1.0f;

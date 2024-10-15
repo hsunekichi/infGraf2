@@ -106,6 +106,52 @@ Eigen::MatrixXf Math::sobelGradientModulus3D(const Eigen::MatrixXf& slice1, cons
 }
 
 
+float Math::findRoot(std::function<float(float)> f, float x0) 
+{
+    // Initial guess
+    float x1 = x0 + 0.01;
+
+    // Compute the function value at the initial guess
+    float f0 = f(x0);
+
+    // Compute the function value at the next guess
+    float f1 = f(x1);
+
+    // Maximum number of iterations
+    int maxIter = 100;
+
+    // Tolerance
+    float tol = 1e-6;
+
+    // Iteration counter
+    int iter = 0;
+
+    // Loop until the function value is close to zero
+    while (std::abs(f1) > tol && iter < maxIter) 
+    {
+        // Compute the next guess
+        float x2 = (x0 * f1 - x1 * f0) / (f1 - f0);
+
+        // Update the initial guess
+        x0 = x1;
+        f0 = f1;
+
+        // Update the function value
+        x1 = x2;
+        f1 = f(x1);
+
+        // Update the iteration counter
+        iter++;
+    }
+
+    if (f1 > tol) 
+    {
+        throw NoriException("Root finding did not converge!");
+    }
+
+    return x1;
+}
+
 float Math::matrixVariance(const Eigen::MatrixXf& block, float &mean) 
 {
     // Compute the mean of the block

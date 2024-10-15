@@ -23,19 +23,8 @@ class Independent : public Sampler {
 public:
     Independent(const PropertyList &propList) 
     {
-        int s1 = propList.getInteger("FirstPassSpp", -1);
-        int s2 = propList.getInteger("sampleCount", -1);
-
-        if (s1 != -1) {
-            m_sampleCount = (size_t)s1;
-        } else if (s2 != -1) {
-            m_sampleCount = (size_t)s2;
-        } else {
-            m_sampleCount = 1;
-        }
-
-        _weightedPassesCount = (size_t) propList.getInteger("WeightedPassesCount", 0);
-        weightedPassTotalSamples = (size_t) propList.getInteger("WeightedPassTotalSamples", 0);
+        m_sampleCount = propList.getInteger("sampleCount", 1);
+        _nPasses = propList.getInteger("nPasses", 1);
     }
 
     virtual ~Independent() { }
@@ -51,6 +40,11 @@ public:
         cloned->m_random = m_random;
         cloned->samplesPerPixel = samplesPerPixel;
         cloned->weightedPassTotalSamples = weightedPassTotalSamples;
+
+        cloned->currentPass = currentPass;
+        cloned->prevLuminance = prevLuminance;
+        cloned->mipMap = mipMap;
+        cloned->_nPasses = _nPasses;
 
         return cloned;
     }
@@ -147,9 +141,11 @@ public:
         file.close();
     }
 
-    void next_pass(const Bitmap *renderedImage) 
+    void next_pass() override
     { 
         currentPass++; 
+
+        /*
         samplesPerPixel.setZero();
 
         // Convert RGB to luminance
@@ -157,11 +153,22 @@ public:
         initializeWeightedSamples(image);
 
         prevLuminance = image;
+        */
     }
 
     /// Return the number of configured pixel samples
     size_t getSampleCount(Point2i pixel) const { return samplesPerPixel(pixel.x(), pixel.y()); }
-    size_t getSampleCount() const { return m_sampleCount; }
+    size_t getSampleCount() const 
+    { 
+        if (_nPasses == 1 || currentPass > 0)
+        {
+            return m_sampleCount;
+        }
+        else
+        {
+            return 1;
+        }
+    }
 
     float getSamplePdf(Point2i pixel) const
     {

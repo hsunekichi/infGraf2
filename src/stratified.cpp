@@ -19,9 +19,8 @@ class Stratified : public Sampler {
 public:
     Stratified(const PropertyList &propList) 
     {
-        m_sampleCount = (size_t) propList.getInteger("FirstPassSpp", 1);
-        _weightedPassesCount = (size_t) propList.getInteger("WeightedPassesCount", 0);
-        weightedPassTotalSamples = (size_t) propList.getInteger("WeightedPassTotalSamples", 0);
+        m_sampleCount = propList.getInteger("sampleCount", 1);
+        _nPasses = propList.getInteger("nPasses", 1);
         nStrats = (size_t) propList.getInteger("stratsX", 2);        
     }
 
@@ -53,6 +52,11 @@ public:
 
         cloned->nStrats = nStrats;
         cloned->m_lastStrat = m_lastStrat;
+
+        cloned->currentPass = currentPass;
+        cloned->prevLuminance = prevLuminance;
+        cloned->mipMap = mipMap;
+        cloned->_nPasses = _nPasses;
 
         return cloned;
     }
@@ -153,9 +157,11 @@ public:
         }
     }
 
-    void next_pass(const Bitmap *renderedImage)  override
+    void next_pass()  override
     { 
         currentPass++; 
+        
+        /*
         samplesPerPixel.setZero();
 
         // Convert RGB to luminance
@@ -163,11 +169,22 @@ public:
         initializeWeightedSamples(image);
 
         prevLuminance = image;
+        */
     }
 
     /// Return the number of configured pixel samples
     size_t getSampleCount(Point2i pixel) const override { return samplesPerPixel(pixel.x(), pixel.y()); }
-    size_t getSampleCount() const override { return m_sampleCount; }
+    size_t getSampleCount() const override 
+    { 
+        if (_nPasses == 1 || currentPass > 0)
+        {
+            return m_sampleCount;
+        }
+        else
+        {
+            return 1;
+        }
+    }
 
     float getSamplePdf(Point2i pixel) const override
     {

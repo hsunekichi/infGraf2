@@ -1,0 +1,49 @@
+<scene>
+	<!-- Independent sample generator, 64 samples per pixel -->
+	<sampler type="independent">
+		<integer name="sampleCount" value="64"/>
+		<integer name="nPasses" value="8"/>
+	</sampler>
+
+	<!-- Use the simple point light integrator -->
+    <integrator type="whitted"/>
+
+	<!-- Load the Ajax bust (a freely available scan from the Jotero forum) -->
+	<mesh type="obj">
+		<string name="filename" value="ajax.obj"/>
+
+		<bsdf type="subsurface">   <!-- Marble properties -->
+			<color name="albedo" value="0.83 0.79 0.75"/>
+			<color name="sigmaA" value="0.0021 0.0041 0.0071"/>
+			<color name="sigmaS" value="2.19 2.62 3.00"/>
+			<float name="g" value="0.85"/>
+			<float name="eta" value="1.5"/>
+		</bsdf>
+	</mesh>
+
+    <!-- Area light source -->
+	<mesh type="obj">
+		<string name="filename" value="light.obj"/>
+
+		<emitter type="area">
+            <color name="radiance" value="10 10 10"/>
+		</emitter>
+	</mesh>
+
+	<!-- Render the scene viewed by a perspective camera -->
+	<camera type="perspective">
+        <!-- 3D origin, target point, and 'up' vector -->
+		<transform name="toWorld">
+            <lookat target="-64.8161, 47.2211, 23.8576"
+                    origin="-65.6055, 47.5762, 24.3583"
+                    up="0.299858, 0.934836, -0.190177"/>
+		</transform>
+
+		<!-- Field of view: 30 degrees -->
+		<float name="fov" value="30"/>
+
+		<!-- 768 x 768 pixels -->
+		<integer name="width" value="768"/>
+		<integer name="height" value="768"/>
+	</camera>
+</scene>

@@ -19,6 +19,7 @@
 #pragma once
 
 #include <nori/object.h>
+#include <nori/scene.h>
 
 NORI_NAMESPACE_BEGIN
 
@@ -37,7 +38,7 @@ public:
     virtual ~Integrator() { }
 
     /// Perform an (optional) preprocess step
-    virtual void preprocess(const Scene *scene) { }
+    virtual void preprocess(const Scene *scene, Sampler *sampler) { }
 
     /**
      * \brief Sample the incident radiance along a ray

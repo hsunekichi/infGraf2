@@ -46,6 +46,9 @@ public:
         query.wo = (query.surfaceP - query.lightP).normalized();
         Le = m_radiance / query.pdf;
 
+        if (Math::cos(query.wo, normal) <= 0.0f)
+            return Color3f(0.0f);
+
         Le *= Math::absDot(query.wo, normal);
 
         // Change pdf units if necesary
@@ -102,6 +105,9 @@ public:
     // Evaluate the emitted radiance on a given direction
     Color3f eval(const EmitterQueryRecord &query) const 
     {
+        if (query.wo.z() <= 0.0f)
+            return Color3f(0.0f);
+
         return m_radiance;
     }
 

@@ -68,6 +68,9 @@ public:
 	bool rayIntersect(const Ray3f &ray, Intersection &its,
 		bool shadowRay = false) const;
 
+	bool rayProbe(const Ray3f &_ray, 
+		std::vector<Intersection> &its) const;
+
 	/// Return the total number of meshes registered with the BVH
 	n_UINT getMeshCount() const { return (n_UINT)m_meshes.size(); }
 

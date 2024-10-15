@@ -47,9 +47,7 @@ public:
     Color3f eval(const BSDFQueryRecord &bRec) const {
         /* This is a smooth BRDF -- return zero if the measure
            is wrong, or when queried for illumination on the backside */
-        if (bRec.measure != ESolidAngle
-            || Frame::cosTheta(bRec.wi) <= 0
-            || Frame::cosTheta(bRec.wo) <= 0)
+        if (bRec.measure != ESolidAngle)
             return Color3f(0.0f);
 
         /* The BRDF is simply the albedo / pi */
@@ -60,9 +58,7 @@ public:
     float pdf(const BSDFQueryRecord &bRec) const {
         /* This is a smooth BRDF -- return zero if the measure
            is wrong, or when queried for illumination on the backside */
-        if (bRec.measure != ESolidAngle
-            || Frame::cosTheta(bRec.wi) <= 0
-            || Frame::cosTheta(bRec.wo) <= 0)
+        if (bRec.measure != ESolidAngle)
             return 0.0f;
 
 
@@ -76,10 +72,8 @@ public:
     }
 
     /// Draw a a sample from the BRDF model
-    Color3f sample(BSDFQueryRecord &bRec, Sampler *sampler) const {
-        if (Frame::cosTheta(bRec.wi) <= 0)
-            return Color3f(0.0f);
-
+    Color3f sample(BSDFQueryRecord &bRec, Sampler *sampler) const 
+    {
         Point2f sample = sampler->next2D();
 
         bRec.measure = ESolidAngle;
@@ -90,6 +84,8 @@ public:
 
         /* Relative index of refraction: no change */
         bRec.eta = 1.0f;
+
+        bRec.isCameraRay = false;
 
         /* eval() / pdf() * cos(theta) = albedo. There
            is no need to call these functions. */

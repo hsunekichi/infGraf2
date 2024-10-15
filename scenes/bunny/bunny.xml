@@ -1,0 +1,32 @@
+<?xml version="1.0" ?>
+<scene>
+	<integrator type="whitted"/>
+	<sampler type="independent">
+		<integer name="sampleCount" value="8"/>
+	</sampler>
+	<camera type="perspective">
+		<!--  3D origin, target point, and 'up' vector  -->
+		<transform name="toWorld">
+			<lookat target="-0.0123771, 0.0540913, -0.239922" origin="-0.0315182, 0.284011, 0.7331" up="0.00717446, 0.973206, -0.229822"/>
+		</transform>
+		<!--  Field of view: 30 degrees  -->
+		<float name="fov" value="16"/>
+		<!--  768 x 768 pixels  -->
+		<integer name="width" value="768"/>
+		<integer name="height" value="768"/>
+	</camera>
+	<emitter type="pointlight">
+		<point name="position" value="-0.44559,-0.02627,0.31995"/>
+		<color name="radiance" value="1,1,1"/>
+	</emitter>
+	<mesh type="obj">
+		<string name="filename" value="meshes/bunny.obj"/>
+		<bsdf type="subsurface">   <!-- Marble properties -->
+			<color name="albedo" value="0.83 0.79 0.75"/>
+			<color name="sigmaA" value="0.0021 0.0041 0.0071"/>
+			<color name="sigmaS" value="2.19 2.62 3.00"/>
+			<float name="g" value="0.85"/>
+			<float name="eta" value="1.5"/>
+		</bsdf>
+	</mesh>
+</scene>

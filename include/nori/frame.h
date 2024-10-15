@@ -30,6 +30,7 @@ NORI_NAMESPACE_BEGIN
  * quantities (e.g. \ref cosTheta(), \ref tanTheta, ..).
  */
 struct Frame {
+    Point3f o;
     Vector3f s, t;
     Normal3f n;
 
@@ -37,28 +38,38 @@ struct Frame {
     Frame() { }
 
     /// Given a normal and tangent vectors, construct a new coordinate frame
-    Frame(const Vector3f &s, const Vector3f &t, const Normal3f &n)
-     : s(s), t(t), n(n) { }
+    Frame(Point3f o, const Vector3f &s, const Vector3f &t, const Normal3f &n)
+     : o(o), s(s), t(t), n(n) { }
 
     /// Construct a frame from the given orthonormal vectors
-    Frame(const Vector3f &x, const Vector3f &y, const Vector3f &z)
-     : s(x), t(y), n(z) { }
+    Frame(Point3f o, const Vector3f &x, const Vector3f &y, const Vector3f &z)
+     : o(o), s(x), t(y), n(z) { }
 
     /// Construct a new coordinate frame from a single vector
-    Frame(const Vector3f &n) : n(n) {
+    Frame(Point3f o, const Vector3f &n) : o(o), n(n) {
         coordinateSystem(n, s, t);
     }
 
     /// Convert from world coordinates to local coordinates
-    Vector3f toLocal(const Vector3f &v) const {
+    Vector3f vtoLocal(const Vector3f &v) const {
         return Vector3f(
             v.dot(s), v.dot(t), v.dot(n)
         );
     }
 
     /// Convert from local coordinates to world coordinates
-    Vector3f toWorld(const Vector3f &v) const {
+    Vector3f vtoWorld(const Vector3f &v) const {
         return s * v.x() + t * v.y() + n * v.z();
+    }
+
+    Point3f ptoLocal(const Point3f &p) const 
+    {
+        Vector3f offset = p - o;
+        return Point3f(offset.dot(s), offset.dot(t), offset.dot(n));
+    }
+
+    Point3f ptoWorld(const Point3f &p) const {
+        return o + s * p.x() + t * p.y() + n * p.z();
     }
 
     /** \brief Assuming that the given direction is in the local coordinate 

@@ -44,11 +44,18 @@ void Mesh::activate() {
             NoriObjectFactory::createInstance("diffuse", PropertyList()));
     }
 
+    _meshArea = 0.0f;
+
+    for (Eigen::Index i = 0; i < m_F.cols(); ++i)
+        _meshArea += surfaceArea(i);
+
+    std::cout << "Mesh triangles: " << m_F.cols() << ", area: " << _meshArea << std::endl;
+
     // Build triangle distribution
     m_pdf.clear();
     m_pdf.reserve(m_F.cols());
     for (uint32_t i = 0; i < m_F.cols(); ++i) {
-        m_pdf.append(surfaceArea(i));
+        m_pdf.append(surfaceArea(i) / _meshArea);
     }
 
     m_pdf.normalize();
@@ -60,7 +67,9 @@ float Mesh::surfaceArea(n_UINT index) const
 
     const Point3f p0 = m_V.col(i0), p1 = m_V.col(i1), p2 = m_V.col(i2);
 
-    return 0.5f * Vector3f((p1 - p0).cross(p2 - p0)).norm();
+    float area = 0.5f * ((p1 - p0).cross(p2 - p0)).norm();
+
+    return area;
 }
 
 
@@ -87,35 +96,80 @@ Normal3f Mesh::getNormal(n_UINT index, const Point2f &uv) const
     Vector3f n = (p1 - p0).cross(p2 - p0);
     n.normalize();
 
+    if (m_N.cols() > 0)
+    {
+        const Normal3f n0 = m_N.col(i0), n1 = m_N.col(i1), n2 = m_N.col(i2);
+        n = (1 - uv[0] - uv[1]) * n0 + uv[0] * n1 + uv[1] * n2;
+    }
+
     return Normal3f(n);
 }
 
-void Mesh::samplePosition(Sampler *sampler, Point3f &p, Normal3f &n, Point2f &uv, float &pdf, n_UINT &triangleId) const
+void Mesh::samplePosition(Sampler *sampler, Point3f &p, 
+        Normal3f &n, Point2f &uv, 
+        float &pdf, n_UINT &triangleId) const
 {
-
-
     // Choose a random triangle
     float trianglePdf;
     uint32_t triangleIndex = sampleTriangle(sampler, trianglePdf);
     triangleId = triangleIndex;
 
-    float s1 = sampler->next1D();
-    float s2 = sampler->next1D();
-
-    float alpha = 1 - sqrt(1 - s1);
-    float beta = s2 * sqrt(1 - s1);
+    Point2f sample = Warp::squareToUniformTriangle(sampler->next2D());
 
     // Compute the normal at the sampled point
-    n = getNormal(triangleIndex, Point2f(alpha, beta));
+    n = getNormal(triangleIndex, sample);
 
     // Compute the position
-    p = uvTo3D(triangleIndex, Point2f(alpha, beta));
+    p = uvTo3D(triangleIndex, sample);
 
     // Compute the PDF
-    pdf = trianglePdf / surfaceArea(triangleIndex);
+    pdf = 1.0f / _meshArea;
 }
 
-float Mesh::pdf(const Point3f &p, uint32_t triangleId) const
+void Mesh::samplePositions(Sampler *sampler, 
+        std::vector<Point3f> &points, 
+        std::vector<Normal3f> &normals,
+        std::vector<Point2f> &uvs, 
+        std::vector<float> &pdfs, 
+        std::vector<n_UINT> &triangleIds, 
+        size_t samplesPerTriangle) const
+{
+    long long n_samples = samplesPerTriangle * m_F.cols();
+    points.resize(n_samples);
+    normals.resize(n_samples);
+    uvs.resize(n_samples);
+    pdfs.resize(n_samples);
+    triangleIds.resize(n_samples);
+
+    for (Eigen::Index i = 0; i < m_F.cols(); ++i)
+    {
+        for (size_t j = 0; j < samplesPerTriangle; ++j)
+        {
+            Point2f s = sampler->next2D();
+
+            float alpha = 1 - sqrt(1 - s.x());
+            float beta = s.y() * sqrt(1 - s.x());
+
+            // Compute the normal at the sampled point
+            Normal3f n = getNormal(i, Point2f(alpha, beta));
+
+            // Compute the position
+            Point3f p = uvTo3D(i, Point2f(alpha, beta));
+
+            // Compute the PDF
+            float pdf = 1 / surfaceArea(i);
+
+            size_t index = i * samplesPerTriangle + j;
+            points[index] = p;
+            normals[index] = n;
+            uvs[index] = Point2f(alpha, beta);
+            pdfs[index] = pdf;
+            triangleIds[index] = i;
+        }
+    }
+}
+
+float Mesh::pdf(const Point3f &p, n_UINT triangleId) const
 {
     return (1.0f / surfaceArea(triangleId)) * sampleTrianglePdf(triangleId);
 }

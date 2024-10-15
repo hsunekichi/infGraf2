@@ -99,6 +99,8 @@ public:
 
     size_t weightedPassesCount() const { return _weightedPassesCount; }
 
+    uint32_t nPasses() const { return _nPasses; }
+
     virtual Point2f generatePixelOffset(Point2i pixelId) = 0; 
 
     // Number of samples to take on the pixel
@@ -107,7 +109,7 @@ public:
 
     virtual float getSamplePdf(Point2i pixel) const = 0;
 
-    virtual void next_pass(const Bitmap *renderedImage) = 0;
+    virtual void next_pass() = 0;
 
     /**
      * \brief Return the type of object (i.e. Mesh/Sampler/etc.) 
@@ -120,6 +122,7 @@ protected:
 
     size_t m_sampleCount;
     size_t _weightedPassesCount;
+    uint32_t _nPasses;
 
     //bool varianceInitialized = false;
     //Eigen::Array<float, 

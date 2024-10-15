@@ -103,6 +103,7 @@ public:
         ray.d = m_cameraToWorld * d;
         ray.mint = m_nearClip * invZ;
         ray.maxt = m_farClip * invZ;
+        ray.isCameraRay = true;
         ray.update();
 
         return Color3f(1.0f);

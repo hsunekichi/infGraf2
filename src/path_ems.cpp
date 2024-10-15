@@ -23,15 +23,23 @@ public:
                 PathState &state) const
     {   
         // Sample the contribution of a random emitter
-        Color3f directLight = Pth::nextEventEstimation(scene, sampler, state);
+        const BSDF *bsdf = state.intersection.mesh->getBSDF();
+
+        BSDFQueryRecord query = Pth::initBSDFQuery(scene, state);
+        Color3f fp = bsdf->samplePoint(query, sampler);
+        state.scatteringFactor *= fp;
+
+        Color3f directLight = Pth::nextEventEstimation(scene, sampler, state, query);
         state.radiance += state.scatteringFactor * directLight * 0.5f;
+
 
         // Sample the BSDF
         float bsdfPdf;
-        Pth::sampleBSDF(scene, sampler, state, bsdfPdf);
+        Color3f f = Pth::sampleBSDF(state, sampler, query, bsdfPdf);   
+        state.scatteringFactor *= f;
+
 
         Point3f surfaceP = state.intersection.p;
-        
         state.intersected = scene->rayIntersect(state.ray, state.intersection);
         state.intersectionComputed = true;
 
@@ -39,7 +47,7 @@ public:
         {
             const Emitter *emitter = state.intersection.mesh->getEmitter();
 
-            EmitterQueryRecord emitterQuery(surfaceP, state.intersection.p, state.intersection.toLocal(-state.ray.d), EMeasure::EDiscrete);
+            EmitterQueryRecord emitterQuery(surfaceP, state.intersection.p, state.intersection.vtoLocal(-state.ray.d), EMeasure::EDiscrete);
             state.radiance += state.scatteringFactor * emitter->eval(emitterQuery) * 0.5f;
             
             // Terminate the path
@@ -52,8 +60,14 @@ public:
                 PathState &state) const
     {
         // Sample the specular BSDF
+        const BSDF *bsdf = state.intersection.mesh->getBSDF();
+        
+        auto query = Pth::initBSDFQuery(scene, state);
+        Color3f fp = bsdf->samplePoint(query, sampler);
+
         float bsdfPdf;
-        Pth::sampleBSDF(scene, sampler, state, bsdfPdf);        
+        Color3f f = Pth::sampleBSDF(state, sampler, query, bsdfPdf);   
+        state.scatteringFactor *= (f * fp);
     }
 
     void integrateEmitter(const Scene *scene, 
@@ -63,7 +77,7 @@ public:
         // Retrieve the emitter associated with the surface
         const Emitter *emitter = state.intersection.mesh->getEmitter();
 
-        EmitterQueryRecord emitterQuery (state.intersection.toLocal(-state.ray.d), EMeasure::EDiscrete);
+        EmitterQueryRecord emitterQuery (state.intersection.vtoLocal(-state.ray.d), EMeasure::EDiscrete);
         emitterQuery.lightP = state.intersection.p;
         state.radiance += state.scatteringFactor * emitter->eval(emitterQuery);
 
@@ -73,28 +87,20 @@ public:
 
     void sampleIntersection(const Scene *scene, Sampler *sampler, PathState &state) const
     {
-        enum IntegrationType {EMITTER, DIFFUSE, SPECULAR, NONE};
-        IntegrationType integrationType = NONE;
-
-        /* Retrieve the emitter associated with the surface */
-        const Emitter *emitter = state.intersection.mesh->getEmitter();
-        
-        if (emitter) // Render emitter 
-            integrationType = EMITTER;
-        else if (state.intersection.mesh->getBSDF()->isDiffuse()) // Render diffuse surface
-            integrationType = DIFFUSE;
-        else // Render specular surface
-            integrationType = SPECULAR;
+        Pth::IntegrationType integrationType = Pth::getIntegrationType(state.intersection);
         
         switch (integrationType)
         {
-            case EMITTER:
+            case Pth::EMITTER:
                 integrateEmitter(scene, sampler, state);
                 break;
-            case DIFFUSE:
+            case Pth::DIFFUSE:
                 integrateDiffuse(scene, sampler, state);
                 break;
-            case SPECULAR:
+            case Pth::SUBSURFACE:
+                integrateDiffuse(scene, sampler, state);
+                break;
+            case Pth::SPECULAR:
                 integrateSpecular(scene, sampler, state);
                 break;
             default:

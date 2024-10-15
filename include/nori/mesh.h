@@ -22,6 +22,7 @@
 #include <nori/frame.h>
 #include <nori/bbox.h>
 #include <nori/dpdf.h>
+#include <nori/bsdf.h>
 
 #ifndef n_UINT
 #define n_UINT uint32_t
@@ -55,13 +56,21 @@ struct Intersection {
     Intersection() : mesh(nullptr) { }
 
     /// Transform a direction vector into the local shading frame
-    Vector3f toLocal(const Vector3f &d) const {
-        return shFrame.toLocal(d);
+    inline Vector3f vtoLocal(const Vector3f &d) const {
+        return shFrame.vtoLocal(d);
     }
 
     /// Transform a direction vector from local to world coordinates
-    Vector3f toWorld(const Vector3f &d) const {
-        return shFrame.toWorld(d);
+    inline Vector3f vtoWorld(const Vector3f &d) const {
+        return shFrame.vtoWorld(d);
+    }
+
+    inline Point3f ptoLocal(const Point3f &p) const {
+        return shFrame.ptoLocal(p);
+    }
+
+    inline Point3f ptoWorld(const Point3f &p) const {
+        return shFrame.ptoWorld(p);
     }
 
     /// Return a human-readable summary of the intersection record
@@ -105,6 +114,13 @@ public:
     //// Return a random triangle index
     int sampleTriangle(Sampler *sampler, float &pdf) const;
     float sampleTrianglePdf(n_UINT index) const;
+    void samplePositions(Sampler *sampler, 
+            std::vector<Point3f> &p, 
+            std::vector<Normal3f> &n, 
+            std::vector<Point2f> &uv, 
+            std::vector<float> &pdf, 
+            std::vector<n_UINT> &triangleId, 
+            size_t samplesPerTriangle) const;
 
 
     int getTriangleIndex(Point3f p) const;
@@ -113,6 +129,8 @@ public:
 	/// Return the surface area of the given triangle
 	float pdf(const Point3f &p) const;
     float pdf(const Point3f &p, n_UINT triangleId) const;
+
+    n_UINT nTriangles() const { return m_F.cols(); }
 
     /// Return the surface area of the given triangle
     float surfaceArea(n_UINT index) const;
@@ -168,6 +186,8 @@ public:
     /// Is this mesh an area emitter?
     bool isEmitter() const { return m_emitter != nullptr; }
 
+    bool hasSubsurfaceScattering() const { return m_bsdf != nullptr && m_bsdf->isSubsurfaceScattering(); }
+
     /// Return a pointer to an attached area emitter instance
     Emitter *getEmitter() { return m_emitter; }
 
@@ -192,6 +212,8 @@ public:
      * */
     EClassType getClassType() const { return EMesh; }
 
+    float meshArea() const { return _meshArea; }
+
 protected:
     /// Create an empty mesh
     Mesh();
@@ -206,6 +228,8 @@ protected:
     Emitter      *m_emitter = nullptr;   ///< Associated emitter, if any
     BoundingBox3f m_bbox;                ///< Bounding box of the mesh
     DiscretePDF  m_pdf;                  ///< Discrete pdf for sampling triangles uniformly wrt their area. 
+
+    float _meshArea = 0.0f;
 };
 
 NORI_NAMESPACE_END

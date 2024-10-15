@@ -47,6 +47,10 @@ class Math
     /// Compute the square root of a float
     inline static float sqrt(float a) { return std::sqrt(a); }
 
+    inline static float exp(float a) { return std::exp(a); }
+    inline static Color3f sqrt(const Color3f &a) { return Color3f(std::sqrt(a.x()), std::sqrt(a.y()), std::sqrt(a.z())); }
+    inline static Color3f exp(const Color3f &a) { return Color3f(std::exp(a.x()), std::exp(a.y()), std::exp(a.z())); }
+
     inline static float safeSqrt(float a) { return std::sqrt(std::max(a, 0.0f)); }
     
     inline static float pow(float a, float b) { return std::pow(a, b); }
@@ -54,9 +58,15 @@ class Math
     inline static float pow3(float a) { return a * a * a; }
     inline static float pow4(float a) { float a2 = a*a; return a2*a2; }
 
+    inline static Color3f pow(const Color3f &a, float b) { return Color3f(std::pow(a.x(), b), std::pow(a.y(), b), std::pow(a.z(), b)); }
+    inline static Color3f pow2(const Color3f &a) { return Color3f(a.x() * a.x(), a.y() * a.y(), a.z() * a.z()); }
+    inline static Color3f pow3(const Color3f &a) { return Color3f(a.x() * a.x() * a.x(), a.y() * a.y() * a.y(), a.z() * a.z() * a.z()); }
+    inline static Color3f pow4(const Color3f &a) { return Color3f(a.x() * a.x() * a.x() * a.x(), a.y() * a.y() * a.y() * a.y(), a.z() * a.z() * a.z() * a.z()); }
+
     /// Compute the cosine of an angle
     inline static float cos(float a) { return std::cos(a); }
     inline static float cos(const Vector3f &a, const Vector3f &b) { return a.dot(b) / (a.norm() * b.norm()); }
+    inline static float absCos(const Vector3f &a, const Vector3f &b) { return std::abs(cos(a, b)); }
 
     /// Compute the sine of an angle
     inline static float sin(float a) { return std::sin(a); }
@@ -67,6 +77,9 @@ class Math
 
     inline static float max(float a, float b) { return std::max(a, b); }
     inline static float min(float a, float b) { return std::min(a, b); }
+    
+    inline static Point2f max(const Point2f &a, const Point2f &b) { return Point2f(std::max(a.x(), b.x()), std::max(a.y(), b.y())); }
+    inline static Point2f min(const Point2f &a, const Point2f &b) { return Point2f(std::min(a.x(), b.x()), std::min(a.y(), b.y())); }
 
     inline static float asin(float a) { return std::asin(a); }
 
@@ -75,6 +88,8 @@ class Math
 
     inline static Color3f max (const Color3f &a, float b) { return Color3f(std::max(a.x(), b), std::max(a.y(), b), std::max(a.z(), b)); }
     inline static Color3f min (const Color3f &a, float b) { return Color3f(std::min(a.x(), b), std::min(a.y(), b), std::min(a.z(), b)); }
+
+    inline static float lerp(float a, float b, float t) { return a + (b - a) * t; }
 
 
     // Compute sin of a vector in local coordinates
@@ -110,6 +125,9 @@ class Math
     {
         return sin2Theta(w) / cos2Theta(w);
     }
+
+    inline static float floor(float a) { return std::floor(a); }
+    inline static float ceil(float a) { return std::ceil(a); }
 
     inline static bool sameSign(float a, float b) { return a * b > 0; }
     inline static int sign(float a) { return (a > 0) - (a < 0); }
@@ -237,6 +255,10 @@ class Math
 
     static Eigen::MatrixXf equalize(const Eigen::MatrixXf &m);
 
+    // Finds a root for the function f using the secant method.
+    //  Input: Function f, initial x0
+    static float findRoot(std::function<float(float)> f, float x0);
+
     static Color3f fresnel(float cosThetaI, const Color3f &extIOR, const Color3f &intIOR)
     {
         Color3f eta = extIOR / intIOR;
@@ -292,6 +314,21 @@ class Math
 
         // Average the perpendicular and parallel reflectance
         return (rPerp + rParallel) * 0.5f;
+    }
+
+    static Vector3f refract (Vector3f wi, Vector3f n, float etaI, float etaT)
+    {
+        float eta = etaI / etaT;
+
+        float cosThetaI = dot(wi, n);
+        float sin2ThetaI = std::max(0.0f, 1.0f - cosThetaI * cosThetaI);
+        float sin2ThetaT = eta * eta * sin2ThetaI;
+
+        if (sin2ThetaT >= 1.0f)
+            return Vector3f(0.0f, 0.0f, 0.0f);
+
+        float cosThetaT = std::sqrt(1.0f - sin2ThetaT);
+        return eta * (-wi) + (eta * cosThetaI - cosThetaT) * n;
     }
 
 

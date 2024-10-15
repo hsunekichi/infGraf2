@@ -25,6 +25,7 @@
 #include <nori/sampler.h>
 #include <nori/camera.h>
 #include <nori/emitter.h>
+#include <nori/warp.h>
 
 NORI_NAMESPACE_BEGIN
 
@@ -34,14 +35,21 @@ Scene::Scene(const PropertyList &) {
 }
 
 Scene::~Scene() {
+
     delete m_accel;
     delete m_sampler;
     delete m_camera;
     delete m_integrator;
+
+    for (size_t i=0; i<sss_accelerators.size(); ++i)
+        delete sss_accelerators[i];
+
+    for (size_t i=0; i<m_meshes.size(); ++i)
+        delete m_meshes[i];
 }
 
-void Scene::activate() {
-
+void Scene::activate() 
+{
     // Check if there's emitters attached to meshes, and
     // add them to the scene. 
     for(unsigned int i=0; i<m_meshes.size(); ++i )
@@ -51,9 +59,21 @@ void Scene::activate() {
             m_meshes[i]->getEmitter()->setMesh(m_meshes[i]);
             m_emitters.push_back(m_meshes[i]->getEmitter());
         }
+
+        if (m_meshes[i]->hasSubsurfaceScattering())
+        {
+            sss_meshes.push_back(m_meshes[i]);
+        }
     }
 
     m_accel->build();
+
+    for (size_t i=0; i<sss_meshes.size(); ++i)
+    {
+        sss_accelerators.push_back(new Accel());
+        sss_accelerators.back()->addMesh(sss_meshes[i]);
+        sss_accelerators.back()->build();
+    }
 
     if (!m_integrator)
         throw NoriException("No integrator was specified!");
@@ -70,6 +90,7 @@ void Scene::activate() {
     cout << "Configuration: " << toString() << endl;
     cout << endl;
 }
+
 
 /// Sample emitter
 Emitter *Scene::sampleEmitter(Sampler* sampler, float &pdf) const

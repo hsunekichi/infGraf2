@@ -24,6 +24,7 @@
 
 #include <nori/object.h>
 #include <nori/sampler.h>
+#include <nori/frame.h>
 
 NORI_NAMESPACE_BEGIN
 
@@ -47,6 +48,16 @@ struct BSDFQueryRecord {
     /// Measure associated with the sample
     EMeasure measure;
 
+    /************* BSSRDF extension **************/
+
+    Point3f po, pi; // Global coordinates of the sampling points
+    Frame fro, fri; // Shading frames
+    const Mesh *mesh = nullptr; 
+    const Scene *scene = nullptr;
+    bool isCameraRay = false;
+
+    BSDFQueryRecord() : eta(1.f), measure(EUnknownMeasure) { }
+
     /// Create a new record for sampling the BSDF
     BSDFQueryRecord(const Vector3f &wi, const Vector2f &uv = Vector2f() )
         : wi(wi), eta(1.f), uv(uv), measure(EUnknownMeasure) { }
@@ -60,6 +71,11 @@ struct BSDFQueryRecord {
     BSDFQueryRecord(const Vector3f &wi,
             const Vector3f &wo, EMeasure measure)
         : wi(wi), wo(wo), eta(1.f), measure(measure) { }
+
+    void setP(const Point3f &p) {
+        po = p;
+        pi = p;
+    }
 };
 
 /**
@@ -83,6 +99,12 @@ public:
      *         failed.
      */
     virtual Color3f sample(BSDFQueryRecord &bRec, Sampler *sampler) const = 0;
+    virtual Color3f samplePoint(BSDFQueryRecord &bRec, Sampler *sampler) const
+    {
+        bRec.po = bRec.pi;
+        bRec.fro = bRec.fri;
+        return Color3f(1.0f);
+    }
 
     Color3f sample(BSDFQueryRecord &bRec, const Point2f &sample) const {
         throw NoriException("BSDF::sample(point) not implemented!");
@@ -128,6 +150,7 @@ public:
      * or not to store photons on a surface
      */
     virtual bool isDiffuse() const { return false; }
+    virtual bool isSubsurfaceScattering() const { return false; }
 };
 
 NORI_NAMESPACE_END

@@ -1,0 +1,32 @@
+<?xml version="1.0" ?>
+<scene>
+	<integrator type="whitted"/>
+	<sampler type="independent">
+		<integer name="sampleCount" value="4"/>
+	</sampler>
+	<camera type="perspective">
+		<float name="fov" value="10.168100056077044"/>
+		<float name="nearClip" value="0.10000000149011612"/>
+		<float name="farClip" value="100.0"/>
+		<integer name="width" value="1280"/>
+		<integer name="height" value="720"/>
+		<transform name="toWorld">
+			<scale value="-1.000000 1.000000 -1.000000"/>
+			<matrix value="0.9873693585395813,-0.0705467015504837,0.14186225831508636,-0.036705709993839264,0.15843528509140015,0.4396473467350006,-0.8840862512588501,-0.2832113802433014,0.0,0.8953956365585327,0.44527140259742737,0.33285069465637207,0.0,0.0,0.0,1.0"/>
+		</transform>
+	</camera>
+	<emitter type="pointlight">
+		<point name="position" value="-0.445594,-0.026279,0.319950"/>
+		<color name="radiance" value="0.5,0.5,0.5"/>
+	</emitter>
+	<mesh type="obj">
+		<string name="filename" value="meshes/StanfordDragon_low_DefaultMaterial.obj"/>
+		<bsdf type="subsurface">   <!-- Marble properties -->
+			<color name="albedo" value="0.83 0.79 0.75"/>
+			<color name="sigmaA" value="0.0021 0.0041 0.0071"/>
+			<color name="sigmaS" value="2.19 2.62 3.00"/>
+			<float name="g" value="0.85"/>
+			<float name="eta" value="1.5"/>
+		</bsdf>
+	</mesh>
+</scene>

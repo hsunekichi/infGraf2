@@ -24,7 +24,8 @@ public:
         state.ray = ray;
         state.intersection = intersection;
 
-        Color3f incoming = Pth::nextEventEstimation(scene, sampler, state);
+        BSDFQueryRecord bsdfQuery;
+        Color3f incoming = Pth::nextEventEstimation(scene, sampler, state, bsdfQuery);
         return incoming;
     }
 

@@ -7,6 +7,7 @@
 #include <nori/emitter.h>
 #include <nori/sampler.h>
 #include <nori/bsdf.h>
+#include <nori/kdtree.h>
 
 #include <nori/pathtracing.h>
 
@@ -21,49 +22,65 @@ public:
 
     Path_mis(const PropertyList &props) {}
 
-
-
     void integrateDiffuse(const Scene *scene, 
                 Sampler *sampler,
                 PathState &state) const
     {   
-        // Sample the contribution of a random emitter
-        Color3f directLight = Pth::nextEventEstimation(scene, sampler, state, true);
-        state.radiance += state.scatteringFactor * directLight;
+        /*************** Sample outgoing point *******************/
+        const BSDF *bsdf = state.intersection.mesh->getBSDF();
+        
+        auto query = Pth::initBSDFQuery(scene, state);
+        Color3f fp = bsdf->samplePoint(query, sampler);
+        state.scatteringFactor *= fp;
 
-        // Sample the BSDF
-        float bsdfPdf;
-        Pth::sampleBSDF(scene, sampler, state, bsdfPdf);
+        /**************** Compute next event estimation ******************/
+        float lightPdf, bsdfPdf;
+        Color3f directLight = Pth::nextEventEstimation(scene, sampler, state, query, lightPdf, bsdfPdf);
+        float weightLight = Math::powerHeuristic(1, lightPdf, 1, bsdfPdf);
+        state.radiance += state.scatteringFactor * directLight * weightLight;
+
+
+        /************************* Sample indirect light *******************/
+        Color3f f = Pth::sampleBSDF(state, sampler, query, bsdfPdf);   
+        state.scatteringFactor *= f;
 
         // Check if next bounce is to a light source
         Point3f prevSurfaceP = state.intersection.p;      
         state.intersected = scene->rayIntersect(state.ray, state.intersection);
         state.intersectionComputed = true;
 
+        /*********************** Check for double counting *********************/
         if (state.intersected && state.intersection.mesh->isEmitter())
         {
             const Emitter *emitter = state.intersection.mesh->getEmitter();
             EmitterQueryRecord emitterQuery(prevSurfaceP, state.intersection.p, 
-                    state.intersection.toLocal(-state.ray.d), EMeasure::ESolidAngle);
+                    state.intersection.vtoLocal(-state.ray.d), EMeasure::ESolidAngle);
 
 
             // Compute Le
-            float emitterPdf = emitter->pdf(emitterQuery);
-            float weight = Math::powerHeuristic(1, bsdfPdf, 1, emitterPdf);
-            state.radiance += state.scatteringFactor * weight * emitter->eval(emitterQuery);
+            lightPdf = emitter->pdf(emitterQuery);
+            float weightBSDF = Math::powerHeuristic(1, bsdfPdf, 1, lightPdf);
+            state.radiance += state.scatteringFactor * weightBSDF * emitter->eval(emitterQuery);
             
             // Terminate the path
             state.scatteringFactor = Color3f(0.0f);
         }
     }
 
+
     void integrateSpecular(const Scene *scene, 
                 Sampler *sampler,
                 PathState &state) const
     {
         // Sample the specular BSDF
+        const BSDF *bsdf = state.intersection.mesh->getBSDF();
+        
+        auto query = Pth::initBSDFQuery(scene, state);
+        Color3f fp = bsdf->samplePoint(query, sampler);
+
         float bsdfPdf;
-        Pth::sampleBSDF(scene, sampler, state, bsdfPdf);        
+        Color3f f = Pth::sampleBSDF(state, sampler, query, bsdfPdf);   
+        state.scatteringFactor *= (f * fp);
     }
 
     void integrateEmitter(const Scene *scene, 
@@ -73,7 +90,7 @@ public:
         // Retrieve the emitter associated with the surface
         const Emitter *emitter = state.intersection.mesh->getEmitter();
 
-        EmitterQueryRecord emitterQuery (state.intersection.toLocal(-state.ray.d), EMeasure::EDiscrete);
+        EmitterQueryRecord emitterQuery (state.intersection.vtoLocal(-state.ray.d), EMeasure::EDiscrete);
         emitterQuery.lightP = state.intersection.p;
         state.radiance += state.scatteringFactor * emitter->eval(emitterQuery);
 
@@ -83,28 +100,20 @@ public:
 
     void sampleIntersection(const Scene *scene, Sampler *sampler, PathState &state) const
     {
-        enum IntegrationType {EMITTER, DIFFUSE, SPECULAR, NONE};
-        IntegrationType integrationType = NONE;
+        Pth::IntegrationType integrationType = Pth::getIntegrationType(state.intersection);
 
-        /* Retrieve the emitter associated with the surface */
-        const Emitter *emitter = state.intersection.mesh->getEmitter();
-        
-        if (emitter) // Render emitter 
-            integrationType = EMITTER;
-        else if (state.intersection.mesh->getBSDF()->isDiffuse()) // Render diffuse surface
-            integrationType = DIFFUSE;
-        else // Render specular surface
-            integrationType = SPECULAR;
-        
         switch (integrationType)
         {
-            case EMITTER:
+            case Pth::EMITTER:
                 integrateEmitter(scene, sampler, state);
                 break;
-            case DIFFUSE:
+            case Pth::DIFFUSE:
                 integrateDiffuse(scene, sampler, state);
                 break;
-            case SPECULAR:
+            case Pth::SUBSURFACE:
+                integrateDiffuse(scene, sampler, state);
+                break;
+            case Pth::SPECULAR:
                 integrateSpecular(scene, sampler, state);
                 break;
             default:
@@ -128,9 +137,8 @@ public:
            
             state.intersectionComputed = false;
 
-            if (state.depth > 3)
+            if (state.depth > 3)     // Apply roussian roulette
             {
-                // Apply roussian roulette
                 float roulettePdf = 0.95f;
                 if (sampler->next1D() > roulettePdf)
                 {
@@ -161,9 +169,13 @@ public:
         return state.radiance;
     }
 
+
     std::string toString() const {
         return "Path_mis[]";
     }
+
+    protected:
+        PhotonMap photonMap;
 };
 
 NORI_REGISTER_CLASS(Path_mis, "path_mis");
