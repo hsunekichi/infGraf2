@@ -150,6 +150,9 @@ public:
         if (bRec.measure != ESolidAngle)
             return Color3f(0.0f);
 
+        if (!bRec.isCameraRay)
+            return INV_PI * m_albedo->eval(bRec.uv);
+
         return evalMS(bRec);
     }
 
@@ -167,6 +170,13 @@ public:
 
     Color3f samplePoint(BSDFQueryRecord &bRec, Sampler *sampler) const
     {
+        if (!bRec.isCameraRay)
+        {
+            bRec.fro = bRec.fri;
+            bRec.po = bRec.pi;
+            return Color3f(1.0f);
+        }
+
         // Select random frame
         Vector3f vx, vy, vz;
         float rnd = sampler->next1D();
@@ -281,7 +291,10 @@ public:
         bRec.wo = Warp::squareToCosineHemisphere(sampler->next2D());
         pdf = Warp::squareToCosineHemispherePdf(bRec.wo);
 
-        return eval(bRec) * Frame::cosTheta(bRec.wo) / pdf;
+        Color3f f = eval(bRec) * Frame::cosTheta(bRec.wo) / pdf;
+        bRec.isCameraRay = false;
+
+        return f;
     }
 
     bool isSubsurfaceScattering() const {
@@ -347,8 +360,8 @@ public:
 
         Color3f cPhi = .25f * (1 - 2 * fm1), cE  = .5f  * (1 - 3 * fm2);
 
-        for (int i = 0; i < nSamples; ++i) {
-
+        for (int i = 0; i < nSamples; ++i) 
+        {
             Color3f zr = -std::log(1 - (i + .5f) / nSamples) / _sigmaT;
 
             Color3f zv = -zr + 2 * ze;

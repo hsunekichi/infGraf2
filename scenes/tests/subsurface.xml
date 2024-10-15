@@ -2,25 +2,26 @@
 <scene>
 	<integrator type="path_mis"/>
 	<sampler type="independent">
-		<integer name="sampleCount" value="32"/>
+		<integer name="sampleCount" value="128"/>
+		<integer name="nPasses" value="16"/>
 	</sampler>
 	<camera type="perspective">
-		<float name="fov" value="39.597755335771296"/>
+		<float name="fov" value="40.024140139993094"/>
 		<float name="nearClip" value="0.10000000149011612"/>
 		<float name="farClip" value="100.0"/>
 		<integer name="width" value="640"/>
 		<integer name="height" value="360"/>
 		<transform name="toWorld">
 			<scale value="-1.000000 1.000000 -1.000000"/>
-			<matrix value="0.9991291761398315,-0.0403001643717289,-0.010808402672410011,0.5575073957443237,-0.007162720430642366,0.08953393995761871,-0.9959580302238464,-13.20702838897705,0.041104987263679504,0.9951680898666382,0.08916731178760529,1.1941218376159668,0.0,0.0,0.0,1.0"/>
+			<matrix value="1.0,0.0,0.0,0.0,0.0,-4.371138828673793e-08,-1.0,-6.877023220062256,0.0,1.0,-4.371138828673793e-08,-1.4930580505279067e-07,0.0,0.0,0.0,1.0"/>
 		</transform>
 	</camera>
 	<emitter type="pointlight">
-		<point name="position" value="0.000000,0.500000,0.000000"/>
+		<point name="position" value="0.000000,0.010000,0.000000"/>
 		<color name="radiance" value="10.000000,10.000000,10.000000"/>
 	</emitter>
 	<mesh type="obj">
-		<string name="filename" value="meshes/Cube.obj"/>
+		<string name="filename" value="meshes/Cube_Material.obj"/>
 		<bsdf type="subsurface">   <!-- Marble properties -->
 			<color name="sigmaA" value="0.0021 0.0041 0.0071"/>
 			<color name="sigmaS" value="2.19 2.62 3.00"/>

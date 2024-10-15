@@ -32,10 +32,6 @@ public:
         Color3f directLight = Pth::nextEventEstimation(scene, sampler, state, query);
         state.radiance += state.scatteringFactor * directLight * 0.5f;
 
-        if (state.radiance != Color3f(0.0f))
-        {
-            std::cout << "Radiance: " << state.radiance.toString() << std::endl;
-        }
 
         // Sample the BSDF
         float bsdfPdf;

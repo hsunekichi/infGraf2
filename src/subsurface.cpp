@@ -40,7 +40,8 @@ public:
         sigmaA = propList.getColor("sigmaA", Color3f(0.0f));
         sigmaS = propList.getColor("sigmaS", Color3f(0.0f));
         
-        scale = propList.getFloat("scale", 1000.0f);
+        scale = 1.0f/1000.0f; // Sigmas are in mm^-1
+
         etaT = propList.getFloat("eta", 1.0f);
         float eta = 1.0f / etaT;
 
@@ -104,7 +105,7 @@ public:
         if (r < 1e-4)
             return Color3f(1.0f);
 
-        r *= 1000.0f; // Convert to mm
+        r /= scale;
         //Color3f s = 3.5f + 100.0f * Math::pow4(R - 0.33f);
         Color3f d = ld;
 
@@ -134,7 +135,7 @@ public:
         Color3f d = ld;
         r *= d[channel];
         
-        return r / 1000.0f; // Convert to meters
+        return r * scale; // Convert to meters
     }
 
     double sampleSrPdf(float r, int channel) const
@@ -148,6 +149,9 @@ public:
            is wrong, or when queried for illumination on the backside */
         if (bRec.measure != ESolidAngle)
             return Color3f(0.0f);
+
+        if (!bRec.isCameraRay)
+            return INV_PI * m_albedo->eval(bRec.uv);
 
         return evalMS(bRec);
     }
@@ -163,7 +167,7 @@ public:
         return Warp::squareToCosineHemispherePdf(bRec.wo);
     }
 
-    /*
+    
     Color3f samplePointOld(BSDFQueryRecord &bRec, Sampler *sampler) const
     {
         Color3f sigmaT = sigmaA + sigmaS;
@@ -181,9 +185,11 @@ public:
         sample = Math::max(sample, Point2f(1.0f/sigma));
    
         // Sampled offset (in mm) to world
-        Vector3f sampled = Vector3f(sample.x(), sample.y(), 0.0f) / 1000.0f;
-        bRec.po = bRec.pi + bRec.fri.ptoWorld(sampled);
+        Vector3f sampled = Vector3f(sample.x(), sample.y(), 0.0f) * scale;
+
+        bRec.po = bRec.fri.ptoWorld(sampled);
         bRec.fro = bRec.fri; 
+
         //bRec.po = projectToSurface(bRec, bRec.po);
 
         float pdf = Warp::SrToDiskPdf(sample) 
@@ -192,11 +198,18 @@ public:
 
         return Color3f(1.0f / pdf);
     }
-    */
+    
     
 
     Color3f samplePoint(BSDFQueryRecord &bRec, Sampler *sampler) const
     {
+        if (!bRec.isCameraRay)
+        {
+            bRec.fro = bRec.fri;
+            bRec.po = bRec.pi;
+            return Color3f(1.0f);
+        }
+
         // Select random frame
         Vector3f vx, vy, vz;
         float rnd = sampler->next1D();
@@ -227,7 +240,7 @@ public:
         rnd = rnd * 3.0f - channel; // Adjust random sample
 
         // Select sphere radius
-        float rMax = sampleSr(0.999f, channel);
+        float rMax = sampleSr(0.9999f, channel);
 
         float r;
         do {
@@ -310,7 +323,10 @@ public:
         bRec.wo = Warp::squareToCosineHemisphere(sampler->next2D());
         pdf = Warp::squareToCosineHemispherePdf(bRec.wo);
 
-        return eval(bRec) * Frame::cosTheta(bRec.wo) / pdf;
+        Color3f f = eval(bRec) * Frame::cosTheta(bRec.wo) / pdf;
+        bRec.isCameraRay = false;
+
+        return f;
     }
 
     bool isSubsurfaceScattering() const {
@@ -324,7 +340,7 @@ public:
 
     Color3f dipoleDiffusionAproximation(float r) const
     {
-        r *= 1000.0f; // Convert to mm
+        r /= scale;
         float r2 = Math::pow2(r);
 
         Color3f dr = Math::sqrt(r2 + Math::pow2(zr)); 
@@ -357,10 +373,11 @@ public:
         float Ft_o = 1 - fresnel(cosWo, 1.0, eta);
         float Ft_i = 1 - fresnel(cosWi, 1.0, eta);
 
-        // Compute the diffusion term
         Color3f Sd = INV_PI * Ft_i * Rd * Ft_o;
 
         Sd = Math::max(Sd, Color3f(0.0f));
+
+        //return INV_PI * m_albedo->eval(bRec.uv) / Math::pow(r/scale+1.5f, 4);
 
         return Sd * m_albedo->eval(bRec.uv);
     } 

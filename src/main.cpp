@@ -185,7 +185,7 @@ int main(int argc, char **argv) {
         return -1;
     }
 
-    bool nogui = false;
+    bool nogui = true;
     std::string sceneName = "";
 
     for (int i = 1; i < argc; ++i) {

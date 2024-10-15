@@ -118,7 +118,7 @@ Color3f Pth::nextEventEstimation(const Scene *scene,
         // Compute the geometric term
         float cosThetaP = Math::absCosTheta(l_wo);
         float G = cosThetaP / g_wo.squaredNorm();
-        
+
         return Le * f * G;
     }
 
