@@ -40,11 +40,11 @@ Color3f sampleRandomEmitter(const Scene *scene, Sampler *sampler,
 
 
 bool checkVisibility (const Scene *scene, 
-            const PathState &state,
+            const Point3f &p,
             Emitter *emitterMesh,
             Vector3f &g_wi)
 {
-    Ray3f shadowRay(state.intersection.p, g_wi.normalized(), Epsilon, g_wi.norm() + Epsilon);
+    Ray3f shadowRay(p, g_wi.normalized(), Epsilon, g_wi.norm() + Epsilon);
 
     Intersection lightIntersection;
     bool intersects = scene->rayIntersect(shadowRay, lightIntersection);
@@ -58,7 +58,7 @@ bool checkVisibility (const Scene *scene,
         ( 
             objectSeesEmitter && intersects 
             && 
-            (   (lightIntersection.p - state.intersection.p).norm() > g_wi.norm()
+            (   (lightIntersection.p - p).norm() > g_wi.norm()
                 ||
                 lightIntersection.mesh->getEmitter() == emitterMesh
             )
@@ -100,12 +100,11 @@ Color3f Pth::nextEventEstimation(const Scene *scene,
     if (Le == Color3f(0.0f))
         return Color3f(0.0f);
 
-
     Vector3f g_wo = (lightP - state.intersection.p);
     Vector3f l_wo = bsdfQuery.fro.vtoLocal(g_wo).normalized();
 
     //*********************** Sample emitter ******************************
-    if (checkVisibility(scene, state, emitterMesh, g_wo))
+    if (checkVisibility(scene, bsdfQuery.po, emitterMesh, g_wo))
     {
         // Evaluate bsdf
         const BSDF *bsdf = state.intersection.mesh->getBSDF();

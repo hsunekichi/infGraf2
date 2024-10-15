@@ -242,8 +242,7 @@ public:
         // Project to sphere
         Point3f w_center = bRec.pi + r * (vx*std::cos(th) + vy*std::sin(th));
         Point3f w_base = w_center - l*vz*0.5f;
-        Point3f w_target = w_base + l*vz;
- 
+        Point3f w_target = w_base + l*vz; 
 
         /************ Project point to shape ****************/
 

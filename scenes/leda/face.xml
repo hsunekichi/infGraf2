@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <scene>
-	<integrator type="path_mis"/>
+	<integrator type="path_ems"/>
 	<sampler type="independent">
 		<integer name="sampleCount" value="32"/>
 		<integer name="nPasses" value="16"/>
@@ -29,56 +29,12 @@
 		<color name="radiance" value="40.000000,40.000000,40.000000"/>
 	</emitter>
 	<mesh type="obj">
-		<string name="filename" value="meshes/option1_hair_Hair.obj"/>
-		<bsdf type="subsurface">   <!-- Hair properties -->
-			<color name="sigmaA" value="0.032 0.17 0.48"/>
-			<color name="sigmaS" value="0.74 0.88 1.01"/>
-			<float name="eta" value="1.3"/>
-			<color name="albedo" value="0.8 0.6518 0.1824"/>
-		</bsdf>
-	</mesh>
-	<mesh type="obj">
-		<string name="filename" value="meshes/option1_hair_bangs_Hair.obj"/>
-		<bsdf type="subsurface">   <!-- Hair properties -->
-			<color name="sigmaA" value="0.032 0.17 0.48"/>
-			<color name="sigmaS" value="0.74 0.88 1.01"/>
-			<float name="eta" value="1.3"/>
-			<color name="albedo" value="0.8 0.6518 0.1824"/>
-		</bsdf>
-	</mesh>
-	<mesh type="obj">
 		<string name="filename" value="meshes/option1_head_Skin.obj"/>
 		<bsdf type="subsurface">   <!-- Skin properties -->
 			<color name="sigmaA" value="0.032 0.17 0.48"/>
 			<color name="sigmaS" value="0.74 0.88 1.01"/>
 			<float name="eta" value="1.3"/>
 			<color name="albedo" value="1 0.674 0.372"/>
-		</bsdf>
-	</mesh>
-	<mesh type="obj">
-		<string name="filename" value="meshes/option1_hair_eyebrows_EyebrowsHair.obj"/>
-		<bsdf type="orenNayar">
-			<color name="kd" value="0.229838,0.134117,0.088607"/>
-			<float name="roughness" value="0.500000"/>
-		</bsdf>
-	</mesh>
-	<mesh type="obj">
-		<string name="filename" value="meshes/eyelasesHair_eyelashesHair.obj"/>
-		<bsdf type="orenNayar">
-			<color name="kd" value="0.076467,0.066887,0.042512"/>
-			<float name="roughness" value="0.500000"/>
-		</bsdf>
-	</mesh>
-	<mesh type="obj">
-		<string name="filename" value="meshes/option1_eyes_Eyes.obj"/>
-		<bsdf type="diffuse">
-			<texture type="textmap" name="albedo">
-				<string name="filename" value="Eyes.bmp"/>
-				<string name="interpolation" value="Linear"/>
-				<string name="extension" value="REPEAT"/>
-				<string name="projection" value="FLAT"/>
-			</texture>
-			<float name="roughness" value="0.099924"/>
 		</bsdf>
 	</mesh>
 </scene>
