@@ -2,7 +2,7 @@
 <scene>
 	<integrator type="path_mis"/>
 	<sampler type="independent">
-		<integer name="sampleCount" value="128"/>
+		<integer name="sampleCount" value="64"/>
 		<integer name="nPasses" value="8"/>
 	</sampler>
 	<camera type="perspective">
@@ -13,7 +13,7 @@
 		<integer name="height" value="920"/>
 		<transform name="toWorld">
 			<scale value="-1.000000 1.000000 -1.000000"/>
-			<matrix value="0.9999379515647888,3.7005823405600324e-10,0.01114183571189642,-0.008948368020355701,0.010753616690635681,-0.261672705411911,-0.9650967717170715,-0.4674678146839142,0.002915513701736927,0.9651566743850708,-0.2616564631462097,4.446075439453125,0.0,0.0,0.0,1.0"/>
+			<matrix value="0.9999379515647888,6.517222317370397e-10,0.01114183571189642,-0.012904481962323189,0.0110892029479146,-0.09708450734615326,-0.9952143430709839,-1.5289967060089111,0.0010816989233717322,0.995276153087616,-0.09707847982645035,4.556325912475586,0.0,0.0,0.0,1.0"/>
 		</transform>
 	</camera>
 	<emitter type="pointlight">
@@ -24,6 +24,12 @@
 		<point name="position" value="-1.479022,-1.748084,6.521345"/>
 		<color name="radiance" value="40.000000,40.000000,40.000000"/>
 	</emitter>
+	<mesh type="obj">
+		<string name="filename" value="meshes/option1_hair_Hair.obj"/>
+		<bsdf type="diffuse">
+			<color name="albedo" value="1.000000,0.947217,0.798777"/>
+		</bsdf>
+	</mesh>
 	<mesh type="obj">
 		<string name="filename" value="meshes/option1_head_Skin.obj"/>
 		<bsdf type="subsurface">   <!-- Skin properties -->

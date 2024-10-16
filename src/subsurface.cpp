@@ -40,7 +40,7 @@ public:
         sigmaA = propList.getColor("sigmaA", Color3f(0.0f));
         sigmaS = propList.getColor("sigmaS", Color3f(0.0f));
         
-        scale = 1.0f/1.0f; // Sigmas are in mm^-1
+        scale = 1.0f/1000.0f; // Sigmas are in mm^-1
 
         etaT = propList.getFloat("eta", 1.0f);
         float eta = 1.0f / etaT;
@@ -142,7 +142,7 @@ public:
 
     double sampleSrPdf(float r, int channel) const
     {
-        return Sr_(r)[channel];
+        return dipoleDiffusionAproximation(r)[channel];
     }
 
     /// Evaluate the BRDF model

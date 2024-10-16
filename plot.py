@@ -61,7 +61,8 @@ def Sr_(r):
     s = scalingFactor()
     D = (_sigmaT + sigmaA) / (3.0 * _sigmaT*_sigmaT)
     ld = 1.0 / np.sqrt(sigmaA/D)
-    d = 1 / s
+    ld = 0.1
+    d = ld / s
 
     num1 = np.exp(-r / d)
     num2 = np.exp(-r / (3 * d))
@@ -74,7 +75,7 @@ def Sr_(r):
 
 def Sr(r):
 
-    kd = 0.9
+    kd = 1
     return Sr_(r) * kd
 
 def expDecay(epsilon):
