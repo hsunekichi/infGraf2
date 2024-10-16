@@ -15,7 +15,7 @@
 	</camera>
 
 	<sampler type="independent">
-		<integer name="sampleCount" value="32"/>
+		<integer name="sampleCount" value="64"/>
 		<integer name="nPasses" value="8"/>
 	</sampler>
 
@@ -53,7 +53,7 @@
 	<mesh type="obj">
 		<string name="filename" value="meshes/sphere2.obj"/>
 
-		<bsdf type="subsurface">   <!-- Marble properties -->
+		<bsdf type="subsurfaceDisney">   <!-- Skin properties -->
 			<color name="sigmaA" value="0.032 0.17 0.48"/>
 			<color name="sigmaS" value="0.74 0.88 1.01"/>
 			<float name="eta" value="1.3"/>

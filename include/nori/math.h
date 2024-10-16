@@ -42,6 +42,7 @@ class Math
 
     /// Compute the absolute value of a float
     inline static float abs(float a) { return std::abs(a); }
+    inline static Color3f abs(const Color3f &a) { return Color3f(std::abs(a.x()), std::abs(a.y()), std::abs(a.z())); }
     inline static float absDot(const Vector3f &a, const Vector3f &b) { return std::abs(dot(a, b)); }
 
     /// Compute the square root of a float

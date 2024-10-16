@@ -58,6 +58,7 @@
 #define INV_FOURPI   0.07957747154594766788f
 #define SQRT_TWO     1.41421356237309504880f
 #define INV_SQRT_TWO 0.70710678118654752440f
+#define LOG2_E       1.44269504088896340736f
 
 /* Forward declarations */
 namespace filesystem {

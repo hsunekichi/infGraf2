@@ -51,20 +51,31 @@ def Rdipole(r):
 def pow4(x):
     return x*x*x*x
 
+def scalingFactor():
+    kd = 0.9
+    s = 3.5 + 100.0 * pow4(kd - 0.33)
+    return s
+
 def Sr_(r):
-    s = 3.5 + 100.0 * pow4(3 - 0.33)
+    
+    s = scalingFactor()
+    D = (_sigmaT + sigmaA) / (3.0 * _sigmaT*_sigmaT)
+    ld = 1.0 / np.sqrt(sigmaA/D)
+    d = 1 / s
 
-    D = (2 * sigmaA) / (3.0 * _sigmaT*_sigmaT)
-    d = 1.0 / math.sqrt(sigmaA/D)
-
-    num1 = math.exp(-r / d)
-    num2 = math.exp(-r / (3 * d))
-    den = 8.0 * math.pi * d * r
+    num1 = np.exp(-r / d)
+    num2 = np.exp(-r / (3 * d))
+    den = 8.0 * np.pi * d
     
 
     result = (num1 + num2) / den
 
     return result
+
+def Sr(r):
+
+    kd = 0.9
+    return Sr_(r) * kd
 
 def expDecay(epsilon):
     # Define the decay constant
@@ -124,9 +135,10 @@ def sampleSr(rnd):
 
     D = (2 * sigmaA) / (3*_sigmaT*_sigmaT)
     sigmaTr = math.sqrt(sigmaA/D)
-    d = 1 / sigmaTr
+    ld = 1 / sigmaTr
 
-    d = d
+    s = scalingFactor()
+    d = ld / s
 
     return r * d
 
@@ -143,16 +155,16 @@ def generate_random_samples(size=10000):
     return sampleSr(samples)
 
 # Generate random samples
-samples = generate_random_samples()
+#samples = generate_random_samples()
 
 # Normalize y so it integrates to 1
-sns.kdeplot(samples, color='g', label='KDE')
+#sns.kdeplot(samples, color='g', label='KDE')
 
 # Create an array of r values (e.g., from 0 to 10 with 1000 points)
 r = np.linspace(0, 10, 1000)
 
 # Calculate the corresponding f(r) values
-f_r = Rdipole(r)
+f_r = Sr(r)
 
 # Plot the function over the previous 
 plt.plot(r, f_r, label='f(r)')

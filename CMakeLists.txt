@@ -116,6 +116,7 @@ add_executable(nori
   src/depthIntegrator.cpp
   src/subsurface.cpp
   src/subsurfacePbrt.cpp
+  src/subsurfaceDisney.cpp
 )
 
 add_definitions(${NANOGUI_EXTRA_DEFS})

@@ -30,40 +30,37 @@ NORI_NAMESPACE_BEGIN
 /**
  * \brief SubsurfaceScattering / Lambertian BRDF model
  */
-class subsurface : public BSDF
+class subsurfaceDisney : public BSDF
 {
 public:
-    subsurface(const PropertyList &propList) 
+    subsurfaceDisney(const PropertyList &propList) 
     {
         m_albedo = new ConstantSpectrumTexture(propList.getColor("albedo", Color3f(0.5f)));
 
         sigmaA = propList.getColor("sigmaA", Color3f(0.0f));
         sigmaS = propList.getColor("sigmaS", Color3f(0.0f));
         
-        scale = 1.0f/1.0f; // Sigmas are in mm^-1
+        scale = 1.0f/1000.0f; // Sigmas are in mm^-1
 
         etaT = propList.getFloat("eta", 1.0f);
-        float eta = 1.0f / etaT;
 
-        Color3f sigmaT = (sigmaA + sigmaS);
-        
-        // Effective transport coefficient
-        sigmaTr = Math::sqrt(3 * sigmaA * sigmaT);
-        alpha_4pi = (sigmaS / sigmaT) * INV_FOURPI;
+        sigmaT = (sigmaA + sigmaS);
 
         // Constant used on the sampling method
-        Color3f D = (2 * sigmaA) / (3.0f * Math::pow2(sigmaT));
-        ld = 1.0f / Math::sqrt(sigmaA/D);
+        Color3f D = (sigmaT + sigmaA) / (3.0f * Math::pow2(sigmaT));
+        Color3f sigmaTr = Math::sqrt(sigmaA/D);
+        ld = 1.0f / sigmaTr;
 
-        // Aproximation for the diffuse reflectance (fresnel)
-        float Fdr = (-1.440 / Math::pow2(eta)) + (0.710 / eta) + 0.668 + 0.0636 * eta;
-        float A = (1 + Fdr) / (1 - Fdr);    // Boundary condition for the change between refraction indexes
-
-        Color3f invSigmaT = 1 / sigmaT;
-        zr = invSigmaT;
-        zv = -invSigmaT * (1.0f + (4.0f/3.0f) * A); // Negative because it is inside the surface
-    
         precomputeSrCdfInverse();
+    }
+
+
+    Color3f scalingFactor(Point2f uv) const
+    {
+        Color3f kd = m_albedo->eval(uv);
+
+        Color3f scalingFactor = 3.5f + 100*Math::pow4(kd - 0.33f);
+        return scalingFactor;
     }
 
     float SrCdf(float r) const
@@ -73,7 +70,7 @@ public:
 
     void precomputeSrCdfInverse()
     {
-        size_t steps = 4;
+        size_t steps = 1024;
         float x0 = 0.0f;
 
         SrCdfInverse.resize(steps+1);
@@ -99,28 +96,47 @@ public:
         XICdfInverse[steps] = last_step;
     }
 
-    Color3f Sr_(float r) const
-    {        
-        // THIS FUNCTION HAS A SINGULARITY ON r=0????????
-        if (r < 1e-4)
+    Color3f Rdisney(float scatterDistance) const
+    {
+        Color3f a = Color3f(1, 0.674, 0.372);
+        Color3f a2 = a * a;
+        Color3f a3 = a2 * a;
+
+        //Color3f alpha = Color3f(1.0f) - Math::exp(-5.09406f * a + 2.61188f * a2 - 4.31805f * a3);
+        Color3f s = Color3f(1.9f) - a + 3.5f * (a - Color3f(0.8f)) * (a - Color3f(0.8f));
+
+        return 1.0f / (s * scatterDistance);
+    }
+
+    Color3f Sr_(float r, Point2f uv) const
+    {
+        r /= scale;
+
+        if (r < 1e-3f)
             return Color3f(1.0f);
 
-        r /= scale;
-        //Color3f R = dipoleDiffusionAproximation(r);
-        //Color3f s = 3.5f + 100.0f * Math::pow4(R - 0.33f);
-        Color3f d = ld;
+        Color3f s = scalingFactor(uv);
+        Color3f d = ld / s;
 
-        Color3f num1 = Math::exp(-r / d);
-        Color3f num2 = Math::exp(-r / (3 * d));
+        Color3f num1 = Math::exp(-r/d);
+        Color3f num2 = Math::exp(-r / (3.0f*d));
         Color3f den = 8.0f * M_PI * d * r;
         
         Color3f result = (num1 + num2) / den;
-    
+
         return result;
     }
 
-    float sampleSr(float rnd, int channel) const
+    Color3f Sr(float r, Point2f uv) const
     {
+        Color3f result = Sr_(r, uv);    
+    
+        return result * m_albedo->eval(uv);
+    }
+
+    float sampleSr(float rnd, int channel, Point2f uv) const
+    {
+        /*
         size_t steps = SrCdfInverse.size() - 1;
         int i_xi = Math::floor(rnd * steps);
 
@@ -132,17 +148,32 @@ public:
 
         float r = Math::lerp(r1, r2, (rnd - x1) / (x2 - x1));
         
-        //Color3f R = dipoleDiffusionAproximation(r);
-        //Color3f s = 3.5f + 100.0f * Math::pow4(R - 0.33f);
-        Color3f d = ld;
+        Color3f s = scalingFactor(uv);
+        Color3f d = ld / s;
         r *= d[channel];
+        */
         
+        float rcpS = 1 / scalingFactor(uv)[channel];
+
+        rnd = 1 - rnd; // Convert CDF to CCDF; the resulting value of (u != 0)
+
+        float g = 1 + (4 * rnd) * (2 * rnd + sqrt(1 + (4 * rnd) * rnd));
+        float n = exp2(log2(g) * (-1.0/3.0));                    // g^(-1/3)
+        float p = (g * n) * n;                                   // g^(+1/3)
+        float c = 1 + p + n;                                     // 1 + g^(+1/3) + g^(-1/3)
+        float x = (3 / LOG2_E) * log2(c / (4 * rnd));           // 3 * Log[c / (4 * rnd)]
+
+        //float rcpExp = ((c * c) * c) / ((4 * rnd) * ((c * c) + (4 * rnd) * (4 * rnd)));
+
+        float r      = x * rcpS;
+        //rcpPdf = (8 * PI * rcpS) * rcpExp; // (8 * Pi) / s / (Exp[-s * r / 3] + Exp[-s * r])
+
         return r * scale; // Convert to meters
     }
 
-    double sampleSrPdf(float r, int channel) const
+    double sampleSrPdf(float r, int channel, Point2f uv) const
     {
-        return Sr_(r)[channel];
+        return Sr_(r, uv)[channel];
     }
 
     /// Evaluate the BRDF model
@@ -169,39 +200,6 @@ public:
         return Warp::squareToCosineHemispherePdf(bRec.wo);
     }
 
-    
-    Color3f samplePointOld(BSDFQueryRecord &bRec, Sampler *sampler) const
-    {
-        Color3f sigmaT = sigmaA + sigmaS;
-
-        // Select random channel
-        int channel = sampler->next1D() * 3;
-        float sigma = sigmaT[channel];
-        float channelPdf = 1.0f / 3.0f;
-
-        // Sample an offset proportional to the sigmaT
-        float r = Warp::squareToSrDecay(sampler->next1D(), sigma);
-        Point2f sample = Warp::SrToDisk(sampler->next1D(), r);
-
-        // Clamp to account for highly curved surfaces
-        sample = Math::max(sample, Point2f(1.0f/sigma));
-   
-        // Sampled offset (in mm) to world
-        Vector3f sampled = Vector3f(sample.x(), sample.y(), 0.0f) * scale;
-
-        bRec.po = bRec.fri.ptoWorld(sampled);
-        bRec.fro = bRec.fri; 
-
-        //bRec.po = projectToSurface(bRec, bRec.po);
-
-        float pdf = Warp::SrToDiskPdf(sample) 
-                * Warp::squareToSrDecayPdf(r, sigma)
-                * channelPdf;
-
-        return Color3f(1.0f / pdf);
-    }
-    
-    
 
     Color3f samplePoint(BSDFQueryRecord &bRec, Sampler *sampler) const
     {
@@ -247,14 +245,14 @@ public:
             rnd = rnd * 3.0f - channel; // Adjust random sample
 
             // Select sphere radius
-            float rMax = sampleSr(0.9999f, channel);
+            float rMax = sampleSr(0.9999f, channel, bRec.uv);
 
             float r;
             do {
-                r = sampleSr(sampler->next1D(), channel);
+                r = sampleSr(sampler->next1D(), channel, bRec.uv);
             }
             while (r > rMax);
-
+           
             // Sample a point on the disk
             float l = 2.0f * Math::sqrt(Math::pow2(rMax) - Math::pow2(r));
             float th = 2 * M_PI * sampler->next1D();
@@ -312,7 +310,7 @@ public:
         {
             for (int ch = 0; ch < 3; ch++)
             {
-                pdf += sampleSrPdf(rProjected[axis], ch)
+                pdf += sampleSrPdf(rProjected[axis], ch, bRec.uv)
                         * std::abs(l_n[axis]) 
                         * chProb * axisPdf[axis];
             }
@@ -345,33 +343,12 @@ public:
     }
 
 
-    Color3f dipoleDiffusionAproximation(float r) const
-    {
-        r /= scale;
-        float r2 = Math::pow2(r);
-
-        Color3f dr = Math::sqrt(r2 + Math::pow2(zr)); 
-        Color3f dv = Math::sqrt(r2 + Math::pow2(zv)); 
-
-        Color3f sigmaTrDr = sigmaTr * dr;
-        Color3f sigmaTrDv = sigmaTr * dv;
-
-        // Compute main formula
-        Color3f C1 = zr * (1 + sigmaTrDr) * Math::exp(-sigmaTrDr) / Math::pow3(dr);
-        Color3f C2 = zv * (1 + sigmaTrDv) * Math::exp(-sigmaTrDv) / Math::pow3(dv);
-
-        Color3f result = alpha_4pi * (C1 - C2);
-
-        return result;
-    }
-
-
     Color3f evalMS(const BSDFQueryRecord &bRec) const
     {
         float r = (bRec.po - bRec.pi).norm();
         float eta = etaT;
 
-        Color3f Rd = dipoleDiffusionAproximation(r);
+        Color3f Rd = Sr(r, bRec.uv);
 
         Vector3f w_wi = bRec.fro.vtoWorld(bRec.wi);
         float cosWi = Math::absCos(w_wi, bRec.fri.n);
@@ -380,15 +357,9 @@ public:
         float Ft_o = 1 - fresnel(cosWo, 1.0, eta);
         float Ft_i = 1 - fresnel(cosWi, 1.0, eta);
 
-        Color3f Sd = INV_PI * Ft_i * Rd * Ft_o;
+        Color3f Sd = INV_PI *  Rd ;
         
-        //std::cout << Rd.toString() << std::endl;
-        
-        //Sd = Math::max(Sd, Color3f(0.0f));
-
-        //return INV_PI * m_albedo->eval(bRec.uv) / Math::pow(r/scale+1.5f, 4);
-
-        return m_albedo->eval(bRec.uv) * Sd;
+        return Sd;
     } 
 
 
@@ -424,12 +395,11 @@ public:
     EClassType getClassType() const { return EBSDF; }
 private:
     Texture *m_albedo;
-    Color3f sigmaA, sigmaS, 
-        alpha_4pi, sigmaTr, ld, zr, zv; // Precomputed values 
+    Color3f sigmaA, sigmaS, sigmaT, ld;
     float etaT, scale;
 
     std::vector<float> SrCdfInverse, XICdfInverse;
 };
 
-NORI_REGISTER_CLASS(subsurface, "subsurface");
+NORI_REGISTER_CLASS(subsurfaceDisney, "subsurfaceDisney");
 NORI_NAMESPACE_END
