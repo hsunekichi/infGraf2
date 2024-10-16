@@ -210,74 +210,79 @@ public:
             return Color3f(1.0f);
         }
 
-        // Select random frame
-        Vector3f vx, vy, vz;
-        float rnd = sampler->next1D();
-        if (rnd < 0.5f) 
+        bool validSample = false;
+        float itsPdf;
+
+        while (!validSample)
         {
-            vx = bRec.fri.s;
-            vy = bRec.fri.t;
-            vz = bRec.fri.n;
-            rnd *= 2; // Adjust random sample
-        } 
-        else if (rnd < 0.75f) 
-        {
-            vx = bRec.fri.t;
-            vy = bRec.fri.n;
-            vz = bRec.fri.s;
-            rnd = (rnd - 0.5f) * 4; // Adjust random sample
-        } 
-        else 
-        {
-            vx = bRec.fri.n;
-            vy = bRec.fri.s;
-            vz = bRec.fri.t;
-            rnd = (rnd - 0.75f) * 4; // Adjust random sample
+            // Select random frame
+            Vector3f vx, vy, vz;
+            float rnd = sampler->next1D();
+            if (rnd < 0.5f) 
+            {
+                vx = bRec.fri.s;
+                vy = bRec.fri.t;
+                vz = bRec.fri.n;
+                rnd *= 2; // Adjust random sample
+            } 
+            else if (rnd < 0.75f) 
+            {
+                vx = bRec.fri.t;
+                vy = bRec.fri.n;
+                vz = bRec.fri.s;
+                rnd = (rnd - 0.5f) * 4; // Adjust random sample
+            } 
+            else 
+            {
+                vx = bRec.fri.n;
+                vy = bRec.fri.s;
+                vz = bRec.fri.t;
+                rnd = (rnd - 0.75f) * 4; // Adjust random sample
+            }
+
+            // Select random channel
+            int channel =  rnd * 3;
+            rnd = rnd * 3.0f - channel; // Adjust random sample
+
+            // Select sphere radius
+            float rMax = sampleSr(0.9999f, channel);
+
+            float r;
+            do {
+                r = sampleSr(sampler->next1D(), channel);
+            }
+            while (r > rMax);
+
+            // Sample a point on the disk
+            float l = 2.0f * Math::sqrt(Math::pow2(rMax) - Math::pow2(r));
+            float th = 2 * M_PI * sampler->next1D();
+
+            // Project to sphere
+            Point3f w_center = bRec.pi + r * (vx*std::cos(th) + vy*std::sin(th));
+            Point3f w_base = w_center - l*vz*0.5f;
+            Point3f w_target = w_base + l*vz; 
+
+            /************ Project point to shape ****************/
+
+            Vector3f d = (w_target - w_base).normalized();
+            Ray3f ray = Ray3f(w_base, d, 0.0f, l);
+
+            std::vector<Intersection> its; its.reserve(4);
+            bool intersected = bRec.scene->rayProbe(ray, bRec.mesh, its);
+
+            if (!intersected) {
+                continue;
+            }
+
+            // Select random intersection
+            int iIts = sampler->next1D() * its.size();
+            itsPdf = 1.0f / its.size();
+            
+            bRec.po = its[iIts].p;
+            bRec.fro = its[iIts].shFrame;
+
+            validSample = true;
         }
-
-        // Select random channel
-        int channel =  rnd * 3;
-        rnd = rnd * 3.0f - channel; // Adjust random sample
-
-        // Select sphere radius
-        float rMax = sampleSr(0.9999f, channel);
-
-        float r;
-        do {
-            r = sampleSr(sampler->next1D(), channel);
-        }
-        while (r > rMax);
-
-        // Sample a point on the disk
-        float l = 2.0f * Math::sqrt(Math::pow2(rMax) - Math::pow2(r));
-        float th = 2 * M_PI * sampler->next1D();
-
-        // Project to sphere
-        Point3f w_center = bRec.pi + r * (vx*std::cos(th) + vy*std::sin(th));
-        Point3f w_base = w_center - l*vz*0.5f;
-        Point3f w_target = w_base + l*vz; 
-
-        /************ Project point to shape ****************/
-
-        Vector3f d = (w_target - w_base).normalized();
-        Ray3f ray = Ray3f(w_base, d, 0.0f, l);
-
-        std::vector<Intersection> its; its.reserve(4);
-        bool intersected = bRec.scene->rayProbe(ray, bRec.mesh, its);
-
-        if (!intersected)
-        {
-            // This is inefficient, 
-            //  but it should not happen frequently 
-            return samplePoint(bRec, sampler);
-        }
-
-        // Select random intersection
-        int iIts = sampler->next1D() * its.size();
-        float itsPdf = 1.0f / its.size();
-        
-        bRec.po = its[iIts].p;
-        bRec.fro = its[iIts].shFrame;
 
         /*********************** Pdf *************************/
 

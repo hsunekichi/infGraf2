@@ -2,30 +2,39 @@
 <scene>
 	<integrator type="path_mis"/>
 	<sampler type="independent">
-		<integer name="sampleCount" value="128"/>
-		<integer name="nPasses" value="16"/>
+		<integer name="sampleCount" value="32"/>
 	</sampler>
 	<camera type="perspective">
-		<float name="fov" value="40.024140139993094"/>
+		<float name="fov" value="39.597755335771296"/>
 		<float name="nearClip" value="0.10000000149011612"/>
 		<float name="farClip" value="100.0"/>
 		<integer name="width" value="640"/>
 		<integer name="height" value="360"/>
 		<transform name="toWorld">
 			<scale value="-1.000000 1.000000 -1.000000"/>
-			<matrix value="1.0,0.0,0.0,0.0,0.0,-4.371138828673793e-08,-1.0,-6.877023220062256,0.0,1.0,-4.371138828673793e-08,-1.4930580505279067e-07,0.0,0.0,0.0,1.0"/>
+			<matrix value="1.0,0.0,0.0,-0.062077149748802185,0.0,-4.371138828673793e-08,-1.0,-0.1120029091835022,0.0,1.0,-4.371138828673793e-08,0.2821689248085022,0.0,0.0,0.0,1.0"/>
 		</transform>
 	</camera>
 	<emitter type="pointlight">
-		<point name="position" value="0.000000,0.010000,0.000000"/>
+		<point name="position" value="-1.068750,-3.413081,0.219019"/>
 		<color name="radiance" value="10.000000,10.000000,10.000000"/>
 	</emitter>
 	<mesh type="obj">
-		<string name="filename" value="meshes/Cube_Material.obj"/>
-		<bsdf type="subsurface">   <!-- Marble properties -->
-			<color name="sigmaA" value="0.0021 0.0041 0.0071"/>
-			<color name="sigmaS" value="2.19 2.62 3.00"/>
-			<float name="eta" value="1.5"/>
+		<string name="filename" value="meshes/Plane_Material.001.obj"/>
+		<bsdf type="subsurface">   <!-- Skin properties -->
+			<color name="sigmaA" value="0.032 0.17 0.48"/>
+			<color name="sigmaS" value="0.74 0.88 1.01"/>
+			<float name="eta" value="1.3"/>
+			<color name="albedo" value="1 0.674 0.372"/>
+		</bsdf>
+	</mesh>
+	<mesh type="obj">
+		<string name="filename" value="meshes/Plane.001_Material.001.obj"/>
+		<bsdf type="subsurface">   <!-- Skin properties -->
+			<color name="sigmaA" value="0.032 0.17 0.48"/>
+			<color name="sigmaS" value="0.74 0.88 1.01"/>
+			<float name="eta" value="1.3"/>
+			<color name="albedo" value="1 0.674 0.372"/>
 		</bsdf>
 	</mesh>
 </scene>
