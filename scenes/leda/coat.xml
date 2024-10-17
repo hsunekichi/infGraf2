@@ -1,0 +1,83 @@
+<?xml version="1.0" ?>
+<scene>
+	<integrator type="path_mis"/>
+	<sampler type="independent">
+		<integer name="sampleCount" value="128"/>
+	</sampler>
+	<camera type="perspective">
+		<float name="fov" value="28.841546110078532"/>
+		<float name="nearClip" value="0.10000000149011612"/>
+		<float name="farClip" value="1000.0"/>
+		<integer name="width" value="709"/>
+		<integer name="height" value="920"/>
+		<transform name="toWorld">
+			<scale value="-1.000000 1.000000 -1.000000"/>
+			<matrix value="0.9999379515647888,6.517222317370397e-10,0.01114183571189642,0.11974454671144485,0.0110892029479146,-0.09708450734615326,-0.9952143430709839,-6.703442573547363,0.0010816989233717322,0.995276153087616,-0.09707847982645035,3.0648529529571533,0.0,0.0,0.0,1.0"/>
+		</transform>
+	</camera>
+	<emitter type="pointlight">
+		<point name="position" value="1.673885,-0.994279,5.301085"/>
+		<color name="radiance" value="10.000000,10.000000,10.000000"/>
+	</emitter>
+	<emitter type="pointlight">
+		<point name="position" value="-1.479022,-1.748084,6.521345"/>
+		<color name="radiance" value="40.000000,40.000000,40.000000"/>
+	</emitter>
+	<mesh type="obj">
+		<string name="filename" value="meshes/coat_1_white_fabric.obj"/>
+		<bsdf type="orenNayar">
+			<color name="kd" value="0.613068,0.613068,0.613068"/>
+			<float name="roughness" value="0.550459"/>
+		</bsdf>
+	</mesh>
+	<mesh type="obj">
+		<string name="filename" value="meshes/coat_1_grey_fabric.obj"/>
+		<bsdf type="orenNayar">
+			<color name="kd" value="0.061919,0.061919,0.061919"/>
+			<float name="roughness" value="0.550459"/>
+		</bsdf>
+	</mesh>
+
+	<mesh type="obj">
+		<string name="filename" value="meshes/coat_2_white_fabric.obj"/>
+		<bsdf type="orenNayar">
+			<color name="kd" value="0.613068,0.613068,0.613068"/>
+			<float name="roughness" value="0.550459"/>
+		</bsdf>
+	</mesh>
+	<mesh type="obj">
+		<string name="filename" value="meshes/coat_2_grey_fabric.obj"/>
+		<bsdf type="orenNayar">
+			<color name="kd" value="0.061919,0.061919,0.061919"/>
+			<float name="roughness" value="0.550459"/>
+		</bsdf>
+	</mesh>
+	<mesh type="obj">
+		<string name="filename" value="meshes/coat_3_white_fabric.obj"/>
+		<bsdf type="orenNayar">
+			<color name="kd" value="0.613068,0.613068,0.613068"/>
+			<float name="roughness" value="0.550459"/>
+		</bsdf>
+	</mesh>
+	<mesh type="obj">
+		<string name="filename" value="meshes/coat_3_grey_fabric.obj"/>
+		<bsdf type="orenNayar">
+			<color name="kd" value="0.061919,0.061919,0.061919"/>
+			<float name="roughness" value="0.550459"/>
+		</bsdf>
+	</mesh>
+	<mesh type="obj">
+		<string name="filename" value="meshes/coat_4_white_fabric.obj"/>
+		<bsdf type="orenNayar">
+			<color name="kd" value="0.613068,0.613068,0.613068"/>
+			<float name="roughness" value="0.550459"/>
+		</bsdf>
+	</mesh>
+	<mesh type="obj">
+		<string name="filename" value="meshes/coat_4_grey_fabric.obj"/>
+		<bsdf type="orenNayar">
+			<color name="kd" value="0.061919,0.061919,0.061919"/>
+			<float name="roughness" value="0.550459"/>
+		</bsdf>
+	</mesh>
+</scene>

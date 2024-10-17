@@ -27,7 +27,73 @@ NORI_NAMESPACE_BEGIN
 /**
  * \brief Loader for Wavefront OBJ triangle meshes
  */
-class WavefrontOBJ : public Mesh {
+class WavefrontOBJ : public Mesh 
+{
+        
+    uint64_t float_to_morton(float value, int max_bits = 10) 
+    {
+        uint64_t morton_code = 0;
+        uint32_t value_scaled = static_cast<uint32_t>(value * ((1 << max_bits) - 1)); // Scale to the number of bits
+        
+        for (int i = 0; i < max_bits; ++i) {
+            morton_code |= ((value_scaled >> i) & 1) << (3 * i); // 3D interleaving for Morton code
+        }
+        
+        return morton_code;
+    }
+
+
+    // Function to compute the Morton code for a 3D point in [0, 1]
+    uint64_t morton3D(Point3f p, int bits = 10) {
+        uint64_t x_morton = float_to_morton(p.x(), bits);
+        uint64_t y_morton = float_to_morton(p.y(), bits);
+        uint64_t z_morton = float_to_morton(p.z(), bits);  
+
+        uint64_t morton_code = 0;
+        for (int i = 0; i < bits; ++i) {
+            morton_code |= ((x_morton >> i) & 1) << (3 * i);
+            morton_code |= ((y_morton >> i) & 1) << (3 * i + 1);
+            morton_code |= ((z_morton >> i) & 1) << (3 * i + 2);
+        }
+
+        return morton_code;
+    }
+
+    void order_faces_by_morton()
+    {
+        std::vector<uint64_t> morton_codes(m_F.cols());
+        for (uint32_t i = 0; i < m_F.cols(); ++i)
+        {
+            uint32_t x = m_F(0, i);
+            uint32_t y = m_F(1, i);
+            uint32_t z = m_F(2, i);
+            Point3f centroid = (m_V.col(x) + m_V.col(y) + m_V.col(z)) / 3.0f;
+            
+            Vector3f bbox_size = m_bbox.max - m_bbox.min;
+            Point3f normalized_centroid = (centroid - m_bbox.min);
+            
+            normalized_centroid.x() /= bbox_size.x();
+            normalized_centroid.y() /= bbox_size.y();
+            normalized_centroid.z() /= bbox_size.z();
+
+            morton_codes[i] = morton3D(normalized_centroid);
+        }
+
+        std::vector<uint32_t> indices(m_F.cols());
+        for (uint32_t i = 0; i < m_F.cols(); ++i)
+            indices[i] = i;
+
+        std::sort(indices.begin(), indices.end(), [&morton_codes](uint32_t a, uint32_t b) {
+            return morton_codes[a] < morton_codes[b];
+        });
+
+        MatrixXu F(3, m_F.cols());
+        for (uint32_t i = 0; i < m_F.cols(); ++i)
+            F.col(i) = m_F.col(indices[i]);
+
+        m_F = F;
+    }
+
 public:
     WavefrontOBJ(const PropertyList &propList) {
         typedef std::unordered_map<OBJVertex, uint32_t, OBJVertexHash> VertexMap;
@@ -112,8 +178,6 @@ public:
         m_V.resize(3, vertices.size());
         for (uint32_t i = 0; i < vertices.size(); ++i)
         {
-          //  cout << "Vertex " << i << " - " << vertices[i].p - 1 << " vs " << positions.size();
-
             m_V.col(i) = positions.at(vertices[i].p - 1);
         }
 
@@ -134,6 +198,8 @@ public:
         }
 
         cout << "Passed with UVs \"" << filename << "\" .. ";
+
+        //order_faces_by_morton();
 
         m_name = filename.str();
         cout << "done. (V=" << m_V.cols() << ", F=" << m_F.cols() << ", took "
