@@ -47,7 +47,7 @@ public:
         m_nearClip = propList.getFloat("nearClip", 1e-4f);
         m_farClip = propList.getFloat("farClip", 1e4f);
 
-        m_rfilter = NULL;
+        m_rfilter = NULL ; //static_cast<ReconstructionFilter *>(NoriObjectFactory::createInstance("", PropertyList()));
     }
 
     void activate() {

@@ -58,6 +58,7 @@ class Math
     inline static float pow2(float a) { return a * a; }
     inline static float pow3(float a) { return a * a * a; }
     inline static float pow4(float a) { float a2 = a*a; return a2*a2; }
+    inline static float pow5(float a) { float a2 = a*a; return a2*a2*a; }
 
     inline static Color3f pow(const Color3f &a, float b) { return Color3f(std::pow(a.x(), b), std::pow(a.y(), b), std::pow(a.z(), b)); }
     inline static Color3f pow2(const Color3f &a) { return Color3f(a.x() * a.x(), a.y() * a.y(), a.z() * a.z()); }

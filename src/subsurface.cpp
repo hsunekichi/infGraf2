@@ -330,7 +330,7 @@ public:
         bRec.wo = Warp::squareToCosineHemisphere(sampler->next2D());
         pdf = Warp::squareToCosineHemispherePdf(bRec.wo);
 
-        Color3f f = eval(bRec) * Frame::cosTheta(bRec.wo) / pdf;
+        Color3f f = eval(bRec) * Frame::cosTheta(bRec.wo);
         bRec.isCameraRay = false;
 
         return f;

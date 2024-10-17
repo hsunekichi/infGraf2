@@ -61,8 +61,11 @@ public:
     {
         // Optionally use a different entropy source for the second seed
         std::random_device rd;
-        unsigned int seed1 = rd();  // Gets a random seed from the random device
-        unsigned int seed2 = rd();  // Gets a random seed from the random device
+        //unsigned int seed1 = rd();  // Gets a random seed from the random device
+        //unsigned int seed2 = rd();  // Gets a random seed from the random device
+
+        unsigned int seed1 = 123456;
+        unsigned int seed2 = 654321;
 
         m_random.seed(
             seed1,

@@ -117,6 +117,7 @@ add_executable(nori
   src/subsurface.cpp
   src/subsurfacePbrt.cpp
   src/subsurfaceDisney.cpp
+  src/indirectWhitted.cpp
 )
 
 add_definitions(${NANOGUI_EXTRA_DEFS})

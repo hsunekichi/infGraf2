@@ -141,7 +141,7 @@ Color3f Pth::sampleBSDF(
     pdf = bsdf->pdf(bsdfQuery);
 
     // Create the new ray
-    Ray3f newRay(bsdfQuery.po, bsdfQuery.fro.vtoWorld(bsdfQuery.wo), Epsilon, INFINITY);
+    Ray3f newRay(bsdfQuery.po, bsdfQuery.fro.vtoWorld(bsdfQuery.wo), 0.001, INFINITY);
     newRay.isCameraRay = bsdfQuery.isCameraRay;
 
     // Apply scattering factor
