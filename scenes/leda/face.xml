@@ -2,7 +2,7 @@
 <scene>
 	<integrator type="path_mis"/>
 	<sampler type="independent">
-		<integer name="sampleCount" value="16"/>
+		<integer name="sampleCount" value="128"/>
 	</sampler>
 	<camera type="perspective">
 		<float name="fov" value="28.841546110078532"/>
@@ -24,43 +24,11 @@
 		<color name="radiance" value="40.000000,40.000000,40.000000"/>
 	</emitter>
 	<mesh type="obj">
-		<string name="filename" value="meshes/option1_hair_Hair.obj"/>
-		<bsdf type="diffuse">
-			<color name="albedo" value="1.000000,0.947217,0.798777"/>
-		</bsdf>
-	</mesh>
-	<mesh type="obj">
 		<string name="filename" value="meshes/option1_head_Skin.obj"/>
 		<bsdf type="subsurfaceDisney">   <!-- Skin properties -->
 			<color name="ld" value="0.233 0.455 0.649"/>
 			<float name="eta" value="1.3"/>
 			<color name="albedo" value="0.9411 0.721 0.627"/>
-		</bsdf>
-	</mesh>
-	<mesh type="obj">
-		<string name="filename" value="meshes/option1_hair_eyebrows_EyebrowsHair.obj"/>
-		<bsdf type="orenNayar">
-			<color name="kd" value="0.229838,0.134117,0.088607"/>
-			<float name="roughness" value="0.500000"/>
-		</bsdf>
-	</mesh>
-	<mesh type="obj">
-		<string name="filename" value="meshes/eyelasesHair_eyelashesHair.obj"/>
-		<bsdf type="orenNayar">
-			<color name="kd" value="0.076467,0.066887,0.042512"/>
-			<float name="roughness" value="0.500000"/>
-		</bsdf>
-	</mesh>
-	<mesh type="obj">
-		<string name="filename" value="meshes/option1_eyes_Eyes.obj"/>
-		<bsdf type="diffuse">
-			<texture type="textmap" name="albedo">
-				<string name="filename" value="Eyes.bmp"/>
-				<string name="interpolation" value="Linear"/>
-				<string name="extension" value="REPEAT"/>
-				<string name="projection" value="FLAT"/>
-			</texture>
-			<float name="roughness" value="0.099924"/>
 		</bsdf>
 	</mesh>
 </scene>
