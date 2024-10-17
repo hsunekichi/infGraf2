@@ -139,14 +139,16 @@ public:
 
             if (state.depth > 3)     // Apply roussian roulette
             {
-                float roulettePdf = 0.95f;
-                if (sampler->next1D() > roulettePdf)
+                constexpr float roulettePdf = 0.95f;
+                if (sampler->next1D() < roulettePdf) 
                 {
+                    // Apply roulette pdf
+                    state.scatteringFactor /= roulettePdf;
+                }
+                else 
+                { 
                     state.scatteringFactor = Color3f(0.0f);
                     return;
-                }
-                else { // Apply roulette pdf
-                    state.scatteringFactor /= roulettePdf;
                 }
             }
 

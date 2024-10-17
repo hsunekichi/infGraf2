@@ -43,10 +43,6 @@ public:
 
         etaT = propList.getFloat("eta", 1.0f);
         
-        float eta = 1.0f / etaT;
-        Fdr = (-1.440 / Math::pow2(eta)) + (0.710 / eta) + 0.668 + 0.0636 * eta;
-        std::cout << "Fdr: " << Fdr << std::endl;
-
         // Constant used on the sampling method
         //Color3f D = (sigmaT + sigmaA) / (3.0f * Math::pow2(sigmaT));
         //Color3f sigmaTr = Math::sqrt(sigmaA/D);
@@ -403,7 +399,7 @@ public:
 private:
     Texture *m_albedo;
     Color3f sigmaA, sigmaS, sigmaT, ld;
-    float etaT, Fdr, scale;
+    float etaT, scale;
 
     std::vector<float> SrCdfInverse, XICdfInverse;
 };

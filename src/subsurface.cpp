@@ -73,7 +73,7 @@ public:
 
     void precomputeSrCdfInverse()
     {
-        size_t steps = 4;
+        size_t steps = 1024;
         float x0 = 0.0f;
 
         SrCdfInverse.resize(steps+1);
@@ -100,22 +100,21 @@ public:
     }
 
     Color3f Sr_(float r) const
-    {        
-        // THIS FUNCTION HAS A SINGULARITY ON r=0????????
-        if (r < 1e-4)
-            return Color3f(1.0f);
-
+    {
         r /= scale;
-        //Color3f R = dipoleDiffusionAproximation(r);
-        //Color3f s = 3.5f + 100.0f * Math::pow4(R - 0.33f);
+
+        // Avoid the singularity at r = 0
+        r = Math::max(r, 1e-6f);
+
+        //Color3f s = scalingFactor(uv);
         Color3f d = ld;
 
-        Color3f num1 = Math::exp(-r / d);
-        Color3f num2 = Math::exp(-r / (3 * d));
+        Color3f num1 = Math::exp(-r/d);
+        Color3f num2 = Math::exp(-r / (3.0f*d));
         Color3f den = 8.0f * M_PI * d * r;
         
         Color3f result = (num1 + num2) / den;
-    
+
         return result;
     }
 

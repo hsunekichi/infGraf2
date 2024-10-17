@@ -249,7 +249,8 @@ int Mesh::getTriangleIndex(Point3f p) const
     return index;
 }
 
-bool Mesh::rayIntersect(n_UINT index, const Ray3f &ray, float &u, float &v, float &t) const {
+bool Mesh::rayIntersect(n_UINT index, const Ray3f &ray, float &u, float &v, float &t) const 
+{
     n_UINT i0 = m_F(0, index), i1 = m_F(1, index), i2 = m_F(2, index);
     const Point3f p0 = m_V.col(i0), p1 = m_V.col(i1), p2 = m_V.col(i2);
 
