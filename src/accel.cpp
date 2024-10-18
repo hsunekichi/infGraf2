@@ -467,17 +467,41 @@ bool Accel::rayIntersect(const Ray3f &_ray, Intersection &its, bool shadowRay) c
 	while (true) {
 		const BVHNode &node = m_nodes[node_idx];
 
-		if (!node.bbox.rayIntersect(ray)) {
-			if (stack_idx == 0)
-				break;
-			node_idx = stack[--stack_idx];
-			continue;
-		}
+		//if (!node.bbox.rayIntersect(ray)) {
+		//	if (stack_idx == 0)
+		//		break;
+		//	node_idx = stack[--stack_idx];
+		//	continue;
+		//}
 
-		if (node.isInner()) {
-			stack[stack_idx++] = node.inner.rightChild;
-			node_idx++;
-			assert(stack_idx < 64);
+		if (node.isInner()) 
+		{
+			n_UINT right = node.inner.rightChild;
+			float tRight, tLeft;
+			bool right_intersected = m_nodes[right].bbox.rayIntersect(ray, tRight);
+			bool left_intersected  = m_nodes[node_idx+1].bbox.rayIntersect(ray, tLeft);
+			
+
+			if (left_intersected && right_intersected)
+			{
+				bool rightFurther = tRight > tLeft;
+				stack[stack_idx++] = rightFurther ? node.inner.rightChild : node_idx + 1;
+				
+				// Move to other child
+				node_idx = rightFurther ? node_idx + 1 : right;
+				assert(stack_idx < 64);
+			}
+			else if (left_intersected || right_intersected)
+			{
+				node_idx = right_intersected ? right : node_idx + 1;
+			}
+			else
+			{
+				if (stack_idx == 0)
+					break;
+				node_idx = stack[--stack_idx];
+				continue;
+			}
 		}
 		else {
 			for (n_UINT i = node.start(), end = node.end(); i < end; ++i) {
@@ -505,7 +529,8 @@ bool Accel::rayIntersect(const Ray3f &_ray, Intersection &its, bool shadowRay) c
 		}
 	}
 
-	if (foundIntersection) {
+	if (foundIntersection) 
+	{
 		/* Find the barycentric coordinates */
 		Vector3f bary;
 		bary << 1 - its.uv.sum(), its.uv;

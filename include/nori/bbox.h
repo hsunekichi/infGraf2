@@ -340,7 +340,8 @@ template <typename _PointType> struct TBoundingBox {
     }
 
     /// Check if a ray intersects a bounding box
-    bool rayIntersect(const Ray3f &ray) const {
+    bool rayIntersect(const Ray3f &ray) const 
+    {
         float nearT = -std::numeric_limits<float>::infinity();
         float farT = std::numeric_limits<float>::infinity();
 
@@ -368,6 +369,37 @@ template <typename _PointType> struct TBoundingBox {
 
         return ray.mint <= farT && nearT <= ray.maxt;
     }
+
+    void ascending(double &a, double &b) const {
+        if (a > b) std::swap(a, b);
+    }
+
+    float rayIntersect(const Ray3f &ray, float &minT) const 
+    {
+        double txmin = (min.x() - ray.o.x()) * ray.dRcp.x();
+        double txmax = (max.x() - ray.o.x()) * ray.dRcp.x();
+        double tymin = (min.y() - ray.o.y()) * ray.dRcp.y();
+        double tymax = (max.y() - ray.o.y()) * ray.dRcp.y();
+        double tzmin = (min.z() - ray.o.z()) * ray.dRcp.z();
+        double tzmax = (max.z() - ray.o.z()) * ray.dRcp.z();
+
+        ascending(txmin, txmax);
+        ascending(tymin, tymax);
+        ascending(tzmin, tzmax);
+
+        double t0 = std::max(txmin, std::max(tymin, tzmin));
+        double t1 = std::min(txmax, std::min(tymax, tzmax));
+
+        if (t1 < t0 || t0 > ray.maxt || t1 < ray.mint) {
+            return false;
+        }
+
+        // Minimum valid intersection distance
+        minT = t0 > ray.mint ? t0 : t1;
+
+        return true;
+    }
+
 
     /// Return the overlapping region of the bounding box and an unbounded ray
     bool rayIntersect(const Ray3f &ray, float &nearT, float &farT) const {
