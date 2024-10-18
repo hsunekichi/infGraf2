@@ -42,6 +42,7 @@ def float_to_morton(value, max_bits=10):
     """Convert a float in the range [0, 1] to a Morton code part."""
     morton_code = 0
     value_scaled = int(value * ((1 << max_bits) - 1))  # Scale to the number of bits
+    
     for i in range(max_bits):
         morton_code |= ((value_scaled >> i) & 1) << (3 * i)  # 3D interleaving for Morton code
     return morton_code
@@ -49,8 +50,12 @@ def float_to_morton(value, max_bits=10):
 def calculate_morton_code(centroid, bbox_min, bbox_max, max_bits=10):
     """Convert the centroid position to a Morton code."""
     # Normalize the centroid to [0, 1] range
-    normalized_centroid = (centroid - bbox_min) / (bbox_max - bbox_min)
+    bbox_d = (bbox_max - bbox_min)
     
+    # Put 1 on any 0
+    bbox_d[bbox_d == 0] = 1 
+    normalized_centroid = (centroid - bbox_min) / bbox_d 
+
     # Convert each coordinate to Morton code part
     x_morton = float_to_morton(normalized_centroid[0], max_bits)
     y_morton = float_to_morton(normalized_centroid[1], max_bits)
@@ -63,6 +68,8 @@ def calculate_morton_code(centroid, bbox_min, bbox_max, max_bits=10):
         morton_code |= ((y_morton >> (3 * i)) & 1) << (3 * i + 1)
         morton_code |= ((z_morton >> (3 * i)) & 1) << (3 * i + 2)
     
+    #print(f"Centroid: {normalized_centroid}, Morton code: {x_morton}, {y_morton}, {z_morton}, total: {morton_code}")
+
     return morton_code
 
 def reorder_faces_by_morton_code(vertices, faces, max_bits=10):
@@ -80,6 +87,8 @@ def reorder_faces_by_morton_code(vertices, faces, max_bits=10):
     
     # Sort faces by the Morton code
     morton_codes_and_faces.sort(key=lambda x: x[0])
+
+    #print([morton_code for morton_code, _ in morton_codes_and_faces])
     
     # Return the reordered faces
     return [face for _, face in morton_codes_and_faces]

@@ -29,7 +29,42 @@ NORI_NAMESPACE_BEGIN
  */
 class WavefrontOBJ : public Mesh 
 {
-        
+    protected:
+
+     /// Vertex indices used by the OBJ format
+    struct OBJVertex {
+        uint32_t p = (uint32_t) -1;
+        uint32_t n = (uint32_t) -1;
+        uint32_t uv = (uint32_t) -1;
+
+        inline OBJVertex() { }
+
+        inline OBJVertex(const std::string &string) {
+            std::vector<std::string> tokens = tokenize(string, "/", true);
+
+            if (tokens.size() < 1 || tokens.size() > 3)
+                throw NoriException("Invalid vertex data: \"%s\"", string);
+
+            p = toUInt(tokens[0]);
+
+            if (tokens.size() >= 2 && !tokens[1].empty())
+                uv = toUInt(tokens[1]);
+
+            if (tokens.size() >= 3 && !tokens[2].empty())
+                n = toUInt(tokens[2]);
+        }
+
+        inline bool operator==(const OBJVertex &v) const {
+            return v.p == p && v.n == n && v.uv == uv;
+        }
+    };
+
+    struct Face {
+        OBJVertex v[6];
+        int nVertices;
+    };
+
+
     uint64_t float_to_morton(float value, int max_bits = 10) 
     {
         uint64_t morton_code = 0;
@@ -44,57 +79,68 @@ class WavefrontOBJ : public Mesh
 
 
     // Function to compute the Morton code for a 3D point in [0, 1]
-    uint64_t morton3D(Point3f p, int bits = 10) {
+    uint64_t morton3D(Point3f p, int bits = 10) 
+    {
         uint64_t x_morton = float_to_morton(p.x(), bits);
         uint64_t y_morton = float_to_morton(p.y(), bits);
         uint64_t z_morton = float_to_morton(p.z(), bits);  
 
         uint64_t morton_code = 0;
         for (int i = 0; i < bits; ++i) {
-            morton_code |= ((x_morton >> i) & 1) << (3 * i);
-            morton_code |= ((y_morton >> i) & 1) << (3 * i + 1);
-            morton_code |= ((z_morton >> i) & 1) << (3 * i + 2);
+            morton_code |= ((x_morton >> (3 * i)) & 1) << (3 * i);
+            morton_code |= ((y_morton >> (3 * i)) & 1) << (3 * i + 1);
+            morton_code |= ((z_morton >> (3 * i)) & 1) << (3 * i + 2);
         }
 
         return morton_code;
     }
 
-    void order_faces_by_morton()
+    void order_faces_by_morton(
+            std::vector<Face> &loaded_faces,
+            const std::vector<Vector3f> &positions)
     {
-        std::vector<uint64_t> morton_codes(m_F.cols());
-        for (uint32_t i = 0; i < m_F.cols(); ++i)
+        Vector3f bbox_size = m_bbox.max - m_bbox.min;
+        for (int i = 0; i < 3; ++i)
         {
-            uint32_t x = m_F(0, i);
-            uint32_t y = m_F(1, i);
-            uint32_t z = m_F(2, i);
-            Point3f centroid = (m_V.col(x) + m_V.col(y) + m_V.col(z)) / 3.0f;
-            
-            Vector3f bbox_size = m_bbox.max - m_bbox.min;
-            Point3f normalized_centroid = (centroid - m_bbox.min);
-            
-            normalized_centroid.x() /= bbox_size.x();
-            normalized_centroid.y() /= bbox_size.y();
-            normalized_centroid.z() /= bbox_size.z();
+            if (bbox_size[i] == 0)
+                bbox_size[i] = 1.0f;
+        }
 
+        std::vector<uint64_t> morton_codes(loaded_faces.size());
+        for (uint32_t i = 0; i < loaded_faces.size(); ++i)
+        {
+            uint32_t index1 = loaded_faces[i].v[0].p;
+            uint32_t index2 = loaded_faces[i].v[1].p;
+            uint32_t index3 = loaded_faces[i].v[2].p;
+
+            Vector3f p0 = positions[index1-1];
+            Vector3f p1 = positions[index2-1];
+            Vector3f p2 = positions[index3-1];
+
+            Vector3f centroid = (p0 + p1 + p2) / 3.0f;
+            Vector3f normalized_centroid = (centroid - m_bbox.min);
+            
+            normalized_centroid = normalized_centroid.cwiseQuotient(bbox_size);
             morton_codes[i] = morton3D(normalized_centroid);
         }
 
-        std::vector<uint32_t> indices(m_F.cols());
-        for (uint32_t i = 0; i < m_F.cols(); ++i)
+        std::vector<uint32_t> indices(loaded_faces.size());
+        for (uint32_t i = 0; i < loaded_faces.size(); ++i)
             indices[i] = i;
 
         std::sort(indices.begin(), indices.end(), [&morton_codes](uint32_t a, uint32_t b) {
             return morton_codes[a] < morton_codes[b];
         });
 
-        MatrixXu F(3, m_F.cols());
-        for (uint32_t i = 0; i < m_F.cols(); ++i)
-            F.col(i) = m_F.col(indices[i]);
+        std::vector<Face> F(loaded_faces.size());
+        for (uint32_t i = 0; i < loaded_faces.size(); ++i)
+            F[i] = loaded_faces[indices[i]];
 
-        m_F = F;
+        loaded_faces.swap(F);
     }
 
 public:
+
     WavefrontOBJ(const PropertyList &propList) {
         typedef std::unordered_map<OBJVertex, uint32_t, OBJVertexHash> VertexMap;
 
@@ -116,6 +162,8 @@ public:
         std::vector<uint32_t>   indices;
         std::vector<OBJVertex>  vertices;
         VertexMap vertexMap;
+
+        std::vector<Face> loaded_faces;
 
         std::string line_str;
         while (std::getline(is, line_str)) {
@@ -155,21 +203,35 @@ public:
                     verts[5] = verts[2];
                     nVertices = 6;
                 }
-                /* Convert to an indexed vertex list */
-                for (int i=0; i<nVertices; ++i) {
-                    const OBJVertex &v = verts[i];
-                    VertexMap::const_iterator it = vertexMap.find(v);
-                    if (it == vertexMap.end()) {
-                        vertexMap[v] = (uint32_t) vertices.size();
-                        indices.push_back((uint32_t) vertices.size());
-                        vertices.push_back(v);
-                    } else {
-                        indices.push_back(it->second);
-                    }
-                }
+
+                Face face;
+                face.nVertices = nVertices;
+                for (int i=0; i<nVertices; ++i)
+                    face.v[i] = verts[i];
+
+                loaded_faces.push_back(face);
             }
         }
         cout << "End reading \"" << filename << "\" .. ";
+
+        order_faces_by_morton(loaded_faces, positions);
+
+        for (const Face &face : loaded_faces) 
+        {
+            /* Convert to an indexed vertex list */
+            for (int i=0; i < face.nVertices; ++i) 
+            {
+                const OBJVertex &v = face.v[i];
+                VertexMap::const_iterator it = vertexMap.find(v);
+                if (it == vertexMap.end()) {
+                    vertexMap[v] = (uint32_t) vertices.size();
+                    indices.push_back((uint32_t) vertices.size());
+                    vertices.push_back(v);
+                } else {
+                    indices.push_back(it->second);
+                }
+            }
+        }
 
 
         m_F.resize(3, indices.size()/3);
@@ -199,8 +261,6 @@ public:
 
         cout << "Passed with UVs \"" << filename << "\" .. ";
 
-        //order_faces_by_morton();
-
         m_name = filename.str();
         cout << "done. (V=" << m_V.cols() << ", F=" << m_F.cols() << ", took "
              << timer.elapsedString() << " and "
@@ -210,33 +270,6 @@ public:
     }
 
 protected:
-    /// Vertex indices used by the OBJ format
-    struct OBJVertex {
-        uint32_t p = (uint32_t) -1;
-        uint32_t n = (uint32_t) -1;
-        uint32_t uv = (uint32_t) -1;
-
-        inline OBJVertex() { }
-
-        inline OBJVertex(const std::string &string) {
-            std::vector<std::string> tokens = tokenize(string, "/", true);
-
-            if (tokens.size() < 1 || tokens.size() > 3)
-                throw NoriException("Invalid vertex data: \"%s\"", string);
-
-            p = toUInt(tokens[0]);
-
-            if (tokens.size() >= 2 && !tokens[1].empty())
-                uv = toUInt(tokens[1]);
-
-            if (tokens.size() >= 3 && !tokens[2].empty())
-                n = toUInt(tokens[2]);
-        }
-
-        inline bool operator==(const OBJVertex &v) const {
-            return v.p == p && v.n == n && v.uv == uv;
-        }
-    };
 
     /// Hash function for OBJVertex
     struct OBJVertexHash : std::unary_function<OBJVertex, size_t> {

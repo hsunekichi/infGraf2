@@ -8,7 +8,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/nori",
-            "args": ["${workspaceFolder}/scenes/cbox/cbox-marble.xml", "--threads", "1"],
+            "args": ["${workspaceFolder}/scenes/tests/bvh.xml", "--threads", "1"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

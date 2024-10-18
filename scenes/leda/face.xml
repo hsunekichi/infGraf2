@@ -24,7 +24,7 @@
 		<color name="radiance" value="40.000000,40.000000,40.000000"/>
 	</emitter>
 	<mesh type="obj">
-		<string name="filename" value="meshes/option1_head_Skin.obj"/>
+		<string name="filename" value="meshes/option1_head_SkinOld.obj"/>
 		<bsdf type="subsurfaceDisney">   <!-- Skin properties -->
 			<color name="ld" value="0.233 0.455 0.649"/>
 			<float name="eta" value="1.3"/>
