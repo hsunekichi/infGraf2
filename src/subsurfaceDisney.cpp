@@ -256,7 +256,7 @@ public:
             Vector3f d = (w_target - w_base).normalized();
             Ray3f ray = Ray3f(w_base, d, 0.0f, l);
 
-            std::vector<Intersection> its; its.reserve(4);
+            std::vector<Intersection> its; its.reserve(2);
             bool intersected = bRec.scene->rayProbe(ray, bRec.mesh, its);
 
             if (!intersected) {
