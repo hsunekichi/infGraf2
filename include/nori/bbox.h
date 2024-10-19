@@ -370,34 +370,50 @@ template <typename _PointType> struct TBoundingBox {
         return ray.mint <= farT && nearT <= ray.maxt;
     }
 
-    void ascending(double &a, double &b) const {
-        if (a > b) std::swap(a, b);
-    }
-
-    float rayIntersect(const Ray3f &ray, float &minT) const 
+    bool rayIntersectOld(const Ray3f &ray, float &minT) const 
     {
-        double txmin = (min.x() - ray.o.x()) * ray.dRcp.x();
-        double txmax = (max.x() - ray.o.x()) * ray.dRcp.x();
-        double tymin = (min.y() - ray.o.y()) * ray.dRcp.y();
-        double tymax = (max.y() - ray.o.y()) * ray.dRcp.y();
-        double tzmin = (min.z() - ray.o.z()) * ray.dRcp.z();
-        double tzmax = (max.z() - ray.o.z()) * ray.dRcp.z();
+        float nearT = -std::numeric_limits<float>::infinity();
+        float farT = std::numeric_limits<float>::infinity();
 
-        ascending(txmin, txmax);
-        ascending(tymin, tymax);
-        ascending(tzmin, tzmax);
+        for (int i=0; i<3; i++) {
+            float origin = ray.o[i];
+            float minVal = min[i], maxVal = max[i];
 
-        double t0 = std::max(txmin, std::max(tymin, tzmin));
-        double t1 = std::min(txmax, std::min(tymax, tzmax));
+            if (ray.d[i] == 0) {
+                if (origin < minVal || origin > maxVal)
+                    return false;
+            } else {
+                float t1 = (minVal - origin) * ray.dRcp[i];
+                float t2 = (maxVal - origin) * ray.dRcp[i];
 
-        if (t1 < t0 || t0 > ray.maxt || t1 < ray.mint) {
-            return false;
+                if (t1 > t2)
+                    std::swap(t1, t2);
+
+                nearT = std::max(t1, nearT);
+                farT = std::min(t2, farT);
+
+                if (!(nearT <= farT))
+                    return false;
+            }
         }
 
-        // Minimum valid intersection distance
-        minT = t0 > ray.mint ? t0 : t1;
+        minT = nearT;
 
-        return true;
+        return ray.mint <= farT && nearT <= ray.maxt;
+    }
+
+    bool rayIntersect(const Ray3f &ray, float &minT) const 
+    {
+        Eigen::Vector3f _tmin = (min - ray.o).cwiseProduct(ray.dRcp);
+        Eigen::Vector3f tmax = (max - ray.o).cwiseProduct(ray.dRcp);
+
+        Eigen::Vector3f tmin = _tmin.cwiseMin(tmax);
+        tmax = _tmin.cwiseMax(tmax); 
+
+        minT = tmin.maxCoeff();
+        float t1 = tmax.minCoeff();
+
+        return t1 >= minT && minT <= ray.maxt && t1 >= ray.mint;
     }
 
 
