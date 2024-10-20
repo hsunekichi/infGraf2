@@ -35,7 +35,12 @@ class subsurfaceDisney : public BSDF
 public:
     subsurfaceDisney(const PropertyList &propList) 
     {
-        m_albedo = new ConstantSpectrumTexture(propList.getColor("albedo", Color3f(0.5f)));
+        Color3f kd = propList.getColor("albedo", Color3f(0.5f));
+
+        if (kd.maxCoeff() > 1.0f)
+            kd /= 255.0f;
+
+        m_albedo = new ConstantSpectrumTexture(kd);
 
         ld = propList.getColor("ld", Color3f(0.0f)); // ld is in mm
         

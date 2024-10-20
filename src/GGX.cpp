@@ -29,8 +29,13 @@ public:
         /* Exterior IOR (default: air) */
         m_extIOR = propList.getColor("extIOR", Color3f(1.000277f));
 
-        /* Albedo of the diffuse base material (a.k.a "kd") */
-        m_kd = propList.getColor("kd", Color3f(0.5f));
+        Color3f kd = propList.getColor("albedo", Color3f(0.5f));
+
+        if (kd.maxCoeff() > 1.0f)
+            kd /= 255.0f;
+
+        m_kd = kd;
+
     }
 
     float GeometryTerm(const Vector3f &wi, const Vector3f &wo, const Vector3f &wh) const 

@@ -56,6 +56,8 @@ struct BSDFQueryRecord {
     const Scene *scene = nullptr;
     bool isCameraRay = false;
 
+    int agregate_id = -1;
+
     BSDFQueryRecord() : eta(1.f), measure(EUnknownMeasure) { }
 
     /// Create a new record for sampling the BSDF
