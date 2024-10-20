@@ -582,7 +582,7 @@ bool Accel::rayIntersect(const Ray3f &_ray, Intersection &its, bool shadowRay) c
 			const n_UINT left = node_idx + 1;
 			float tRight, tLeft;
 			bool right_intersected = m_nodes[right].bbox.rayIntersect(ray, tRight);
-			bool left_intersected  = m_nodes[node_idx+1].bbox.rayIntersect(ray, tLeft);
+			bool left_intersected  = m_nodes[left].bbox.rayIntersect(ray, tLeft);
 
 			if (left_intersected && right_intersected)
 			{
@@ -615,8 +615,10 @@ bool Accel::rayIntersect(const Ray3f &_ray, Intersection &its, bool shadowRay) c
 				continue;
 			}
 		}
-		else {
-			for (n_UINT i = node.start(), end = node.end(); i < end; ++i) {
+		else 
+		{
+			for (n_UINT i = node.start(), end = node.end(); i < end; ++i) 
+			{
 				n_UINT idx = m_indices[i];
 				const Mesh *mesh = m_meshes[findMesh(idx)];
 
