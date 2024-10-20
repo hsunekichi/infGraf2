@@ -179,6 +179,8 @@ private:
 
 	Emitter *m_enviromentalEmitter = nullptr;
 	
+    DiscretePDF m_emitterPDF;
+
     Integrator *m_integrator = nullptr;
     Sampler *m_sampler = nullptr;
     Camera *m_camera = nullptr;

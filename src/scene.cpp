@@ -50,6 +50,8 @@ Scene::~Scene() {
 
 void Scene::activate() 
 {
+    // Build the discrete distribution based on radiance
+    m_emitterPDF.clear();
     // Check if there's emitters attached to meshes, and
     // add them to the scene. 
     for(unsigned int i=0; i<m_meshes.size(); ++i )
@@ -58,6 +60,11 @@ void Scene::activate()
         {
             m_meshes[i]->getEmitter()->setMesh(m_meshes[i]);
             m_emitters.push_back(m_meshes[i]->getEmitter());
+            m_emitterPDF.append(m_meshes[i]->getEmitter()->getRadiance().maxCoeff());
+        }
+
+        if (getEnvironmentalEmitter() != nullptr){
+            m_emitterPDF.append(getEnvironmentalEmitter()->getRadiance().maxCoeff());
         }
 
         if (m_meshes[i]->hasSubsurfaceScattering())
@@ -93,14 +100,25 @@ void Scene::activate()
 
 
 /// Sample emitter
+// Emitter *Scene::sampleEmitter(Sampler* sampler, float &pdf) const
+// {
+//     float rnd = sampler->next1D();
+
+// 	auto const & n = m_emitters.size();
+// 	size_t index = std::min(static_cast<size_t>(std::floor(n*rnd)), n - 1);
+// 	pdf = 1. / float(n);
+// 	return m_emitters[index];
+// }
+
 Emitter *Scene::sampleEmitter(Sampler* sampler, float &pdf) const
 {
-    float rnd = sampler->next1D();
+    float rnd = sampler->next1D(); // Get a random value between 0 and 1
 
-	auto const & n = m_emitters.size();
-	size_t index = std::min(static_cast<size_t>(std::floor(n*rnd)), n - 1);
-	pdf = 1. / float(n);
-	return m_emitters[index];
+    // Sample from the PDF
+    size_t index = m_emitterPDF.sample(rnd, pdf);
+
+    // Return the selected emitter
+    return m_emitters[index];
 }
 
 float Scene::pdfEmitter(const Emitter *em) const {

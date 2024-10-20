@@ -10,8 +10,6 @@ NORI_NAMESPACE_BEGIN
 class AreaLight : public Emitter 
 {
 protected:
-    Color3f m_radiance; 
-
 
     Point3f samplePoint (Sampler *sampler, Normal3f &n, int &index, float &pdf) const
     {

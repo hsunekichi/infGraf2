@@ -131,6 +131,12 @@ public:
                 ||
                 (!state.intersectionComputed && !scene->rayIntersect(state.ray, state.intersection)))
             {
+                // Render emitter
+                EmitterQueryRecord emitterQuery(-state.ray.d, ESolidAngle);
+                emitterQuery.lightP = state.ray.d*1e15;
+
+                if (scene->getEnvironmentalEmitter() != nullptr)
+                    state.radiance += scene->getEnvironmentalEmitter()->eval(emitterQuery)*state.scatteringFactor;
                 state.scatteringFactor = Color3f(0.0f);
                 return;
             }

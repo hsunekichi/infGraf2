@@ -76,20 +76,38 @@ public:
 		float x = phi / (2 * M_PI);
 		float y = (theta) / M_PI;
 
-
 		return m_environment->eval(Point2f(x, y))* m_radiance;
 	}
 
 	virtual Color3f sampleLi(Sampler *sampler, EmitterQueryRecord &query) const {
-		throw NoriException("EnvironmentEmitter::sample() is not yet implemented!");
+		// Sample a direction on the unit sphere using uniform sampling
+		
+		query.lightP = Warp::squareToUniformSphere(sampler->next2D())*1e15;
+		//query.wo = (query.lightP - query.surfaceP).normalized();
+		query.pdf = pdf(query);
+		Vector3f wi = -query.wo;
+
+		float phi = atan2(wi[2], wi[0]);
+		float theta = acos(wi[1]);
+		if (phi < 0) phi += 2 * M_PI;
+
+		float x = phi / (2 * M_PI);
+		float y = (theta) / M_PI;
+
+		if (!m_environment)
+			return m_radiance;
+		else
+			return m_environment->eval(Point2f(x, y))* m_radiance;
 	}
 
 	// Returns probability with respect to solid angle given by all the information inside the emitterqueryrecord.
 	// Assumes all information about the intersection point is already provided inside.
 	// WARNING: Use with care. Malformed EmitterQueryRecords can result in undefined behavior. Plus no visibility is considered.
-	virtual float pdf(const EmitterQueryRecord& lRec) const {
-		throw NoriException("EnvironmentEmitter::pdf() is not yet implemented!");
-	}
+virtual float pdf(const EmitterQueryRecord& lRec) const override {
+    // Uniform sampling over a sphere: the PDF is constant
+    // 1 / (4 * pi) is the solid angle of the sphere
+    return Warp::squareToUniformSpherePdf(lRec.wo);
+}
 
 
 	// Get the parent mesh
@@ -99,7 +117,6 @@ public:
 
 
 protected:
-	Color3f m_radiance;
 	Bitmap *m_environment;
 	std::string m_environment_name;
 };

@@ -9,7 +9,6 @@ NORI_NAMESPACE_BEGIN
 class PointLight : public Emitter 
 {
 protected:
-    Color3f m_radiance; 
     Point3f m_point;
 
 public:

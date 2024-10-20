@@ -156,12 +156,15 @@ public:
 
 	EmitterType getEmitterType() const { return m_type; }
 
+	Color3f getRadiance() const { return m_radiance; }
+
 	bool isDelta() const { return m_type == EmitterType::EMITTER_POINT; }
 
 protected:
     /// Pointer to the mesh if the emitter is attached to a mesh
     Mesh * m_mesh = nullptr;
 	EmitterType m_type;
+    Color3f m_radiance; 
 };
 
 NORI_NAMESPACE_END

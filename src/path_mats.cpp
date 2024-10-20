@@ -95,13 +95,19 @@ public:
     // Compute radiance over a full path
     void Li(const Scene *scene, Sampler *sampler, PathState &state) const 
     {
-        while (state.scatteringFactor != Color3f(0.0f) && state.depth < 100000)
+        while (state.scatteringFactor != Color3f(0.0f))
         {
             /* Find the surface that is visible in the requested direction */
             if ((state.intersectionComputed && !state.intersected)
                 ||
                 (!state.intersectionComputed && !scene->rayIntersect(state.ray, state.intersection)))
             {
+                // Render emitter
+                EmitterQueryRecord emitterQuery(-state.ray.d, ESolidAngle);
+                emitterQuery.lightP = state.ray.d*1e15;
+
+                if (scene->getEnvironmentalEmitter() != nullptr)
+                    state.radiance += scene->getEnvironmentalEmitter()->eval(emitterQuery)*state.scatteringFactor;
                 state.scatteringFactor = Color3f(0.0f);
                 return;
             }

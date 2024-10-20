@@ -105,8 +105,19 @@ public:
         Color3f radiance(0.0f);
 
         /* Find the surface that is visible in the requested direction */
-        if (!scene->rayIntersect(ray, its))
-            return Color3f(0.0f);
+        if (!scene->rayIntersect(ray, its)){
+            // Render emitter
+            EmitterQueryRecord emitterQuery(-ray.d, EDiscrete);
+            emitterQuery.lightP = ray.d*1e15;
+
+            if (scene->getEnvironmentalEmitter() != nullptr){
+                radiance += scene->getEnvironmentalEmitter()->eval(emitterQuery);
+                return radiance;
+            }else{
+                return Color3f(0.0f);
+            }
+
+        }
 
         Pth::IntegrationType type = Pth::getIntegrationType(its);        
 
