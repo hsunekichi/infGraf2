@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <scene>
-	<integrator type="whitted"/>
+	<integrator type="path_mis"/>
 	<sampler type="independent">
 		<integer name="sampleCount" value="4"/>
 	</sampler>
@@ -8,25 +8,17 @@
 		<float name="fov" value="28.841546110078532"/>
 		<float name="nearClip" value="0.10000000149011612"/>
 		<float name="farClip" value="1000.0"/>
-		<integer name="width" value="1720"/>
+		<integer name="width" value="1709"/>
 		<integer name="height" value="1920"/>
 		<transform name="toWorld">
 			<scale value="-1.000000 1.000000 -1.000000"/>
-			<matrix value="1.0,0.0,0.0,0.037056077271699905,0.0,-4.371138828673793e-08,-1.0,-7.985541820526123,0.0,1.0,-4.371138828673793e-08,3.2359254360198975,0.0,0.0,0.0,1.0"/>
+			<matrix value="1.0,0.0,0.0,0.05778130143880844,0.0,-4.371138828673793e-08,-1.0,-9.287899017333984,0.0,1.0,-4.371138828673793e-08,3.119378089904785,0.0,0.0,0.0,1.0"/>
 		</transform>
 	</camera>
-	<emitter type="pointlight">
-		<point name="position" value="-2.635149,-3.916426,3.125028"/>
-		<color name="radiance" value="149.500000,149.500000,149.500000"/>
-	</emitter>
-	<emitter type="pointlight">
-		<point name="position" value="2.410224,4.000275,2.715837"/>
-		<color name="radiance" value="84.699989,84.699989,84.699989"/>
-	</emitter>
 	<mesh type="obj">
 		<string name="filename" value="meshes/option1_hand_left_Iron.obj"/>
 		<bsdf type="GGX">
-			<color name="kd" value="0.074565,0.073836,0.071675"/>
+			<color name="kd" value="0.143833,0.142367,0.138019"/>
 			<float name="roughness" value="0.178899"/>
 			<color name="internIOR" value="2.0874,1.79,1.62"/>
 			<color name="K" value="3.17,2.81,3.27"/>
@@ -35,7 +27,7 @@
 	<mesh type="obj">
 		<string name="filename" value="meshes/option1_hand_left_Steel.obj"/>
 		<bsdf type="GGX">
-			<color name="kd" value="0.620835,0.614157,0.594346"/>
+			<color name="kd" value="0.481880,0.476736,0.461474"/>
 			<float name="roughness" value="0.178899"/>
 			<color name="internIOR" value="2.0874,1.79,1.62"/>
 			<color name="K" value="3.17,2.81,3.27"/>
@@ -43,15 +35,15 @@
 	</mesh>
 	<mesh type="obj">
 		<string name="filename" value="meshes/option1_hand_left_Leather.obj"/>
-		<bsdf type="GGX">
-			<color name="kd" value="0.068190,0.019337,0.003419"/>
-			<float name="roughness" value="0.830275"/>
+		<bsdf type="orenNayar">
+			<color name="kd" value="0.003017,0.001537,0.000455"/>
+			<float name="roughness" value="0.000000"/>
 		</bsdf>
 	</mesh>
 	<mesh type="obj">
 		<string name="filename" value="meshes/option1_helmet_Iron.obj"/>
 		<bsdf type="GGX">
-			<color name="kd" value="0.074565,0.073836,0.071675"/>
+			<color name="kd" value="0.143833,0.142367,0.138019"/>
 			<float name="roughness" value="0.178899"/>
 			<color name="internIOR" value="2.0874,1.79,1.62"/>
 			<color name="K" value="3.17,2.81,3.27"/>
@@ -59,15 +51,15 @@
 	</mesh>
 	<mesh type="obj">
 		<string name="filename" value="meshes/option1_helmet_Leather.obj"/>
-		<bsdf type="GGX">
-			<color name="kd" value="0.068190,0.019337,0.003419"/>
-			<float name="roughness" value="0.830275"/>
+		<bsdf type="orenNayar">
+			<color name="kd" value="0.003017,0.001537,0.000455"/>
+			<float name="roughness" value="0.000000"/>
 		</bsdf>
 	</mesh>
 	<mesh type="obj">
 		<string name="filename" value="meshes/option1_helmet_Steel.obj"/>
 		<bsdf type="GGX">
-			<color name="kd" value="0.620835,0.614157,0.594346"/>
+			<color name="kd" value="0.481880,0.476736,0.461474"/>
 			<float name="roughness" value="0.178899"/>
 			<color name="internIOR" value="2.0874,1.79,1.62"/>
 			<color name="K" value="3.17,2.81,3.27"/>
@@ -75,64 +67,42 @@
 	</mesh>
 	<mesh type="obj">
 		<string name="filename" value="meshes/option1_hair_Hair.obj"/>
-		<bsdf type="subsurface">   <!-- Hair properties -->
-			<color name="sigmaA" value="0.032 0.17 0.48"/>
-			<color name="sigmaS" value="0.74 0.88 1.01"/>
-			<float name="g" value="0.85"/>
-			<float name="eta" value="1.3"/>
-			<color name="albedo" value="0.8 0.6518 0.1824"/>
-			<float name="scale" value="0.15"/>
+		<bsdf type="diffuse">
+			<color name="albedo" value="0.800000,0.800000,0.800000"/>
 		</bsdf>
 	</mesh>
 	<mesh type="obj">
 		<string name="filename" value="meshes/option1_hair_bangs_Hair.obj"/>
-		<bsdf type="subsurface">   <!-- Hair properties -->
-			<color name="sigmaA" value="0.032 0.17 0.48"/>
-			<color name="sigmaS" value="0.74 0.88 1.01"/>
-			<float name="g" value="0.85"/>
-			<float name="eta" value="1.3"/>
-			<color name="albedo" value="0.8 0.6518 0.1824"/>
-			<float name="scale" value="0.15"/>
+		<bsdf type="diffuse">
+			<color name="albedo" value="0.800000,0.800000,0.800000"/>
 		</bsdf>
 	</mesh>
 	<mesh type="obj">
 		<string name="filename" value="meshes/option1_head_Skin.obj"/>
-		<bsdf type="subsurface">   <!-- Skin properties -->
-			<color name="sigmaA" value="0.032 0.17 0.48"/>
-			<color name="sigmaS" value="0.74 0.88 1.01"/>
-			<float name="g" value="0.85"/>
-			<float name="eta" value="1.3"/>
-			<color name="albedo" value="1 0.674 0.372"/>
-			<float name="scale" value="0.1"/>
+		<bsdf type="orenNayar">
+			<color name="kd" value="1.000000,0.392510,0.155373"/>
+			<float name="roughness" value="0.367966"/>
 		</bsdf>
 	</mesh>
 	<mesh type="obj">
-		<string name="filename" value="meshes/option1_hair_eyebrows_Hair.obj"/>
-		<bsdf type="subsurface">   <!-- Hair properties -->
-			<color name="sigmaA" value="0.032 0.17 0.48"/>
-			<color name="sigmaS" value="0.74 0.88 1.01"/>
-			<float name="g" value="0.85"/>
-			<float name="eta" value="1.3"/>
-			<color name="albedo" value="0.8 0.6518 0.1824"/>
-			<float name="scale" value="0.15"/>
+		<string name="filename" value="meshes/option1_hair_eyebrows_EyebrowsHair.obj"/>
+		<bsdf type="orenNayar">
+			<color name="kd" value="0.229838,0.134117,0.088607"/>
+			<float name="roughness" value="0.500000"/>
 		</bsdf>
 	</mesh>
 	<mesh type="obj">
-		<string name="filename" value="meshes/option1_hair_eyelashes_Hair.obj"/>
-		<bsdf type="subsurface">   <!-- Hair properties -->
-			<color name="sigmaA" value="0.032 0.17 0.48"/>
-			<color name="sigmaS" value="0.74 0.88 1.01"/>
-			<float name="g" value="0.85"/>
-			<float name="eta" value="1.3"/>
-			<color name="albedo" value="0.8 0.6518 0.1824"/>
-			<float name="scale" value="0.15"/>
+		<string name="filename" value="meshes/eyelasesHair_eyelashesHair.obj"/>
+		<bsdf type="orenNayar">
+			<color name="kd" value="0.076467,0.066887,0.042512"/>
+			<float name="roughness" value="0.500000"/>
 		</bsdf>
 	</mesh>
 	<mesh type="obj">
 		<string name="filename" value="meshes/option1_eyes_Eyes.obj"/>
-		<bsdf type="diffuse">
-			<texture type="textmap" name="albedo">
-				<string name="filename" value="Eyes.bmp"/>
+		<bsdf type="GGX">
+			<texture type="image_texture" name="kd">
+				<string name="filename" value="//Eyes.png"/>
 				<string name="interpolation" value="Linear"/>
 				<string name="extension" value="REPEAT"/>
 				<string name="projection" value="FLAT"/>
@@ -143,14 +113,14 @@
 	<mesh type="obj">
 		<string name="filename" value="meshes/skirt_1_white_fabric.obj"/>
 		<bsdf type="orenNayar">
-			<color name="kd" value="0.613068,0.613068,0.613068"/>
+			<color name="kd" value="0.061307,0.061307,0.061307"/>
 			<float name="roughness" value="0.550459"/>
 		</bsdf>
 	</mesh>
 	<mesh type="obj">
 		<string name="filename" value="meshes/skirt_1_Gold.obj"/>
 		<bsdf type="GGX">
-			<color name="kd" value="0.693321,0.650395,0.259550"/>
+			<color name="kd" value="0.753321,0.590395,0.219550"/>
 			<float name="roughness" value="0.288991"/>
 			<color name="internIOR" value="0.27105,0.67693,1.3164"/>
 			<color name="K" value="3.6092,2.6247,2.2921"/>
@@ -159,21 +129,21 @@
 	<mesh type="obj">
 		<string name="filename" value="meshes/skirt_1_grey_fabric.obj"/>
 		<bsdf type="orenNayar">
-			<color name="kd" value="0.061919,0.061919,0.061919"/>
+			<color name="kd" value="0.006192,0.006192,0.006192"/>
 			<float name="roughness" value="0.550459"/>
 		</bsdf>
 	</mesh>
 	<mesh type="obj">
 		<string name="filename" value="meshes/skirt_2_white_fabric.obj"/>
 		<bsdf type="orenNayar">
-			<color name="kd" value="0.613068,0.613068,0.613068"/>
+			<color name="kd" value="0.061307,0.061307,0.061307"/>
 			<float name="roughness" value="0.550459"/>
 		</bsdf>
 	</mesh>
 	<mesh type="obj">
 		<string name="filename" value="meshes/skirt_2_Gold.obj"/>
 		<bsdf type="GGX">
-			<color name="kd" value="0.693321,0.650395,0.259550"/>
+			<color name="kd" value="0.753321,0.590395,0.219550"/>
 			<float name="roughness" value="0.288991"/>
 			<color name="internIOR" value="0.27105,0.67693,1.3164"/>
 			<color name="K" value="3.6092,2.6247,2.2921"/>
@@ -182,21 +152,21 @@
 	<mesh type="obj">
 		<string name="filename" value="meshes/skirt_2_grey_fabric.obj"/>
 		<bsdf type="orenNayar">
-			<color name="kd" value="0.061919,0.061919,0.061919"/>
+			<color name="kd" value="0.006192,0.006192,0.006192"/>
 			<float name="roughness" value="0.550459"/>
 		</bsdf>
 	</mesh>
 	<mesh type="obj">
 		<string name="filename" value="meshes/skirt_3_white_fabric.obj"/>
 		<bsdf type="orenNayar">
-			<color name="kd" value="0.613068,0.613068,0.613068"/>
+			<color name="kd" value="0.061307,0.061307,0.061307"/>
 			<float name="roughness" value="0.550459"/>
 		</bsdf>
 	</mesh>
 	<mesh type="obj">
 		<string name="filename" value="meshes/skirt_3_Gold.obj"/>
 		<bsdf type="GGX">
-			<color name="kd" value="0.693321,0.650395,0.259550"/>
+			<color name="kd" value="0.753321,0.590395,0.219550"/>
 			<float name="roughness" value="0.288991"/>
 			<color name="internIOR" value="0.27105,0.67693,1.3164"/>
 			<color name="K" value="3.6092,2.6247,2.2921"/>
@@ -205,14 +175,14 @@
 	<mesh type="obj">
 		<string name="filename" value="meshes/skirt_3_grey_fabric.obj"/>
 		<bsdf type="orenNayar">
-			<color name="kd" value="0.061919,0.061919,0.061919"/>
+			<color name="kd" value="0.006192,0.006192,0.006192"/>
 			<float name="roughness" value="0.550459"/>
 		</bsdf>
 	</mesh>
 	<mesh type="obj">
 		<string name="filename" value="meshes/skirt_3_Steel.obj"/>
 		<bsdf type="GGX">
-			<color name="kd" value="0.620835,0.614157,0.594346"/>
+			<color name="kd" value="0.481880,0.476736,0.461474"/>
 			<float name="roughness" value="0.178899"/>
 			<color name="internIOR" value="2.0874,1.79,1.62"/>
 			<color name="K" value="3.17,2.81,3.27"/>
@@ -221,7 +191,7 @@
 	<mesh type="obj">
 		<string name="filename" value="meshes/skirt_3_Iron.obj"/>
 		<bsdf type="GGX">
-			<color name="kd" value="0.074565,0.073836,0.071675"/>
+			<color name="kd" value="0.143833,0.142367,0.138019"/>
 			<float name="roughness" value="0.178899"/>
 			<color name="internIOR" value="2.0874,1.79,1.62"/>
 			<color name="K" value="3.17,2.81,3.27"/>
@@ -230,14 +200,14 @@
 	<mesh type="obj">
 		<string name="filename" value="meshes/skirt_4_white_fabric.obj"/>
 		<bsdf type="orenNayar">
-			<color name="kd" value="0.613068,0.613068,0.613068"/>
+			<color name="kd" value="0.061307,0.061307,0.061307"/>
 			<float name="roughness" value="0.550459"/>
 		</bsdf>
 	</mesh>
 	<mesh type="obj">
 		<string name="filename" value="meshes/skirt_4_Gold.obj"/>
 		<bsdf type="GGX">
-			<color name="kd" value="0.693321,0.650395,0.259550"/>
+			<color name="kd" value="0.753321,0.590395,0.219550"/>
 			<float name="roughness" value="0.288991"/>
 			<color name="internIOR" value="0.27105,0.67693,1.3164"/>
 			<color name="K" value="3.6092,2.6247,2.2921"/>
@@ -246,14 +216,14 @@
 	<mesh type="obj">
 		<string name="filename" value="meshes/skirt_4_grey_fabric.obj"/>
 		<bsdf type="orenNayar">
-			<color name="kd" value="0.061919,0.061919,0.061919"/>
+			<color name="kd" value="0.006192,0.006192,0.006192"/>
 			<float name="roughness" value="0.550459"/>
 		</bsdf>
 	</mesh>
 	<mesh type="obj">
 		<string name="filename" value="meshes/skirt_4_Steel.obj"/>
 		<bsdf type="GGX">
-			<color name="kd" value="0.620835,0.614157,0.594346"/>
+			<color name="kd" value="0.481880,0.476736,0.461474"/>
 			<float name="roughness" value="0.178899"/>
 			<color name="internIOR" value="2.0874,1.79,1.62"/>
 			<color name="K" value="3.17,2.81,3.27"/>
@@ -262,7 +232,7 @@
 	<mesh type="obj">
 		<string name="filename" value="meshes/skirt_4_Iron.obj"/>
 		<bsdf type="GGX">
-			<color name="kd" value="0.074565,0.073836,0.071675"/>
+			<color name="kd" value="0.143833,0.142367,0.138019"/>
 			<float name="roughness" value="0.178899"/>
 			<color name="internIOR" value="2.0874,1.79,1.62"/>
 			<color name="K" value="3.17,2.81,3.27"/>
@@ -271,21 +241,21 @@
 	<mesh type="obj">
 		<string name="filename" value="meshes/coat_1_white_fabric.obj"/>
 		<bsdf type="orenNayar">
-			<color name="kd" value="0.613068,0.613068,0.613068"/>
+			<color name="kd" value="0.061307,0.061307,0.061307"/>
 			<float name="roughness" value="0.550459"/>
 		</bsdf>
 	</mesh>
 	<mesh type="obj">
 		<string name="filename" value="meshes/coat_1_grey_fabric.obj"/>
 		<bsdf type="orenNayar">
-			<color name="kd" value="0.061919,0.061919,0.061919"/>
+			<color name="kd" value="0.006192,0.006192,0.006192"/>
 			<float name="roughness" value="0.550459"/>
 		</bsdf>
 	</mesh>
 	<mesh type="obj">
 		<string name="filename" value="meshes/coat_1_Gold.obj"/>
 		<bsdf type="GGX">
-			<color name="kd" value="0.693321,0.650395,0.259550"/>
+			<color name="kd" value="0.753321,0.590395,0.219550"/>
 			<float name="roughness" value="0.288991"/>
 			<color name="internIOR" value="0.27105,0.67693,1.3164"/>
 			<color name="K" value="3.6092,2.6247,2.2921"/>
@@ -294,7 +264,7 @@
 	<mesh type="obj">
 		<string name="filename" value="meshes/coat_1_Iron.obj"/>
 		<bsdf type="GGX">
-			<color name="kd" value="0.074565,0.073836,0.071675"/>
+			<color name="kd" value="0.143833,0.142367,0.138019"/>
 			<float name="roughness" value="0.178899"/>
 			<color name="internIOR" value="2.0874,1.79,1.62"/>
 			<color name="K" value="3.17,2.81,3.27"/>
@@ -303,7 +273,7 @@
 	<mesh type="obj">
 		<string name="filename" value="meshes/coat_1_Steel.obj"/>
 		<bsdf type="GGX">
-			<color name="kd" value="0.620835,0.614157,0.594346"/>
+			<color name="kd" value="0.481880,0.476736,0.461474"/>
 			<float name="roughness" value="0.178899"/>
 			<color name="internIOR" value="2.0874,1.79,1.62"/>
 			<color name="K" value="3.17,2.81,3.27"/>
@@ -312,14 +282,14 @@
 	<mesh type="obj">
 		<string name="filename" value="meshes/coat_2_white_fabric.obj"/>
 		<bsdf type="orenNayar">
-			<color name="kd" value="0.613068,0.613068,0.613068"/>
+			<color name="kd" value="0.061307,0.061307,0.061307"/>
 			<float name="roughness" value="0.550459"/>
 		</bsdf>
 	</mesh>
 	<mesh type="obj">
 		<string name="filename" value="meshes/coat_2_Gold.obj"/>
 		<bsdf type="GGX">
-			<color name="kd" value="0.693321,0.650395,0.259550"/>
+			<color name="kd" value="0.753321,0.590395,0.219550"/>
 			<float name="roughness" value="0.288991"/>
 			<color name="internIOR" value="0.27105,0.67693,1.3164"/>
 			<color name="K" value="3.6092,2.6247,2.2921"/>
@@ -328,21 +298,21 @@
 	<mesh type="obj">
 		<string name="filename" value="meshes/coat_2_grey_fabric.obj"/>
 		<bsdf type="orenNayar">
-			<color name="kd" value="0.061919,0.061919,0.061919"/>
+			<color name="kd" value="0.006192,0.006192,0.006192"/>
 			<float name="roughness" value="0.550459"/>
 		</bsdf>
 	</mesh>
 	<mesh type="obj">
 		<string name="filename" value="meshes/coat_3_white_fabric.obj"/>
 		<bsdf type="orenNayar">
-			<color name="kd" value="0.613068,0.613068,0.613068"/>
+			<color name="kd" value="0.061307,0.061307,0.061307"/>
 			<float name="roughness" value="0.550459"/>
 		</bsdf>
 	</mesh>
 	<mesh type="obj">
 		<string name="filename" value="meshes/coat_3_Gold.obj"/>
 		<bsdf type="GGX">
-			<color name="kd" value="0.693321,0.650395,0.259550"/>
+			<color name="kd" value="0.753321,0.590395,0.219550"/>
 			<float name="roughness" value="0.288991"/>
 			<color name="internIOR" value="0.27105,0.67693,1.3164"/>
 			<color name="K" value="3.6092,2.6247,2.2921"/>
@@ -351,28 +321,28 @@
 	<mesh type="obj">
 		<string name="filename" value="meshes/coat_3_grey_fabric.obj"/>
 		<bsdf type="orenNayar">
-			<color name="kd" value="0.061919,0.061919,0.061919"/>
+			<color name="kd" value="0.006192,0.006192,0.006192"/>
 			<float name="roughness" value="0.550459"/>
 		</bsdf>
 	</mesh>
 	<mesh type="obj">
 		<string name="filename" value="meshes/coat_4_white_fabric.obj"/>
 		<bsdf type="orenNayar">
-			<color name="kd" value="0.613068,0.613068,0.613068"/>
+			<color name="kd" value="0.061307,0.061307,0.061307"/>
 			<float name="roughness" value="0.550459"/>
 		</bsdf>
 	</mesh>
 	<mesh type="obj">
 		<string name="filename" value="meshes/coat_4_grey_fabric.obj"/>
 		<bsdf type="orenNayar">
-			<color name="kd" value="0.061919,0.061919,0.061919"/>
+			<color name="kd" value="0.006192,0.006192,0.006192"/>
 			<float name="roughness" value="0.550459"/>
 		</bsdf>
 	</mesh>
 	<mesh type="obj">
 		<string name="filename" value="meshes/coat_4_Gold.obj"/>
 		<bsdf type="GGX">
-			<color name="kd" value="0.693321,0.650395,0.259550"/>
+			<color name="kd" value="0.753321,0.590395,0.219550"/>
 			<float name="roughness" value="0.288991"/>
 			<color name="internIOR" value="0.27105,0.67693,1.3164"/>
 			<color name="K" value="3.6092,2.6247,2.2921"/>
@@ -381,7 +351,7 @@
 	<mesh type="obj">
 		<string name="filename" value="meshes/boot_left_Iron.obj"/>
 		<bsdf type="GGX">
-			<color name="kd" value="0.074565,0.073836,0.071675"/>
+			<color name="kd" value="0.143833,0.142367,0.138019"/>
 			<float name="roughness" value="0.178899"/>
 			<color name="internIOR" value="2.0874,1.79,1.62"/>
 			<color name="K" value="3.17,2.81,3.27"/>
@@ -390,7 +360,7 @@
 	<mesh type="obj">
 		<string name="filename" value="meshes/boot_left_Steel.obj"/>
 		<bsdf type="GGX">
-			<color name="kd" value="0.620835,0.614157,0.594346"/>
+			<color name="kd" value="0.481880,0.476736,0.461474"/>
 			<float name="roughness" value="0.178899"/>
 			<color name="internIOR" value="2.0874,1.79,1.62"/>
 			<color name="K" value="3.17,2.81,3.27"/>
@@ -398,15 +368,15 @@
 	</mesh>
 	<mesh type="obj">
 		<string name="filename" value="meshes/boot_left_Leather.obj"/>
-		<bsdf type="GGX">
-			<color name="kd" value="0.068190,0.019337,0.003419"/>
-			<float name="roughness" value="0.830275"/>
+		<bsdf type="orenNayar">
+			<color name="kd" value="0.003017,0.001537,0.000455"/>
+			<float name="roughness" value="0.000000"/>
 		</bsdf>
 	</mesh>
 	<mesh type="obj">
 		<string name="filename" value="meshes/boot_right_Iron.obj"/>
 		<bsdf type="GGX">
-			<color name="kd" value="0.074565,0.073836,0.071675"/>
+			<color name="kd" value="0.143833,0.142367,0.138019"/>
 			<float name="roughness" value="0.178899"/>
 			<color name="internIOR" value="2.0874,1.79,1.62"/>
 			<color name="K" value="3.17,2.81,3.27"/>
@@ -415,7 +385,7 @@
 	<mesh type="obj">
 		<string name="filename" value="meshes/boot_right_Steel.obj"/>
 		<bsdf type="GGX">
-			<color name="kd" value="0.620835,0.614157,0.594346"/>
+			<color name="kd" value="0.481880,0.476736,0.461474"/>
 			<float name="roughness" value="0.178899"/>
 			<color name="internIOR" value="2.0874,1.79,1.62"/>
 			<color name="K" value="3.17,2.81,3.27"/>
@@ -423,15 +393,15 @@
 	</mesh>
 	<mesh type="obj">
 		<string name="filename" value="meshes/boot_right_Leather.obj"/>
-		<bsdf type="GGX">
-			<color name="kd" value="0.068190,0.019337,0.003419"/>
-			<float name="roughness" value="0.830275"/>
+		<bsdf type="orenNayar">
+			<color name="kd" value="0.003017,0.001537,0.000455"/>
+			<float name="roughness" value="0.000000"/>
 		</bsdf>
 	</mesh>
 	<mesh type="obj">
 		<string name="filename" value="meshes/hand_right_Iron.obj"/>
 		<bsdf type="GGX">
-			<color name="kd" value="0.074565,0.073836,0.071675"/>
+			<color name="kd" value="0.143833,0.142367,0.138019"/>
 			<float name="roughness" value="0.178899"/>
 			<color name="internIOR" value="2.0874,1.79,1.62"/>
 			<color name="K" value="3.17,2.81,3.27"/>
@@ -440,7 +410,7 @@
 	<mesh type="obj">
 		<string name="filename" value="meshes/hand_right_Steel.obj"/>
 		<bsdf type="GGX">
-			<color name="kd" value="0.620835,0.614157,0.594346"/>
+			<color name="kd" value="0.481880,0.476736,0.461474"/>
 			<float name="roughness" value="0.178899"/>
 			<color name="internIOR" value="2.0874,1.79,1.62"/>
 			<color name="K" value="3.17,2.81,3.27"/>
@@ -448,15 +418,15 @@
 	</mesh>
 	<mesh type="obj">
 		<string name="filename" value="meshes/hand_right_Leather.obj"/>
-		<bsdf type="GGX">
-			<color name="kd" value="0.068190,0.019337,0.003419"/>
-			<float name="roughness" value="0.830275"/>
+		<bsdf type="orenNayar">
+			<color name="kd" value="0.003017,0.001537,0.000455"/>
+			<float name="roughness" value="0.000000"/>
 		</bsdf>
 	</mesh>
 	<mesh type="obj">
 		<string name="filename" value="meshes/sword_lower_Steel.obj"/>
 		<bsdf type="GGX">
-			<color name="kd" value="0.620835,0.614157,0.594346"/>
+			<color name="kd" value="0.481880,0.476736,0.461474"/>
 			<float name="roughness" value="0.178899"/>
 			<color name="internIOR" value="2.0874,1.79,1.62"/>
 			<color name="K" value="3.17,2.81,3.27"/>
@@ -465,7 +435,7 @@
 	<mesh type="obj">
 		<string name="filename" value="meshes/sword_lower_Gold.obj"/>
 		<bsdf type="GGX">
-			<color name="kd" value="0.693321,0.650395,0.259550"/>
+			<color name="kd" value="0.753321,0.590395,0.219550"/>
 			<float name="roughness" value="0.288991"/>
 			<color name="internIOR" value="0.27105,0.67693,1.3164"/>
 			<color name="K" value="3.6092,2.6247,2.2921"/>
@@ -474,7 +444,7 @@
 	<mesh type="obj">
 		<string name="filename" value="meshes/sword_upper_Steel.obj"/>
 		<bsdf type="GGX">
-			<color name="kd" value="0.620835,0.614157,0.594346"/>
+			<color name="kd" value="0.481880,0.476736,0.461474"/>
 			<float name="roughness" value="0.178899"/>
 			<color name="internIOR" value="2.0874,1.79,1.62"/>
 			<color name="K" value="3.17,2.81,3.27"/>
@@ -483,16 +453,16 @@
 	<mesh type="obj">
 		<string name="filename" value="meshes/sword_upper_Gold.obj"/>
 		<bsdf type="GGX">
-			<color name="kd" value="0.693321,0.650395,0.259550"/>
+			<color name="kd" value="0.753321,0.590395,0.219550"/>
 			<float name="roughness" value="0.288991"/>
 			<color name="internIOR" value="0.27105,0.67693,1.3164"/>
 			<color name="K" value="3.6092,2.6247,2.2921"/>
 		</bsdf>
 	</mesh>
 	<mesh type="obj">
-		<string name="filename" value="meshes/torso_lower_Steel.obj"/>
+		<string name="filename" value="meshes/torso_lower_Iron.obj"/>
 		<bsdf type="GGX">
-			<color name="kd" value="0.620835,0.614157,0.594346"/>
+			<color name="kd" value="0.143833,0.142367,0.138019"/>
 			<float name="roughness" value="0.178899"/>
 			<color name="internIOR" value="2.0874,1.79,1.62"/>
 			<color name="K" value="3.17,2.81,3.27"/>
@@ -501,7 +471,7 @@
 	<mesh type="obj">
 		<string name="filename" value="meshes/torso_upper_Steel.obj"/>
 		<bsdf type="GGX">
-			<color name="kd" value="0.620835,0.614157,0.594346"/>
+			<color name="kd" value="0.481880,0.476736,0.461474"/>
 			<float name="roughness" value="0.178899"/>
 			<color name="internIOR" value="2.0874,1.79,1.62"/>
 			<color name="K" value="3.17,2.81,3.27"/>
@@ -510,7 +480,7 @@
 	<mesh type="obj">
 		<string name="filename" value="meshes/torso_upper_Iron.obj"/>
 		<bsdf type="GGX">
-			<color name="kd" value="0.074565,0.073836,0.071675"/>
+			<color name="kd" value="0.143833,0.142367,0.138019"/>
 			<float name="roughness" value="0.178899"/>
 			<color name="internIOR" value="2.0874,1.79,1.62"/>
 			<color name="K" value="3.17,2.81,3.27"/>
@@ -519,7 +489,7 @@
 	<mesh type="obj">
 		<string name="filename" value="meshes/torso_upper_Gold.obj"/>
 		<bsdf type="GGX">
-			<color name="kd" value="0.693321,0.650395,0.259550"/>
+			<color name="kd" value="0.753321,0.590395,0.219550"/>
 			<float name="roughness" value="0.288991"/>
 			<color name="internIOR" value="0.27105,0.67693,1.3164"/>
 			<color name="K" value="3.6092,2.6247,2.2921"/>
@@ -528,14 +498,21 @@
 	<mesh type="obj">
 		<string name="filename" value="meshes/torso_upper_white_fabric.obj"/>
 		<bsdf type="orenNayar">
-			<color name="kd" value="0.613068,0.613068,0.613068"/>
+			<color name="kd" value="0.061307,0.061307,0.061307"/>
 			<float name="roughness" value="0.550459"/>
 		</bsdf>
 	</mesh>
 	<mesh type="obj">
 		<string name="filename" value="meshes/Cube_Wall.obj"/>
 		<bsdf type="diffuse">
-			<color name="albedo" value="0.800000,0.800000,0.800000"/>
+			<color name="albedo" value="0.044980,0.044980,0.044980"/>
+		</bsdf>
+	</mesh>
+	<mesh type="obj">
+		<string name="filename" value="meshes/Plane_Black.obj"/>
+		<bsdf type="GGX">
+			<color name="kd" value="0.000000,0.000000,0.000000"/>
+			<float name="roughness" value="0.500000"/>
 		</bsdf>
 	</mesh>
 </scene>

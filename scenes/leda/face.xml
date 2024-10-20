@@ -25,13 +25,6 @@
 		<color name="radiance" value="25.000000,25.000000,25.000000"/>
 	</emitter>
 	<mesh type="obj">
-		<string name="filename" value="meshes/option1_hair_Hair.obj"/>
-		<bsdf type="orenNayar">
-			<color name="kd" value="0.800007,0.651823,0.182392"/>
-			<float name="roughness" value="0.413402"/>
-		</bsdf>
-	</mesh>
-	<mesh type="obj">
 		<string name="filename" value="meshes/option1_head_Skin.obj"/>
 		<bsdf type="agregate">
 			<float name="w1" value="0.9"/>
@@ -47,38 +40,6 @@
 				<color name="kd" value="255 175 152"/>
 				<float name="roughness" value="0.1"/>
 			</bsdf>
-		</bsdf>
-	</mesh>
-	<mesh type="obj">
-		<string name="filename" value="meshes/option1_hair_eyebrows_Hair.obj"/>
-		<bsdf type="orenNayar">
-			<color name="kd" value="0.800007,0.651823,0.182392"/>
-			<float name="roughness" value="0.413402"/>
-		</bsdf>
-	</mesh>
-	<mesh type="obj">
-		<string name="filename" value="meshes/option1_hair_eyelashes_Hair.obj"/>
-		<bsdf type="orenNayar">
-			<color name="kd" value="0.800007,0.651823,0.182392"/>
-			<float name="roughness" value="0.413402"/>
-		</bsdf>
-	</mesh>
-	<mesh type="obj">
-		<string name="filename" value="meshes/option1_eyes_Eyes.obj"/>
-		<bsdf type="diffuse">
-			<texture type="textmap" name="albedo">
-				<string name="filename" value="Eyes.bmp"/>
-				<string name="interpolation" value="Linear"/>
-				<string name="extension" value="REPEAT"/>
-				<string name="projection" value="FLAT"/>
-			</texture>
-			<float name="roughness" value="0.099924"/>
-		</bsdf>
-	</mesh>
-	<mesh type="obj">
-		<string name="filename" value="meshes/Cube_Wall.obj"/>
-		<bsdf type="diffuse">
-			<color name="albedo" value="0.800000,0.800000,0.800000"/>
 		</bsdf>
 	</mesh>
 </scene>

@@ -4,6 +4,7 @@
 #include <nori/integrator.h>
 #include <nori/sampler.h>
 #include <nori/bsdf.h>
+#include <nori/warp.h>
 
 #include <nori/scene.h>
 #include <nori/math.h>
@@ -173,6 +174,27 @@ Pth::IntegrationType Pth::getIntegrationType(const Intersection &its)
 }
 
 
+
+Color3f Pth::integrateBSDF(const BSDF *bsdf, Sampler *sampler)
+{
+    Color3f result(0.0f, 0.0f, 0.0f);
+    int nSteps = 10000;
+
+    for (int i = 0; i < nSteps; i++)
+    {
+        BSDFQueryRecord bsdfQuery;
+        bsdfQuery.wi = Warp::squareToCosineHemisphere(sampler->next2D());
+
+        Color3f f = bsdf->sample(bsdfQuery, sampler);
+        //float pdf = bsdf->pdf(bsdfQuery);
+
+        result += f;
+    }
+
+    return result / nSteps;
+}
+
+
 /*
 
 
@@ -250,6 +272,7 @@ void Pth::integrateSubsurfacePhotons(const Scene *scene,
     state.radiance += contributions;
 }
 */
+
 
 
 

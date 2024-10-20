@@ -57,6 +57,8 @@ static Color3f sampleBSDF(
 
 static IntegrationType getIntegrationType(const Intersection &its); 
 
+static Color3f integrateBSDF(const BSDF *bsdf, Sampler *sampler);
+
 };
 
 NORI_NAMESPACE_END

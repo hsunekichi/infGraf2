@@ -95,6 +95,7 @@
         "typeindex": "cpp",
         "valarray": "cpp",
         "forward_list": "cpp",
-        "tensor": "cpp"
+        "tensor": "cpp",
+        "text_encoding": "cpp"
     }
 }

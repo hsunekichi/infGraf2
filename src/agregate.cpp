@@ -24,6 +24,7 @@
 #include <nori/warp.h>
 #include <nori/texture.h>
 #include <nori/dpdf.h>
+#include <nori/pathtracing.h>
 
 NORI_NAMESPACE_BEGIN
 
@@ -97,6 +98,9 @@ public:
 
     Color3f samplePoint(BSDFQueryRecord &bRec, Sampler *sampler) const
     {
+        //Color3f intGGX = Pth::integrateBSDF(m_bsdfs[1], sampler);
+        //std::cout << intGGX.toString() << std::endl;
+
         int index = m_pdf.sample(sampler->next1D());
         bRec.agregate_id = index;
 

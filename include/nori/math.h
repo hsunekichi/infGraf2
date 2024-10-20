@@ -4,6 +4,7 @@
 #include <nori/transform.h>
 #include <nori/vector.h>
 #include <nori/color.h>
+#include <nori/bsdf.h>
 
 NORI_NAMESPACE_BEGIN
 
@@ -332,7 +333,6 @@ class Math
         float cosThetaT = std::sqrt(1.0f - sin2ThetaT);
         return eta * (-wi) + (eta * cosThetaI - cosThetaT) * n;
     }
-
 
     static Eigen::MatrixXf weibull_stretched_exponential(const Eigen::MatrixXf &m, float alpha=0.5, float beta=0.2);
     inline static float weibull_stretched_exponential(float x, float alpha=0.5, float beta=0.2)

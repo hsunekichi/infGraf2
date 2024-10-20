@@ -1,10 +1,10 @@
 # Blender MTL File: 'character.blend'
 # Material Count: 1
 
-newmtl Steel
+newmtl Iron
 Ns 674.206673
 Ka 0.899083 0.899083 0.899083
-Kd 0.620835 0.614157 0.594346
+Kd 0.143833 0.142367 0.138019
 Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
 Ni 1.250000
