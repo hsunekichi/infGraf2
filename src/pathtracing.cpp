@@ -122,7 +122,7 @@ Color3f Pth::nextEventEstimation(const Scene *scene,
 
         if (emitterMesh->getEmitterType() == EmitterType::EMITTER_ENVIRONMENT)
         {
-            return Le*cosThetaP;
+            return Le*f *cosThetaP;
         }else
         {
             return Le * f * G;
