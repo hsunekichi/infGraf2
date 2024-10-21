@@ -64,6 +64,7 @@ void Scene::activate()
         }
 
         if (getEnvironmentalEmitter() != nullptr){
+            m_emitters.push_back(const_cast<nori::Emitter*>(getEnvironmentalEmitter()));
             m_emitterPDF.append(getEnvironmentalEmitter()->getRadiance().maxCoeff());
         }
 
@@ -72,6 +73,7 @@ void Scene::activate()
             sss_meshes.push_back(m_meshes[i]);
         }
     }
+    m_emitterPDF.normalize();
 
     m_accel->build();
 

@@ -97,5 +97,6 @@
         "forward_list": "cpp",
         "tensor": "cpp",
         "text_encoding": "cpp"
-    }
+    },
+    "ros.distro": "noetic"
 }

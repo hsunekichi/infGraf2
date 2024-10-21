@@ -82,22 +82,12 @@ public:
 	virtual Color3f sampleLi(Sampler *sampler, EmitterQueryRecord &query) const {
 		// Sample a direction on the unit sphere using uniform sampling
 		
-		query.lightP = Warp::squareToUniformSphere(sampler->next2D())*1e15;
-		//query.wo = (query.lightP - query.surfaceP).normalized();
+		query.wo = Warp::squareToUniformSphere(sampler->next2D());
+		// cerr << "n: " << query.n << endl;
+		query.lightP = query.surfaceP + query.wo*1e15;
 		query.pdf = pdf(query);
-		Vector3f wi = -query.wo;
 
-		float phi = atan2(wi[2], wi[0]);
-		float theta = acos(wi[1]);
-		if (phi < 0) phi += 2 * M_PI;
-
-		float x = phi / (2 * M_PI);
-		float y = (theta) / M_PI;
-
-		if (!m_environment)
-			return m_radiance;
-		else
-			return m_environment->eval(Point2f(x, y))* m_radiance;
+		return eval(query);
 	}
 
 	// Returns probability with respect to solid angle given by all the information inside the emitterqueryrecord.
