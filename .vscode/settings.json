@@ -96,7 +96,10 @@
         "valarray": "cpp",
         "forward_list": "cpp",
         "tensor": "cpp",
-        "text_encoding": "cpp"
+        "text_encoding": "cpp",
+        "csignal": "cpp",
+        "strstream": "cpp",
+        "codecvt": "cpp"
     },
     "ros.distro": "noetic"
 }

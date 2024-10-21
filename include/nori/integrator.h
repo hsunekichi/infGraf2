@@ -18,8 +18,11 @@
 
 #pragma once
 
+#include <vector>
 #include <nori/object.h>
 #include <nori/scene.h>
+#include <nori/emitter.h>
+
 
 NORI_NAMESPACE_BEGIN
 
@@ -54,6 +57,35 @@ public:
      */
     virtual Color3f Li(const Scene *scene, Sampler *sampler, const Ray3f &ray) const = 0;
 
+    Color3f computeInScattering(const Scene *scene, const Point3f &p, const Vector3f &wo) const {
+        // Compute the in-scattering from lights in the scene
+        Medium *medium = scene->getMedium();
+
+        Color3f scatterRadiance(0.0f);
+        const std::vector<nori::Emitter *> &emmiters = scene->getLights();
+        for (size_t i = 0; i < emmiters.size(); i++)
+        {
+            // Compute light contribution based on phase function and distance to light
+            Vector3f wi;
+            // if (emmiters[i]->getEmitterType() == EmitterType::EMITTER_ENVIRONMENT)
+            // {
+            //     wi = (emmiters[i]->m_point - p).normalized();
+            // }else if (emmiters[i]->m_mesh)
+            // {
+            //     /* code */
+            // }
+            
+            
+            wi = wo;//(emmiters[i]->getPosition() - p).normalized();
+            float phaseVal = medium->getPhaseFunction()->eval(wo, wi);
+
+            // Add contribution from the light
+            scatterRadiance += emmiters[i]->getRadiance() * phaseVal;
+        }
+        
+
+        return scatterRadiance;
+    }
     /**
      * \brief Return the type of object (i.e. Mesh/BSDF/etc.) 
      * provided by this instance

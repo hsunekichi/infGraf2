@@ -69,6 +69,9 @@ add_executable(nori
   include/nori/warp.h
   include/nori/pathtracing.h
   include/nori/kdtree.h
+  include/nori/phase.h
+  include/nori/medium.h
+
 
   # Source code files
   src/common.cpp
