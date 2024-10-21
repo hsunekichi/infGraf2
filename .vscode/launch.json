@@ -3,12 +3,13 @@
     "configurations": [
 
 
+
         {
             "name": "C++ Debug",
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/nori",
-            "args": ["${workspaceFolder}/scenes/tests/bvh.xml", "--threads", "1"],
+            "args": ["${workspaceFolder}/scenes/leda/leda.xml", "--threads", "1"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -29,6 +30,35 @@
                 "traceResponse": true
             }
         },
+
+
+        {
+            "name": "serapis_env",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/nori",
+            "args": ["${workspaceFolder}/scenes/assignment-2/serapis/serapis_env.xml", "--threads", "1"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "miDebuggerPath": "/usr/bin/gdb",  // Path to GDB, adjust if necessary
+            "preLaunchTask": "CMake: Build",
+            "logging": {
+                "trace": true,
+                "engineLogging": true,
+                "traceResponse": true
+            }
+        },
+
 
         {
             "name": "microfacet_debug_1",

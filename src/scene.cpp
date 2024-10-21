@@ -51,7 +51,9 @@ Scene::~Scene() {
 void Scene::activate() 
 {
     // Build the discrete distribution based on radiance
-    m_emitterPDF.clear();
+    // m_emitterPDF.clear();
+    // m_emitterPDF.reserve(m_meshes.size()+1);
+
     // Check if there's emitters attached to meshes, and
     // add them to the scene. 
     for(unsigned int i=0; i<m_meshes.size(); ++i )
@@ -63,16 +65,12 @@ void Scene::activate()
             m_emitterPDF.append(m_meshes[i]->getEmitter()->getRadiance().maxCoeff());
         }
 
-        if (getEnvironmentalEmitter() != nullptr){
-            m_emitters.push_back(const_cast<nori::Emitter*>(getEnvironmentalEmitter()));
-            m_emitterPDF.append(getEnvironmentalEmitter()->getRadiance().maxCoeff());
-        }
-
         if (m_meshes[i]->hasSubsurfaceScattering())
         {
             sss_meshes.push_back(m_meshes[i]);
         }
     }
+
     m_emitterPDF.normalize();
 
     m_accel->build();
@@ -95,6 +93,11 @@ void Scene::activate()
             NoriObjectFactory::createInstance("independent", PropertyList()));
     }
 
+    if (m_emitters.size() == 0)
+    {
+        throw NoriException("No emitters were specified!");
+    }
+
     cout << endl;
     cout << "Configuration: " << toString() << endl;
     cout << endl;
@@ -105,10 +108,18 @@ void Scene::activate()
 // Emitter *Scene::sampleEmitter(Sampler* sampler, float &pdf) const
 // {
 //     float rnd = sampler->next1D();
+//     float pdf2;
+//     size_t index2 = m_emitterPDF.sample(rnd, pdf2);
+//     cerr << "PDF m_emitterPDF: " << pdf2 << endl;
+//     cerr << "m_emitterPDF.size: " << m_emitterPDF.size() << endl;
+//     cerr << "m_emitterPDF.getSum: " << m_emitterPDF.getSum() << endl;
+//     cerr << "m_emitterPDF.getNormalization: " << m_emitterPDF.getNormalization() << endl;
+
 
 // 	auto const & n = m_emitters.size();
 // 	size_t index = std::min(static_cast<size_t>(std::floor(n*rnd)), n - 1);
 // 	pdf = 1. / float(n);
+//     cerr << "PDF: " << pdf << endl;
 // 	return m_emitters[index];
 // }
 
@@ -118,6 +129,7 @@ Emitter *Scene::sampleEmitter(Sampler* sampler, float &pdf) const
 
     // Sample from the PDF
     size_t index = m_emitterPDF.sample(rnd, pdf);
+    // pdf = 1. / float(m_emitters.size());
 
     // Return the selected emitter
     return m_emitters[index];
@@ -147,6 +159,7 @@ void Scene::addChild(NoriObject *obj, const std::string& name) {
 				}
 				
                 m_emitters.push_back(emitter);
+                m_emitterPDF.append(emitter->getRadiance().maxCoeff());
 			}
             break;
 
