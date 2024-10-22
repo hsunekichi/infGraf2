@@ -118,6 +118,13 @@ void Scene::activate()
 // 	return m_emitters[index];
 // }
 
+void Scene::preprocess() {
+    for (auto mesh : m_meshes)
+    {
+        mesh->getBSDF()->preprocess(m_sampler);
+    }
+}
+
 Emitter *Scene::sampleEmitter(Sampler* sampler, float &pdf) const
 {
     float rnd = sampler->next1D(); // Get a random value between 0 and 1

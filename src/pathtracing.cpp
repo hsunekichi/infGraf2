@@ -184,7 +184,7 @@ Pth::IntegrationType Pth::getIntegrationType(const Intersection &its)
 Color3f Pth::integrateBSDF(const BSDF *bsdf, Sampler *sampler)
 {
     Color3f result(0.0f, 0.0f, 0.0f);
-    int nSteps = 10000;
+    int nSteps = 16384;
 
     for (int i = 0; i < nSteps; i++)
     {

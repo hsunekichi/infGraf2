@@ -20,6 +20,8 @@ NORI_NAMESPACE_BEGIN
 class Path_mis : public Integrator {
 public:
 
+    const int N_SSS_NES_SAMPLES = 8;
+
     Path_mis(const PropertyList &props) {}
 
     void integrateDiffuse(const Scene *scene, 
@@ -34,11 +36,20 @@ public:
         state.scatteringFactor *= fp;
 
         /**************** Compute next event estimation ******************/
-        float lightPdf;
-        Color3f directLight = Pth::nextEventEstimation(scene, sampler, state, query, lightPdf, state.bsdfPdf);
-        float weightLight = Math::powerHeuristic(1, lightPdf, 1, state.bsdfPdf);
-        state.radiance += state.scatteringFactor * directLight * weightLight;
+        Color3f direct (0.0f);
 
+        int nSamples = bsdf->isSubsurfaceScattering() ? N_SSS_NES_SAMPLES : 1;
+        state.previous_sss = bsdf->isSubsurfaceScattering();
+
+        for (int i = 0; i < nSamples; i++)
+        {
+            float lightPdf;
+            Color3f directLight = Pth::nextEventEstimation(scene, sampler, state, query, lightPdf, state.bsdfPdf);
+            float weightLight = Math::powerHeuristic(nSamples, lightPdf, 1, state.bsdfPdf);
+            direct += directLight * weightLight;
+        }
+        
+        state.radiance += state.scatteringFactor * direct / nSamples;
 
         /************************* Sample indirect light *******************/
         Color3f f = Pth::sampleBSDF(state, sampler, query, state.bsdfPdf);   
@@ -81,7 +92,8 @@ public:
             emitterQuery.measure = EMeasure::ESolidAngle;
             
             float lightPdf = emitter->pdf(emitterQuery);
-            weight = Math::powerHeuristic(1, state.bsdfPdf, 1, lightPdf);
+            int nSamples = state.previous_sss ? N_SSS_NES_SAMPLES : 1;
+            weight = Math::powerHeuristic(1, state.bsdfPdf, nSamples, lightPdf);
         }
 
         state.radiance += state.scatteringFactor * emitter->eval(emitterQuery) * weight;

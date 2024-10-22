@@ -109,6 +109,10 @@ class NoriWriter:
                     
                     fileName = linked_nodes[0].from_node.image.filepath.replace("\\","/").replace("png", "bmp")
 
+                    # Delete initial // if present
+                    if filename[0] == "/" and filename[1] == "/":
+                        filename = filename[2:]
+
                     texture = self.__createElement("texture",{"type":"textmap", "name":name})
                     texture.appendChild(self.__createEntry("string","filename", fileName))
                     texture.appendChild(self.__createEntry("string","interpolation", linked_nodes[0].from_node.interpolation))
