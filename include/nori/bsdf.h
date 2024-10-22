@@ -153,6 +153,8 @@ public:
      */
     virtual bool isDiffuse() const { return false; }
     virtual bool isSubsurfaceScattering() const { return false; }
+
+    virtual void preprocess(Sampler *sampler) { }
 };
 
 NORI_NAMESPACE_END

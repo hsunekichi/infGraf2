@@ -78,6 +78,8 @@ static void renderBlock(const Scene *scene, Sampler *sampler, ImageBlock &block)
 static void render(Scene* scene, const std::string& filename, bool nogui) {
     const Camera* camera = scene->getCamera();
     Vector2i outputSize = camera->getOutputSize();
+
+    scene->preprocess();
     scene->getIntegrator()->preprocess(scene, scene->getSampler());
 
     /* Allocate memory for the entire output image and clear it */

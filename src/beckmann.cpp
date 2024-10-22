@@ -8,6 +8,7 @@
 #include <nori/frame.h>
 #include <nori/warp.h>
 #include <nori/math.h>
+#include <nori/texture.h>
 
 NORI_NAMESPACE_BEGIN
 
@@ -30,7 +31,12 @@ public:
         m_extIOR = propList.getColor("extIOR", Color3f(1.000277f));
 
         /* Albedo of the diffuse base material (a.k.a "kd") */
-        Kd = propList.getColor("albedo", Color3f(0.5f));
+        Color3f kd = propList.getColor("albedo", Color3f(0.5f));
+        
+        if (kd.maxCoeff() > 1.0f)
+            kd /= 255.0f;
+
+        m_kd = new ConstantSpectrumTexture(kd);
     }
 
     float lambda(const Vector3f &rayDir) const
@@ -87,6 +93,7 @@ public:
         if (effectivelySmooth())
             return Color3f(0.0f); 
 
+        Color3f Kd = m_kd->eval(bRec.uv);
 
         // Get the incident and outgoing directions
         Vector3f wi = bRec.wi;
@@ -175,6 +182,25 @@ public:
         return true;
     }
 
+    void addChild(NoriObject* obj, const std::string& name = "none") {
+        switch (obj->getClassType()) {
+        case ETexture:
+            if (name == "albedo")
+            {
+                delete m_kd;
+                m_kd = static_cast<Texture*>(obj);
+            }
+            else
+                throw NoriException("Diffuse::addChild(<%s>,%s) is not supported!",
+                classTypeName(obj->getClassType()), name);
+            break;
+
+        default:
+            throw NoriException("Diffuse::addChild(<%s>) is not supported!",
+                classTypeName(obj->getClassType()));
+        }
+    }
+
     std::string toString() const {
         return tfm::format(
             "Beckmann[\n"
@@ -187,14 +213,13 @@ public:
             m_alpha,
             internIOR.toString(),
             K.toString(),
-            m_extIOR,
-            Kd.toString()
+            m_extIOR
         );
     }
 private:
     float m_alpha;
     Color3f internIOR, K, m_extIOR;
-    Color3f Kd;
+    Texture *m_kd;
 };
 
 NORI_REGISTER_CLASS(Beckmann, "beckmann");

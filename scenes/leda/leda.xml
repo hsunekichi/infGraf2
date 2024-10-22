@@ -2,17 +2,18 @@
 <scene>
 	<integrator type="whitted"/>
 	<sampler type="independent">
-		<integer name="sampleCount" value="4"/>
+		<integer name="sampleCount" value="16"/>
+		<integer name="nPasses" value="8"/>
 	</sampler>
 	<camera type="perspective">
 		<float name="fov" value="39.597755335771296"/>
 		<float name="nearClip" value="0.10000000149011612"/>
 		<float name="farClip" value="1000.0"/>
-		<integer name="width" value="1709"/>
-		<integer name="height" value="1920"/>
+		<integer name="width" value="1209"/>
+		<integer name="height" value="1420"/>
 		<transform name="toWorld">
 			<scale value="-1.000000 1.000000 -1.000000"/>
-			<matrix value="1.0,0.0,0.0,0.03435330465435982,0.0,-4.371138828673793e-08,-1.0,-6.749917030334473,0.0,1.0,-4.371138828673793e-08,3.194347620010376,0.0,0.0,0.0,1.0"/>
+			<matrix value="1.0,0.0,0.0,-0.010628461837768555,0.0,-4.371138828673793e-08,-1.0,-4.464906215667725,0.0,1.0,-4.371138828673793e-08,3.9252984523773193,0.0,0.0,0.0,1.0"/>
 		</transform>
 	</camera>
 	<mesh type="obj">
@@ -79,19 +80,26 @@
 	</mesh>
 	<mesh type="obj">
 		<string name="filename" value="meshes/option1_head_Skin.obj"/>
-		<bsdf type="agregate">
-			<float name="w1" value="0.95"/>
-			<float name="w2" value="0.05"/>
-
-			<bsdf type="subsurfaceDisney">   <!-- Skin properties -->
+		<bsdf type="skin">		<!-- Full leda skin BSDF -->
+			<bsdf type="normalizedDiffusion">   
 				<color name="ld" value="1.01 0.88 0.74"/>
 				<float name="eta" value="1.3"/>
-				<color name="albedo" value="255 175 152"/>
+				<texture type="textmap" name="albedo">
+					<string name="filename" value="Head.bmp"/>
+					<string name="interpolation" value="Linear"/>
+					<string name="extension" value="REPEAT"/>
+					<string name="projection" value="FLAT"/>
+				</texture>
 			</bsdf>
-			<bsdf type="GGX">
+			<bsdf type="GGX"> <!-- Skin specular part -->
 				<color name="internIOR" value="1.3 1.3 1.3"/>
-				<color name="kd" value="255 175 152"/>
-				<float name="roughness" value="0.1"/>
+				<color name="kd" value="1 1 1"/>
+				<float name="roughness" value="0.2"/>
+			</bsdf>
+			<bsdf type="GGX"> <!-- Skin sheen part -->
+				<color name="internIOR" value="1.51 1.51 1.51"/>
+				<color name="kd" value="1 1 1"/>
+				<float name="roughness" value="0.05"/>
 			</bsdf>
 		</bsdf>
 	</mesh>
@@ -111,14 +119,22 @@
 	</mesh>
 	<mesh type="obj">
 		<string name="filename" value="meshes/option1_eyes_Eyes.obj"/>
-		<bsdf type="GGX">
-			<texture type="textmap" name="albedo">
-				<string name="filename" value="//Eyes.bmp"/>
-				<string name="interpolation" value="Linear"/>
-				<string name="extension" value="REPEAT"/>
-				<string name="projection" value="FLAT"/>
-			</texture>
-			<float name="roughness" value="0.099924"/>
+		<bsdf type="agregate"> <!-- Eyes BSDF -->
+			<float name="w1" value="0.875"/>
+			<float name="w2" value="0.125"/>
+
+			<bsdf type="diffuse">
+				<texture type="textmap" name="albedo">
+					<string name="filename" value="Eyes.bmp"/>
+					<string name="interpolation" value="Linear"/>
+					<string name="extension" value="REPEAT"/>
+					<string name="projection" value="FLAT"/>
+				</texture>
+				<float name="roughness" value="0.2"/>
+			</bsdf>
+			<bsdf type="mirror">
+				<color name="reflectance" value="1,1,1"/>
+			</bsdf>
 		</bsdf>
 	</mesh>
 	<mesh type="obj">

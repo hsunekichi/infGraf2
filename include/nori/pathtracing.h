@@ -14,7 +14,7 @@ NORI_NAMESPACE_BEGIN
 
 struct PathState
 {
-    bool previous_diffuse = false;
+    bool previous_diffuse = false; bool previous_sss = false;
     float bsdfPdf = 0.0f; Point3f prevP = Point3f(0.0f);    
     Intersection intersection;
 
