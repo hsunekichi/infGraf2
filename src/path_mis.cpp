@@ -34,37 +34,18 @@ public:
         state.scatteringFactor *= fp;
 
         /**************** Compute next event estimation ******************/
-        float lightPdf, bsdfPdf;
-        Color3f directLight = Pth::nextEventEstimation(scene, sampler, state, query, lightPdf, bsdfPdf);
-        float weightLight = Math::powerHeuristic(1, lightPdf, 1, bsdfPdf);
+        float lightPdf;
+        Color3f directLight = Pth::nextEventEstimation(scene, sampler, state, query, lightPdf, state.bsdfPdf);
+        float weightLight = Math::powerHeuristic(1, lightPdf, 1, state.bsdfPdf);
         state.radiance += state.scatteringFactor * directLight * weightLight;
 
 
         /************************* Sample indirect light *******************/
-        Color3f f = Pth::sampleBSDF(state, sampler, query, bsdfPdf);   
+        Color3f f = Pth::sampleBSDF(state, sampler, query, state.bsdfPdf);   
         state.scatteringFactor *= f;
 
-        // Check if next bounce is to a light source
-        Point3f prevSurfaceP = state.intersection.p;      
-        state.intersected = scene->rayIntersect(state.ray, state.intersection);
-        state.intersectionComputed = true;
-
-        /*********************** Check for double counting *********************/
-        if (state.intersected && state.intersection.mesh->isEmitter())
-        {
-            const Emitter *emitter = state.intersection.mesh->getEmitter();
-            EmitterQueryRecord emitterQuery(prevSurfaceP, state.intersection.p, 
-                    state.intersection.vtoLocal(-state.ray.d), EMeasure::ESolidAngle);
-
-
-            // Compute Le
-            lightPdf = emitter->pdf(emitterQuery);
-            float weightBSDF = Math::powerHeuristic(1, bsdfPdf, 1, lightPdf);
-            state.radiance += state.scatteringFactor * weightBSDF * emitter->eval(emitterQuery);
-            
-            // Terminate the path
-            state.scatteringFactor = Color3f(0.0f);
-        }
+        state.previous_diffuse = true;
+        state.prevP = state.intersection.p;
     }
 
 
@@ -92,7 +73,18 @@ public:
 
         EmitterQueryRecord emitterQuery (state.intersection.vtoLocal(-state.ray.d), EMeasure::EDiscrete);
         emitterQuery.lightP = state.intersection.p;
-        state.radiance += state.scatteringFactor * emitter->eval(emitterQuery);
+
+        float weight = 1.0f;
+        if (state.previous_diffuse)
+        {
+            emitterQuery.surfaceP = state.prevP;
+            emitterQuery.measure = EMeasure::ESolidAngle;
+            
+            float lightPdf = emitter->pdf(emitterQuery);
+            weight = Math::powerHeuristic(1, state.bsdfPdf, 1, lightPdf);
+        }
+
+        state.radiance += state.scatteringFactor * emitter->eval(emitterQuery) * weight;
 
         // Terminate the path
         state.scatteringFactor = Color3f(0.0f);
@@ -127,9 +119,7 @@ public:
         while (state.scatteringFactor != Color3f(0.0f))
         {
             /* Find the surface that is visible in the requested direction */
-            if ((state.intersectionComputed && !state.intersected)
-                ||
-                (!state.intersectionComputed && !scene->rayIntersect(state.ray, state.intersection)))
+            if (!scene->rayIntersect(state.ray, state.intersection))
             {
                 // Render emitter
                 EmitterQueryRecord emitterQuery(-state.ray.d, ESolidAngle);
@@ -141,8 +131,6 @@ public:
                 return;
             }
            
-            state.intersectionComputed = false;
-
             if (state.depth > 3)     // Apply roussian roulette
             {
                 constexpr float roulettePdf = 0.95f;

@@ -123,8 +123,9 @@ Emitter *Scene::sampleEmitter(Sampler* sampler, float &pdf) const
     float rnd = sampler->next1D(); // Get a random value between 0 and 1
 
     // Sample from the PDF
-    size_t index = m_emitterPDF.sample(rnd, pdf);
-    // pdf = 1. / float(m_emitters.size());
+    //size_t index = m_emitterPDF.sample(rnd, pdf);
+    pdf = 1. / float(m_emitters.size());
+    size_t index = std::min(static_cast<size_t>(std::floor(m_emitters.size()*rnd)), m_emitters.size() - 1);
 
     // Return the selected emitter
     return m_emitters[index];

@@ -31,7 +31,7 @@ public:
         m_extIOR = propList.getColor("extIOR", Color3f(1.000277f));
 
         /* Albedo of the diffuse base material (a.k.a "kd") */
-        m_kd = propList.getColor("kd", Color3f(0.5f));
+        m_kd = propList.getColor("albedo", Color3f(0.5f));
 
         /* To ensure energy conservation, we must scale the 
            specular component by 1-kd. 

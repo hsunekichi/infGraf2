@@ -30,7 +30,7 @@ public:
         m_extIOR = propList.getColor("extIOR", Color3f(1.000277f));
 
         /* Albedo of the diffuse base material (a.k.a "kd") */
-        Kd = propList.getColor("kd", Color3f(0.5f));
+        Kd = propList.getColor("albedo", Color3f(0.5f));
     }
 
     float lambda(const Vector3f &rayDir) const
