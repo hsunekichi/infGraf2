@@ -8,6 +8,7 @@
 #include <nori/frame.h>
 #include <nori/warp.h>
 #include <nori/math.h>
+#include <nori/texture.h>
 
 NORI_NAMESPACE_BEGIN
 
@@ -30,12 +31,11 @@ public:
         m_extIOR = propList.getColor("extIOR", Color3f(1.000277f));
 
         Color3f kd = propList.getColor("albedo", Color3f(0.5f));
-
+        
         if (kd.maxCoeff() > 1.0f)
             kd /= 255.0f;
 
-        m_kd = kd;
-
+        m_kd = new ConstantSpectrumTexture(kd);
     }
 
     float GeometryTerm(const Vector3f &wi, const Vector3f &wo, const Vector3f &wh) const 
@@ -125,7 +125,8 @@ public:
         float G = GeometryTerm(wi, wo, wh);
 
         // Reflect term
-        Color3f diffuse = (m_kd * D * G * F) / (4.0f * cosThetaI * cosThetaO );
+        Color3f kd = m_kd->eval(bRec.uv);
+        Color3f diffuse = (kd * D * G * F) / (4.0f * cosThetaI * cosThetaO);
         
         return diffuse;
     }
@@ -161,7 +162,7 @@ public:
         Color3f term2Num = etaT2 * (1 - F) * G * D;
         Color3f term2Denom = Math::pow2(etaI * coshtI + etaT * coshtO);
 
-        Color3f specular = m_kd * term1 * term2Num / term2Denom;
+        Color3f specular = m_kd->eval(bRec.uv) * term1 * term2Num / term2Denom;
 
         // Return the sum of diffuse and specular terms
         return specular;
@@ -260,7 +261,24 @@ public:
         return true;
     }
 
+    void addChild(NoriObject* obj, const std::string& name = "none") {
+        switch (obj->getClassType()) {
+        case ETexture:
+            if (name == "albedo")
+            {
+                delete m_kd;
+                m_kd = static_cast<Texture*>(obj);
+            }
+            else
+                throw NoriException("Diffuse::addChild(<%s>,%s) is not supported!",
+                classTypeName(obj->getClassType()), name);
+            break;
 
+        default:
+            throw NoriException("Diffuse::addChild(<%s>) is not supported!",
+                classTypeName(obj->getClassType()));
+        }
+    }
 
     std::string toString() const {
         return tfm::format(
@@ -275,14 +293,13 @@ public:
             m_alpha,
             internIOR.toString(),
             K.toString(),
-            m_extIOR,
-            m_kd.toString()
+            m_extIOR
             );
     }
 private:
     float m_alpha, roughness;
     Color3f internIOR, K, m_extIOR;
-    Color3f m_kd;
+    Texture *m_kd;
 };
 
 NORI_REGISTER_CLASS(GGX, "GGX");

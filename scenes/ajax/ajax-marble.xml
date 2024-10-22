@@ -2,7 +2,6 @@
 	<!-- Independent sample generator, 64 samples per pixel -->
 	<sampler type="independent">
 		<integer name="sampleCount" value="128"/>
-		<integer name="nPasses" value="8"/>
 	</sampler>
 
 	<!-- Use the simple point light integrator -->
@@ -12,11 +11,9 @@
 	<mesh type="obj">
 		<string name="filename" value="ajax.obj"/>
 
-		<bsdf type="subsurfaceDisney">   <!-- Skin properties -->
-			<color name="sigmaA" value="0.032 0.17 0.48"/>
-			<color name="sigmaS" value="0.74 0.88 1.01"/>
-			<float name="eta" value="1.3"/>
-			<color name="albedo" value="1 0.674 0.372"/>
+		<bsdf type="subsurfaceDisney">   <!-- Marble properties -->
+			<color name="ld" value="2.19 2.62 3.00"/>
+			<float name="eta" value="1.5"/>
 		</bsdf>
 	</mesh>
 

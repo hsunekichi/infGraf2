@@ -23,12 +23,6 @@ public:
                 PathState &state) const
     {   
         const BSDF *bsdf = state.intersection.mesh->getBSDF();
-        
-        if (bsdf->isSubsurfaceScattering())
-        {
-            int a;
-            a = 0;
-        }
 
         auto query = Pth::initBSDFQuery(scene, state);
         Color3f fp = bsdf->samplePoint(query, sampler);
@@ -98,9 +92,7 @@ public:
         while (state.scatteringFactor != Color3f(0.0f) && state.depth < 100000)
         {
             /* Find the surface that is visible in the requested direction */
-            if ((state.intersectionComputed && !state.intersected)
-                ||
-                (!state.intersectionComputed && !scene->rayIntersect(state.ray, state.intersection)))
+            if (!scene->rayIntersect(state.ray, state.intersection))
             {
                 // Render emitter
                 EmitterQueryRecord emitterQuery(-state.ray.d, ESolidAngle);
@@ -112,8 +104,6 @@ public:
                 return;
             }
            
-            state.intersectionComputed = false;
-
             if (state.depth > 3)
             {
                 // Apply roussian roulette

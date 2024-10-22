@@ -103,16 +103,12 @@ public:
         while (state.scatteringFactor != Color3f(0.0f))
         {
             /* Find the surface that is visible in the requested direction */
-            if ((state.intersectionComputed && !state.intersected)
-                ||
-                (!state.intersectionComputed && !scene->rayIntersect(state.ray, state.intersection)))
+            if (!scene->rayIntersect(state.ray, state.intersection))
             {
                 state.scatteringFactor = Color3f(0.0f);
                 return;
             }
            
-            state.intersectionComputed = false;
-
             if (state.depth > 3)
             {
                 // Apply roussian roulette

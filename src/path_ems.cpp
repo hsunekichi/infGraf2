@@ -34,25 +34,10 @@ public:
 
 
         // Sample the BSDF
-        float bsdfPdf;
-        Color3f f = Pth::sampleBSDF(state, sampler, query, bsdfPdf);   
+        Color3f f = Pth::sampleBSDF(state, sampler, query, state.bsdfPdf);   
+        
         state.scatteringFactor *= f;
-
-
-        Point3f surfaceP = state.intersection.p;
-        state.intersected = scene->rayIntersect(state.ray, state.intersection);
-        state.intersectionComputed = true;
-
-        if (state.intersected && state.intersection.mesh->isEmitter())
-        {
-            const Emitter *emitter = state.intersection.mesh->getEmitter();
-
-            EmitterQueryRecord emitterQuery(surfaceP, state.intersection.p, state.intersection.vtoLocal(-state.ray.d), EMeasure::EDiscrete);
-            state.radiance += state.scatteringFactor * emitter->eval(emitterQuery) * 0.5f;
-            
-            // Terminate the path
-            state.scatteringFactor = Color3f(0.0f);
-        }
+        state.previous_diffuse = true;
     }
 
     void integrateSpecular(const Scene *scene, 
@@ -68,6 +53,7 @@ public:
         float bsdfPdf;
         Color3f f = Pth::sampleBSDF(state, sampler, query, bsdfPdf);   
         state.scatteringFactor *= (f * fp);
+        state.previous_diffuse = false;
     }
 
     void integrateEmitter(const Scene *scene, 
@@ -79,7 +65,9 @@ public:
 
         EmitterQueryRecord emitterQuery (state.intersection.vtoLocal(-state.ray.d), EMeasure::EDiscrete);
         emitterQuery.lightP = state.intersection.p;
-        state.radiance += state.scatteringFactor * emitter->eval(emitterQuery);
+
+        float weight = state.previous_diffuse ? 0.5f : 1.0f;
+        state.radiance += state.scatteringFactor * emitter->eval(emitterQuery) * weight;
 
         // Terminate the path
         state.scatteringFactor = Color3f(0.0f);
@@ -113,10 +101,7 @@ public:
     {
         while (state.scatteringFactor != Color3f(0.0f))
         {
-            /* Find the surface that is visible in the requested direction */
-            if ((state.intersectionComputed && !state.intersected)
-                ||
-                (!state.intersectionComputed && !scene->rayIntersect(state.ray, state.intersection)))
+            if (!scene->rayIntersect(state.ray, state.intersection))
             {
                 // Render emitter
                 EmitterQueryRecord emitterQuery(-state.ray.d, ESolidAngle);
@@ -124,11 +109,10 @@ public:
 
                 if (scene->getEnvironmentalEmitter() != nullptr)
                     state.radiance += scene->getEnvironmentalEmitter()->eval(emitterQuery)*state.scatteringFactor;
+                
                 state.scatteringFactor = Color3f(0.0f);
                 return;
             }
-           
-            state.intersectionComputed = false;
 
             if (state.depth > 3)
             {

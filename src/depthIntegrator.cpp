@@ -23,7 +23,15 @@ public:
         if (!scene->rayIntersect(ray, intersection))
             return Color3f(0.0f);
 
-        float depth = intersection.t;
+        //float depth = intersection.t;
+        //float depth = (intersection.p - ray.o).norm();
+        
+        Point3f p = intersection.p;
+        Point3f o = ray.o;
+        Vector3f v = p - o;
+
+        float depth = std::sqrt(v.x() * v.x() + v.y() * v.y() + v.z() * v.z());
+
 
         return Color3f(1 / depth);
     }

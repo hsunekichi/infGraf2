@@ -14,7 +14,7 @@
 		<bsdf type="GGX">
             <color name="internIOR" value="0.27105 0.67693 1.3164"/>
 			<color name="K" value="3.6092 2.6247 2.2921"/>
-            <color name="kd" value="0.9921 0.9647 0.549"/>
+            <color name="albedo" value="0.9921 0.9647 0.549"/>
             <float name="roughness" value="0.5"/>
 		</bsdf>
 	</mesh>
