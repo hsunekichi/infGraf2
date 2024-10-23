@@ -50,12 +50,6 @@ static void renderBlock(const Scene *scene, Sampler *sampler, ImageBlock &block)
     {
         for (int x=0; x<size.x(); ++x) 
         {
-            if (y == 265 && x == 557)
-            {
-                int a = 0;
-                a++;
-            }
-
             for (uint32_t i=0; i<sampler->getSampleCount(); ++i) 
             {
                 Point2f pixelSample = Point2f((float) (x + offset.x()), (float) (y + offset.y())) + sampler->next2D();

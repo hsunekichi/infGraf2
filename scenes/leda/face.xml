@@ -2,7 +2,7 @@
 <scene>
 	<integrator type="path_mis"/>
 	<sampler type="independent">
-		<integer name="sampleCount" value="4"/>
+		<integer name="sampleCount" value="8"/>
 		<integer name="nPasses" value="16"/>
 	</sampler>
 	<camera type="perspective">
@@ -98,6 +98,20 @@
 		<string name="filename" value="meshes/option1_hair_bangs_Hair.obj"/>
 		<bsdf type="orenNayar">
 			<color name="albedo" value="251,231,161"/>
+		</bsdf>
+	</mesh>
+	<mesh type="obj">
+		<string name="filename" value="meshes/option1_hair_eyebrows_EyebrowsHair.obj"/>
+		<bsdf type="GGX">
+			<color name="albedo" value="0.229838,0.134117,0.088607"/>
+			<float name="roughness" value="0.500000"/>
+		</bsdf>
+	</mesh>
+	<mesh type="obj">
+		<string name="filename" value="meshes/eyelasesHair_eyelashesHair.obj"/>
+		<bsdf type="GGX">
+			<color name="albedo" value="0.076467,0.066887,0.042512"/>
+			<float name="roughness" value="0.500000"/>
 		</bsdf>
 	</mesh>
 </scene>
