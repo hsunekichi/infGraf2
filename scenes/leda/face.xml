@@ -22,7 +22,7 @@
 			<color name="albedo" value="0.800000,0.800000,0.800000"/>
 		</bsdf>
 		<emitter type="area">
-			<color name="radiance" value="5.000000,5.000000,5.000000"/>
+			<color name="radiance" value="10.000000,10.000000,10.000000"/>
 		</emitter>
 	</mesh>
 	<mesh type="obj">
@@ -31,7 +31,7 @@
 			<color name="albedo" value="0.800000,0.800000,0.800000"/>
 		</bsdf>
 		<emitter type="area">
-			<color name="radiance" value="3,3,3"/>
+			<color name="radiance" value="8.000000,8.000000,8.000000"/>
 		</emitter>
 	</mesh>
 	<mesh type="obj">
@@ -86,6 +86,18 @@
 				<color name="kd" value="1 1 1"/>
 				<float name="roughness" value="0.05"/>
 			</bsdf>
+		</bsdf>
+	</mesh>
+	<mesh type="obj">
+		<string name="filename" value="meshes/option1_hair_Hair.obj"/>
+		<bsdf type="orenNayar">
+			<color name="albedo" value="251,231,161"/>
+		</bsdf>
+	</mesh>
+	<mesh type="obj">
+		<string name="filename" value="meshes/option1_hair_bangs_Hair.obj"/>
+		<bsdf type="orenNayar">
+			<color name="albedo" value="251,231,161"/>
 		</bsdf>
 	</mesh>
 </scene>
