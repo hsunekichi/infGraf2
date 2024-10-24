@@ -67,8 +67,8 @@ public:
     Color3f Rdisney(float scatterDistance) const
     {
         Color3f a = Color3f(1, 0.674, 0.372);
-        Color3f a2 = a * a;
-        Color3f a3 = a2 * a;
+        //Color3f a2 = a * a;
+        //Color3f a3 = a2 * a;
 
         //Color3f alpha = Color3f(1.0f) - Math::exp(-5.09406f * a + 2.61188f * a2 - 4.31805f * a3);
         Color3f s = Color3f(1.9f) - a + 3.5f * (a - Color3f(0.8f)) * (a - Color3f(0.8f));
@@ -83,8 +83,8 @@ public:
         // Avoid the singularity at r = 0
         r = Math::max(r, 1e-6f);
 
-        Color3f s = scalingFactor(uv);
-        Color3f d = ld / s;
+        //Color3f s = scalingFactor(uv);
+        Color3f d = ld;
 
         Color3f num1 = Math::exp(-r/d);
         Color3f num2 = Math::exp(-r / (3.0f*d));
@@ -105,6 +105,7 @@ public:
     }
 
     // Sr CDF^-1
+    /*
     float sampleSrAnalitic(float rnd, int channel, Point2f uv, float &pdfInv) const
     {        
         float rcpS = 1 / scalingFactor(uv)[channel];
@@ -123,6 +124,7 @@ public:
 
         return r;
     }
+    */
 
     float sampleSr(float rnd, int channel, Point2f uv, float &pdfInv) const
     {
@@ -138,8 +140,8 @@ public:
         float r = Math::lerp(r1, r2, (rnd - x1) / (x2 - x1));
         
         //Color3f R = dipoleDiffusionAproximation(r);
-        Color3f s = scalingFactor(uv);
-        Color3f d = ld / s;
+        //Color3f s = scalingFactor(uv);
+        Color3f d = ld;
         r *= d[channel];
         
         return r * scale; // Convert to meters
@@ -319,10 +321,10 @@ public:
     Color3f sample(BSDFQueryRecord &bRec, Sampler *sampler) const
     {
         bRec.measure = ESolidAngle;
-        float pdf;
+        //float pdf;
 
         bRec.wo = Warp::squareToCosineHemisphere(sampler->next2D());
-        pdf = Warp::squareToCosineHemispherePdf(bRec.wo);
+        //pdf = Warp::squareToCosineHemispherePdf(bRec.wo);
 
         Color3f f = eval(bRec) * Frame::cosTheta(bRec.wo);
         bRec.isCameraRay = false;
@@ -337,7 +339,7 @@ public:
 
     void precomputeSrCdfInverse()
     {
-        size_t steps = 1024;
+        size_t steps = 2024;
         float x0 = 0.0f;
 
         SrCdfInverse.resize(steps+1);
