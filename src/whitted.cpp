@@ -69,7 +69,9 @@ public:
         auto query = Pth::initBSDFQuery(scene, state);
         Color3f fp = bsdf->samplePoint(query, sampler);
 
-        return fp * Pth::nextEventEstimation(scene, sampler, state, query);
+        float lightPdf, bsdfPdf;
+        Color3f result = fp * Pth::nextEventEstimation(scene, sampler, state, query, lightPdf, bsdfPdf);
+        return result;
     }
 
     Color3f integrateSubsurface(const Scene *scene, 
@@ -106,11 +108,9 @@ public:
 
         /* Find the surface that is visible in the requested direction */
         if (!scene->rayIntersect(ray, its)){
-            // Render emitter
-            EmitterQueryRecord emitterQuery(-ray.d, EDiscrete);
-            emitterQuery.lightP = ray.d*1e15;
-
             if (scene->getEnvironmentalEmitter() != nullptr){
+                EmitterQueryRecord emitterQuery(-ray.d, EDiscrete);
+                emitterQuery.lightP = ray.d*1e15;
                 radiance += scene->getEnvironmentalEmitter()->eval(emitterQuery);
                 return radiance;
             }else{

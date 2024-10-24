@@ -94,12 +94,11 @@ public:
             /* Find the surface that is visible in the requested direction */
             if (!scene->rayIntersect(state.ray, state.intersection))
             {
-                // Render emitter
-                EmitterQueryRecord emitterQuery(-state.ray.d, ESolidAngle);
-                emitterQuery.lightP = state.ray.d*1e15;
-
-                if (scene->getEnvironmentalEmitter() != nullptr)
+                if (scene->getEnvironmentalEmitter() != nullptr && state.depth < 2){
+                    EmitterQueryRecord emitterQuery (-state.ray.d, EMeasure::EDiscrete);
+                    emitterQuery.lightP = state.ray.d*1e15;
                     state.radiance += scene->getEnvironmentalEmitter()->eval(emitterQuery)*state.scatteringFactor;
+                }
                 state.scatteringFactor = Color3f(0.0f);
                 return;
             }
