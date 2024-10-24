@@ -95,4 +95,3 @@
 				<float name="roughness" value="0.3"/>
 			</bsdf>
 		</bsdf>
-	</mesh>

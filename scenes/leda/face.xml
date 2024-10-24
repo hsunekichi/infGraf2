@@ -6,14 +6,14 @@
 		<integer name="nPasses" value="16"/>
 	</sampler>
 	<camera type="perspective">
-		<float name="fov" value="28.841546110078532"/>
+		<float name="fov" value="34.48291694938847"/>
 		<float name="nearClip" value="0.10000000149011612"/>
 		<float name="farClip" value="1000.0"/>
-		<integer name="width" value="720"/>
-		<integer name="height" value="920"/>
+		<integer name="width" value="1028"/>
+		<integer name="height" value="982"/>
 		<transform name="toWorld">
-			<scale value="-1.000000 1.000000 -1.000000"/>
-			<matrix value="1.0,0.0,0.0,0.041882067918777466,0.0,-0.06092175468802452,-0.9981425404548645,-1.5589171648025513,0.0,0.9981425404548645,-0.06092175468802452,4.579587936401367,0.0,0.0,0.0,1.0"/>
+		<scale value="-1.000000 1.000000 -1.000000"/>
+		<matrix value="1.0,0.0,0.0,0.02248191088438034,0.0,-0.010553327389061451,-0.9999443292617798,-2.5794408321380615,0.0,0.9999443292617798,-0.010553327389061451,4.380149841308594,0.0,0.0,0.0,1.0"/>
 		</transform>
 	</camera>
 	<mesh type="obj">
