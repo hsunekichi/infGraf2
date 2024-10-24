@@ -233,7 +233,12 @@ class Math
     inline static float powerHeuristic(int nf, float fPdf, int ng, float gPdf) 
     {
         float f = nf * fPdf, g = ng * gPdf;
-        return (f * f) / (f * f + g * g);
+        float term1 = (f * f);
+        float term2 = (f * f + g * g);
+        if (term2 > 1e-6)
+            return term1 / term2;
+        else
+            return 0;
     }
 
     inline static bool isNaN(float v) 

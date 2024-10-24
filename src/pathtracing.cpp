@@ -18,6 +18,7 @@ Color3f sampleRandomEmitter(const Scene *scene, Sampler *sampler,
             const Point3f &surfaceP,
             Emitter *&emitterMesh,
             Point3f &lightP,
+            const Point3f &normal,
             float &lightPdf)
 {
     // Sample a random emitter
@@ -31,6 +32,9 @@ Color3f sampleRandomEmitter(const Scene *scene, Sampler *sampler,
     // Sample a point on the emitter
     EmitterQueryRecord emitterQuery (ESolidAngle);
     emitterQuery.surfaceP = surfaceP;
+
+    if (emitterMesh->getEmitterType() == EmitterType::EMITTER_ENVIRONMENT)
+        emitterQuery.n = normal;
     Color3f Le = emitterMesh->sampleLi(sampler, emitterQuery) / randomLightPdf;
     
     lightP = emitterQuery.lightP;
@@ -92,11 +96,12 @@ Color3f Pth::nextEventEstimation(const Scene *scene,
                 float &lightPdf, float &bsdfPdf)
 {
     Point3f lightP;
+    Point3f normal = state.intersection.shFrame.n;
     Emitter *emitterMesh = nullptr;
 
     // Sample a point on a random emitter
     Color3f Le = sampleRandomEmitter(scene, sampler, bsdfQuery.po, 
-            emitterMesh, lightP, lightPdf);
+            emitterMesh, lightP, normal, lightPdf);
     
     if (Le == Color3f(0.0f))
         return Color3f(0.0f);
@@ -119,10 +124,17 @@ Color3f Pth::nextEventEstimation(const Scene *scene,
         // Compute the geometric term
         float cosThetaP = Math::absCosTheta(l_wo);
         float G = cosThetaP / g_wo.squaredNorm();
+        
 
         if (emitterMesh->getEmitterType() == EmitterType::EMITTER_ENVIRONMENT)
         {
-            return Le*f *cosThetaP;
+            if (scene->getIntegrator()->toString() == "Whitted[]")
+            {
+                return Le * f * cosThetaP;
+            }else{
+                return Le * f * cosThetaP * bsdfPdf;
+            }
+            
         }else
         {
             return Le * f * G;
