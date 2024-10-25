@@ -123,7 +123,8 @@ public:
     }
 
     // Method to compute godrays based on the light source and scattering parameters
-    Color3f computeGodrays(const Scene *scene, Sampler *sampler, const Ray3f &ray, const Intersection &its) const {
+    Color3f computeGodrays(const Scene *scene, Sampler *sampler, const Ray3f &ray, const Intersection &its, bool &atmos) const {
+        atmos = false;
         if (sigma_s==0 || helios_coeff==0)
             return 0.0f;
         Color3f radiance(0.0f);
@@ -132,21 +133,27 @@ public:
         float transmittance = std::exp(-sigma_t * its.t);
 
         // Dispersión volumétrica
-        return transmittance * computeInScattering(scene, sampler, ray, its, sigma_s, g) * helios_coeff;
+        return computeInScattering(scene, sampler, ray, its, atmos) * helios_coeff;
     }
 
-    Color3f computeInScattering(const Scene *scene, Sampler *sampler, const Ray3f &ray, const Intersection &its, float sigma_s, float g) const {
+    Color3f computeInScattering(const Scene *scene, Sampler *sampler, const Ray3f &ray, const Intersection &its, bool &atmos) const {
         Color3f inScatter(0.0f);
-        int numSamples_dist = 2; // Controla el número de distancias muestreadas
-        int numSamples_dir = 2;  // Controla el número de direcciones muestreadas
+        int numSamples_dist = 1; // Controla el número de distancias muestreadas
+        int numSamples_dir = 4;  // Controla el número de direcciones muestreadas
         float distanceToLight = its.t; // Distancia a la luz
         float stepSize = distanceToLight / numSamples_dist; // Tamaño del paso de integración
         float phaseFunctionNormalization = 1.0f / (4 * M_PI);
 
 
         for (float d = 0.0f; d < distanceToLight; d += stepSize) {
-            Vector3f point = its.p + ray.d * d;
+            // d = sampler->next1D() * distanceToLight; // random distance
+            d = Math::abs(std::log(1 - sampler->next1D()) / sigma_t); // random distance
+            // cerr << "its.t: " << its.t << " --- atmos.t: " << d << endl; 
+            if(its.t < d)
+                return Color3f(0.0f);
+            atmos = true;
             Color3f radiance(0.0f);
+            Vector3f point = ray.o + ray.d * d;
 
             for (int i = 0; i < numSamples_dir; ++i) {
                 // Muestreo aleatorio de una dirección en la esfera
@@ -161,21 +168,32 @@ public:
                 
                 PathState state;
                 state.intersection = its;
+                state.intersection.p = point;
                 state.ray = inRay;
-                auto query = Pth::initBSDFQuery(scene, state);
+                // auto query = Pth::initBSDFQuery(scene, state);
+                
+                // Color3f directLight = integrateDiffuse(scene, sampler, inRay, state.intersection);
                 // Color3f directLight = Pth::nextEventEstimation(scene, sampler, state, query); // Luz directa en esa dirección
                 Color3f directLight = Li(scene, sampler, inRay, 0, false); // Radiancia entrante
-                // if (directLight.maxCoeff()>0)
-                // {
-                //     cerr << "directlight: " << directLight.toString() << endl;
-                // }
-                
                 radiance += phaseFunction * directLight;
+
+                state.intersection.shFrame.o = point;
+                state.intersection.shFrame.n = state.ray.d;
+                state.intersection.shFrame.t = d;
+
+                auto query = Pth::initBSDFQuery(scene, state);
+
+                query.po = query.pi;
+                query.fro = query.fri;
+
+                Color3f directLight2 =  Pth::nextEventEstimation(scene, sampler, state, query);
+                // Color3f directLight2 = integrateDiffuse(scene, sampler, inRay, state.intersection);
+                radiance += phaseFunction * directLight2;
             }
             inScatter += radiance / numSamples_dist;
         }
 
-        return sigma_s * inScatter / numSamples_dist;  // Promediamos el muestreo Monte Carlo
+        return sigma_s * inScatter / numSamples_dist; 
     }
 
 
@@ -202,11 +220,13 @@ public:
 
         }
 
-        if (godrays && atmos_scatter(sampler, its.t))
+        if (godrays)
         {
-            Color3f godrays_radiance = computeGodrays(scene, sampler, ray, its);
+            bool atmos;
+            Color3f godrays_radiance = computeGodrays(scene, sampler, ray, its, atmos);
             // cerr << "godrays_radiance: " << godrays_radiance.toString() << endl;
-            return godrays_radiance;
+            if (atmos)
+                return godrays_radiance;
         }
 
         Pth::IntegrationType type = Pth::getIntegrationType(its);        
@@ -238,7 +258,7 @@ public:
                 break;
         }
 
-        return radiance;
+        return radiance * std::exp(-sigma_t * its.t);
     }
 
     Color3f Li(const Scene *scene, Sampler *sampler, const Ray3f &ray) const 
