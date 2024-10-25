@@ -25,6 +25,7 @@ class Math
     inline static float dot(const Normal3f &a, const Vector3f &b) { return a.dot(b); }
 
     inline static float clamp(float v, float min, float max) { return std::max(min, std::min(max, v)); }
+    inline static Color3f clamp(const Color3f &v, float min, float max) { return Color3f(clamp(v.x(), min, max), clamp(v.y(), min, max), clamp(v.z(), min, max)); }
 
     inline static float toRadians(float degrees) { return degrees * PI / 180.0f; }
     inline static float toDegrees(float radians) { return radians * 180.0f / PI; }

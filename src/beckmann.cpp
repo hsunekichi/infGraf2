@@ -19,7 +19,7 @@ public:
         m_alpha = propList.getFloat("alpha", 0.1f);
 
         float roughness = propList.getFloat("roughness", -1.0f);
-        if (roughness > 0.0f)
+        if (roughness >= 0.0f)
             m_alpha = roughness * roughness;
 
         /* Interior IOR (default: BK7 borosilicate optical glass) */

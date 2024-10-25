@@ -87,7 +87,7 @@ public:
     /// Evaluate the BRDF model
     Color3f eval(const BSDFQueryRecord &bRec) const 
     {
-        return m_weights[bRec.agregate_id] * m_bsdfs[bRec.agregate_id]->eval(bRec);
+        return m_bsdfs[bRec.agregate_id]->eval(bRec); // * m_weights[bRec.agregate_id]
     }
 
     /// Compute the density of \ref sample() wrt. solid angles

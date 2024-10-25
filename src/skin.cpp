@@ -66,18 +66,31 @@ public:
     }
 
     /// Evaluate the BRDF model
-    Color3f eval(const BSDFQueryRecord &bRec) const 
+    Color3f evalIntegrated(const BSDFQueryRecord &bRec) const 
     {
-        float w = 0.0f;
+        float w = 1.0f;
 
         if (bRec.agregate_id == 0)
-            w = ws;
-        else if (bRec.agregate_id == 1)
-            w = w1;
-        else if (bRec.agregate_id == 2)
-            w = w2;
+            w = ws; 
 
         return m_bsdfs[bRec.agregate_id]->eval(bRec) * w;
+    }
+
+    Color3f eval(const BSDFQueryRecord &bRec) const 
+    {
+        if (bRec.agregate_id > 0) {
+            return m_bsdfs[bRec.agregate_id]->eval(bRec);
+        }
+        else
+        {
+            Color3f _w1 = m_bsdfs[1]->eval(bRec).getLuminance();
+            Color3f _w2 = m_bsdfs[2]->eval(bRec).getLuminance();
+
+            Color3f w = 1.0f - _w1 * (1.0f - _w2);
+            w = Math::clamp(w, 0.0f, 1.0f);
+
+            return m_bsdfs[0]->eval(bRec) * w;
+        }
     }
 
     /// Compute the density of \ref sample() wrt. solid angles
