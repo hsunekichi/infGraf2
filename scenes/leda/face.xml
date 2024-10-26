@@ -91,8 +91,8 @@
 	<mesh type="obj">
 		<string name="filename" value="meshes/option1_hair_Hair.obj"/>
 		<bsdf type="agregate">
-			<float name="w1" value="0"/>
-			<float name="w2" value="1"/>
+			<float name="w1" value="0.25"/>
+			<float name="w2" value="0.75"/>
 
 			<bsdf type="normalizedDiffusion">
 				<color name="ld" value="4 3.6 2.5"/>
@@ -109,8 +109,8 @@
 	<mesh type="obj">
 		<string name="filename" value="meshes/option1_hair_bangs_Hair.obj"/>
 		<bsdf type="agregate">
-			<float name="w1" value="0"/>
-			<float name="w2" value="1"/>
+			<float name="w1" value="0.25"/>
+			<float name="w2" value="0.75"/>
 
 			<bsdf type="normalizedDiffusion">
 				<color name="ld" value="4 3.6 2.5"/>
