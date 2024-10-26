@@ -78,8 +78,11 @@ public:
 
     Color3f eval(const BSDFQueryRecord &bRec) const 
     {
-        if (bRec.agregate_id > 0) {
-            return m_bsdfs[bRec.agregate_id]->eval(bRec);
+        if (bRec.agregate_id == 1) {
+            return m_bsdfs[bRec.agregate_id]->eval(bRec) * w1;
+        }
+        else if (bRec.agregate_id == 2) {
+            return m_bsdfs[bRec.agregate_id]->eval(bRec) * w2;
         }
         else
         {
