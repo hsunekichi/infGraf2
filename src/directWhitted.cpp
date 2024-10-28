@@ -32,7 +32,6 @@ public:
         if (fp == Color3f(0.0f))
             return Color3f(0.0f);
 
-        float pdf;
         Color3f incoming = fp * Pth::nextEventEstimation(scene, sampler, state, bsdfQuery);
         return incoming;
     }
