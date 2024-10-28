@@ -50,7 +50,7 @@
 			</bsdf>
 		</bsdf>
 
-		<bsdf type="agregate">
+		<bsdf type="agregate">  <!-- Hair -->
 			<float name="w1" value="0.25"/>
 			<float name="w2" value="0.75"/>
 
@@ -82,4 +82,11 @@
 			<bsdf type="mirror">
 				<color name="reflectance" value="1,1,1"/>
 			</bsdf>
+		</bsdf>
+
+		<bsdf type="GGX"> <!-- Gold -->
+			<color name="albedo" value="1.000000,0.813538,0.398509"/>
+			<float name="roughness" value="0.500000"/>
+			<color name="internIOR" value="0.27105,0.67693,1.3164"/>
+			<color name="K" value="3.6092,2.6247,2.2921"/>
 		</bsdf>

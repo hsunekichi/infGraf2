@@ -2,8 +2,8 @@
 <scene>
 	<integrator type="path_mis"/>
 	<sampler type="independent">
-		<integer name="sampleCount" value="32"/>
-		<integer name="nPasses" value="32"/>
+		<integer name="sampleCount" value="8"/>
+		<integer name="nPasses" value="8"/>
 	</sampler>
 	<camera type="perspective">
 		<float name="fov" value="20.0"/>
@@ -16,6 +16,7 @@
 			<matrix value="1.0,0.0,0.0,-0.007641970179975033,0.0,-0.010553327389061451,-0.9999443292617798,-5.907078266143799,0.0,0.9999443292617798,-0.010553327389061451,3.7835710048675537,0.0,0.0,0.0,1.0"/>
 		</transform>
 	</camera>
+	<!--
 	<mesh type="obj">
 		<string name="filename" value="meshes/option1_hand_left_Iron.obj"/>
 		<bsdf type="GGX">
@@ -68,7 +69,7 @@
 	</mesh>
 	<mesh type="obj">
 		<string name="filename" value="meshes/option1_hair_Hair.obj"/>
-		<bsdf type="agregate">  <!-- Hair -->
+		<bsdf type="agregate"> 
 			<float name="w1" value="0.25"/>
 			<float name="w2" value="0.75"/>
 
@@ -87,7 +88,7 @@
 	<mesh type="obj">
 		<string name="filename" value="meshes/option1_head_Skin.obj"/>
 		<bsdf type="skin">
-			<bsdf type="normalizedDiffusion">   <!-- Skin properties -->
+			<bsdf type="normalizedDiffusion"> 
 				<color name="ld" value="2.8 2.4 2.3"/>
 				<float name="eta" value="1.3"/>
 				<texture type="textmap" name="albedo">
@@ -97,12 +98,12 @@
 					<string name="projection" value="FLAT"/>
 				</texture>
 			</bsdf>
-			<bsdf type="beckmann"> <!-- Skin specular part -->
+			<bsdf type="beckmann">
 				<color name="internIOR" value="1.51 1.51 1.51"/>
 				<color name="albedo" value="1 1 1"/>
 				<float name="roughness" value="0.2"/>
 			</bsdf>
-			<bsdf type="beckmann"> <!-- Skin sheen part -->
+			<bsdf type="beckmann"> 
 				<color name="internIOR" value="1.51 1.51 1.51"/>
 				<color name="albedo" value="1 1 1"/>
 				<float name="roughness" value="0.05"/>
@@ -111,7 +112,7 @@
 	</mesh>
 	<mesh type="obj">
 		<string name="filename" value="meshes/option1_hair_eyebrows_EyebrowsHair.obj"/>
-		<bsdf type="agregate">  <!-- Hair -->
+		<bsdf type="agregate"> 
 			<float name="w1" value="0.25"/>
 			<float name="w2" value="0.75"/>
 
@@ -129,7 +130,7 @@
 	</mesh>
 	<mesh type="obj">
 		<string name="filename" value="meshes/eyelasesHair_eyelashesHair.obj"/>
-		<bsdf type="agregate">  <!-- Hair -->
+		<bsdf type="agregate">
 			<float name="w1" value="0.25"/>
 			<float name="w2" value="0.75"/>
 
@@ -147,7 +148,7 @@
 	</mesh>
 	<mesh type="obj">
 		<string name="filename" value="meshes/option1_eyes_Eyes.obj"/>
-		<bsdf type="agregate"> <!-- Eyes BSDF -->
+		<bsdf type="agregate"> 
 			<float name="w1" value="0.875"/>
 			<float name="w2" value="0.125"/>
 
@@ -165,6 +166,7 @@
 			</bsdf>
 		</bsdf>
 	</mesh>
+	-->
 	<mesh type="obj">
 		<string name="filename" value="meshes/Plane.002_Material.002.obj"/>
 		<bsdf type="diffuse">
@@ -192,6 +194,7 @@
 			<color name="radiance" value="10.000000,10.000000,10.000000"/>
 		</emitter>
 	</mesh>
+	<!--
 	<mesh type="obj">
 		<string name="filename" value="meshes/skirt_1_white_fabric.obj"/>
 		<bsdf type="orenNayar">
@@ -320,6 +323,7 @@
 			<color name="K" value="3.17,2.81,3.27"/>
 		</bsdf>
 	</mesh>
+	-->
 	<mesh type="obj">
 		<string name="filename" value="meshes/coat_1_white_fabric.obj"/>
 		<bsdf type="orenNayar">
@@ -361,6 +365,7 @@
 			<color name="K" value="3.17,2.81,3.27"/>
 		</bsdf>
 	</mesh>
+	<!--
 	<mesh type="obj">
 		<string name="filename" value="meshes/coat_2_white_fabric.obj"/>
 		<bsdf type="orenNayar">
@@ -505,6 +510,7 @@
 			<float name="roughness" value="0.000000"/>
 		</bsdf>
 	</mesh>
+	-->
 	<mesh type="obj">
 		<string name="filename" value="meshes/sword_lower_Steel.obj"/>
 		<bsdf type="GGX">
@@ -541,6 +547,7 @@
 			<color name="K" value="3.6092,2.6247,2.2921"/>
 		</bsdf>
 	</mesh>
+	<!--
 	<mesh type="obj">
 		<string name="filename" value="meshes/torso_lower_Iron.obj"/>
 		<bsdf type="GGX">
@@ -584,6 +591,7 @@
 			<float name="roughness" value="0.550459"/>
 		</bsdf>
 	</mesh>
+	-->
 	<mesh type="obj">
 		<string name="filename" value="meshes/Cube_Wall.obj"/>
 		<bsdf type="diffuse">
