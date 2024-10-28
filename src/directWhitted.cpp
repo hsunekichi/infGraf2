@@ -24,8 +24,16 @@ public:
         state.ray = ray;
         state.intersection = intersection;
 
-        BSDFQueryRecord bsdfQuery;
-        Color3f incoming = Pth::nextEventEstimation(scene, sampler, state, bsdfQuery);
+        const BSDF *bsdf = state.intersection.mesh->getBSDF();
+        
+        auto bsdfQuery = Pth::initBSDFQuery(scene, state);
+        Color3f fp = bsdf->samplePoint(bsdfQuery, sampler);
+
+        if (fp == Color3f(0.0f))
+            return Color3f(0.0f);
+
+        float pdf;
+        Color3f incoming = fp * Pth::nextEventEstimation(scene, sampler, state, bsdfQuery);
         return incoming;
     }
 
