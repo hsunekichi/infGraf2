@@ -61,6 +61,8 @@
 #define LOG2_E       1.44269504088896340736f
 constexpr float ONE_MINUS_EPSILON = 1 - Epsilon;
 
+#define BLACK Color3f(0.0f)
+
 /* Forward declarations */
 namespace filesystem {
     class path;

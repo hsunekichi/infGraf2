@@ -86,8 +86,8 @@ public:
         }
         else
         {
-            Color3f _w1 = m_bsdfs[1]->eval(bRec).getLuminance();
-            Color3f _w2 = m_bsdfs[2]->eval(bRec).getLuminance();
+            Color3f _w1 = m_bsdfs[1]->eval(bRec);
+            Color3f _w2 = m_bsdfs[2]->eval(bRec);
 
             Color3f w = 1.0f - _w1 * (1.0f - _w2);
             w = Math::clamp(w, 0.0f, 1.0f);

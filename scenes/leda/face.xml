@@ -2,8 +2,8 @@
 <scene>
 	<integrator type="path_mis"/>
 	<sampler type="independent">
-		<integer name="sampleCount" value="32"/>
-		<integer name="nPasses" value="32"/>
+		<integer name="sampleCount" value="16"/>
+		<integer name="nPasses" value="16"/>
 	</sampler>
 	<camera type="perspective">
 		<float name="fov" value="30.0"/>
@@ -67,7 +67,7 @@
 		<string name="filename" value="meshes/option1_head_Skin.obj"/>
 		<bsdf type="skin">
 			<bsdf type="normalizedDiffusion">   <!-- Skin properties -->
-				<color name="ld" value="1.2 1.0 0.9"/>
+				<color name="ld" value="2 1.8 1.7"/>
 				<float name="eta" value="1.3"/>
 				<texture type="textmap" name="albedo">
 					<string name="filename" value="Head.bmp"/>
@@ -88,6 +88,7 @@
 			</bsdf>
 		</bsdf>
 	</mesh>
+	<!--
 	<mesh type="obj">
 		<string name="filename" value="meshes/option1_hair_Hair.obj"/>
 		<bsdf type="agregate">
@@ -124,6 +125,7 @@
 			</bsdf>
 		</bsdf>
 	</mesh>
+	-->
 	<mesh type="obj">
 		<string name="filename" value="meshes/option1_hair_eyebrows_EyebrowsHair.obj"/>
 		<bsdf type="orenNayar">
