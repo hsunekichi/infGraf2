@@ -3,14 +3,14 @@
 	<integrator type="path_mis"/>
 	<sampler type="independent">
 		<integer name="sampleCount" value="64"/>
-		<integer name="nPasses" value="32"/>
+		<integer name="nPasses" value="16"/>
 	</sampler>
 	<camera type="perspective">
 		<float name="fov" value="20.0"/>
 		<float name="nearClip" value="0.10000000149011612"/>
 		<float name="farClip" value="1000.0"/>
-		<integer name="width" value="793"/>
-		<integer name="height" value="982"/>
+		<integer name="width" value="2379"/>
+		<integer name="height" value="2946"/>
 		<transform name="toWorld">
 			<scale value="-1.000000 1.000000 -1.000000"/>
 			<matrix value="1.0,0.0,0.0,-0.007641970179975033,0.0,-0.010553327389061451,-0.9999443292617798,-5.907078266143799,0.0,0.9999443292617798,-0.010553327389061451,3.7835710048675537,0.0,0.0,0.0,1.0"/>

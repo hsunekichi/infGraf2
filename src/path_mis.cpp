@@ -73,6 +73,7 @@ public:
         float bsdfPdf;
         Color3f f = Pth::sampleBSDF(state, sampler, query, bsdfPdf);   
         state.scatteringFactor *= (f * fp);
+        state.previous_diffuse = false;
     }
 
     void integrateEmitter(const Scene *scene, 
