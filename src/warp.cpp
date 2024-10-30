@@ -107,7 +107,7 @@ Point2f Warp::squareToUniformTriangle(const Point2f &sample)
 
 float Warp::squareToUniformTrianglePdf(const Point2f &p) 
 {
-    return (p.x() >= 0.0f && p.x() <= 1.0f && p.y() >= 0.0f && p.y() <= 1.0f) ? 2.0f : 0.0f;
+    return (p.x() >= 0.0f && p.x() <= 1.0f && p.y() >= 0.0f && p.x() + p.y() <= 1.0f) ? 2.0f : 0.0f;
 }
 
 Point2f Warp::squareToTent(const Point2f &sample) 
@@ -210,7 +210,8 @@ Vector3f Warp::squareToUniformHemisphere(const Point2f &sample)
 
 float Warp::squareToUniformHemispherePdf(const Vector3f &v) 
 {
-    return 1 / (2 * M_PI);
+    return (v.norm() <= 1.0f && v.z() >= 0.0f) ? 1.0f / (2.0f * M_PI) : 0.0f;
+    // return 1 / (2 * M_PI);
 }
 
 Vector3f Warp::squareToCosineHemisphere(const Point2f &sample) 
