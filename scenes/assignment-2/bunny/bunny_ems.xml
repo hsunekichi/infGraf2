@@ -7,7 +7,7 @@
 	</sampler>
 
 	<!-- Use the path tracer without multiple importance sampling -->
-    <integrator type="path_mis"/>
+    <integrator type="whitted"/>
 
 	<!-- Render the scene as viewed by a perspective camera -->
 	<camera type="perspective">

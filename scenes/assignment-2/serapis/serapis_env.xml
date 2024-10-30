@@ -2,7 +2,7 @@
 	<!-- Independent sample generator -->
 	<sampler type="independent">
 		<!-- <integer name="sampleCount" value="256"/> -->
-		<integer name="sampleCount" value="256"/>
+		<integer name="sampleCount" value="512"/>
 	</sampler>
 
 	<!-- Use the ambient occlusion integrator -->
