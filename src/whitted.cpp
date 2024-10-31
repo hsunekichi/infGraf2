@@ -156,7 +156,7 @@ public:
                 break;
         }
 
-        return radiance;
+        return radiance * std::exp(-sigma_t * its.t);
     }
 
     Color3f Li(const Scene *scene, Sampler *sampler, const Ray3f &ray) const 
