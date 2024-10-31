@@ -121,6 +121,7 @@ add_executable(nori
   src/subsurfacePbrt.cpp
   src/subsurfaceDisney.cpp
   src/indirectWhitted.cpp
+  src/whittedVolumetric.cpp
   src/agregate.cpp
 )
 

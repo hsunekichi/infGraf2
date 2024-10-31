@@ -23,12 +23,6 @@ public:
                 PathState &state) const
     {   
         const BSDF *bsdf = state.intersection.mesh->getBSDF();
-        
-        if (bsdf->isSubsurfaceScattering())
-        {
-            int a;
-            a = 0;
-        }
 
         auto query = Pth::initBSDFQuery(scene, state);
         Color3f fp = bsdf->samplePoint(query, sampler);

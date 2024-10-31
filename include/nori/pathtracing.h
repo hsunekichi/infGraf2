@@ -59,6 +59,13 @@ static IntegrationType getIntegrationType(const Intersection &its);
 
 static Color3f integrateBSDF(const BSDF *bsdf, Sampler *sampler);
 
+static Color3f computeInScattering(const Scene *scene, 
+        Sampler *sampler, 
+        const Ray3f &ray, 
+        const Point3f &lp,
+        float sigma_s, float sigma_t,
+        float g);
+
 };
 
 NORI_NAMESPACE_END

@@ -201,6 +201,58 @@ Color3f Pth::integrateBSDF(const BSDF *bsdf, Sampler *sampler)
 }
 
 
+Color3f Pth::computeInScattering(const Scene *scene, 
+        Sampler *sampler, 
+        const Ray3f &ray, 
+        const Point3f &lp,
+        float sigma_s,
+        float sigma_t,
+        float g) 
+{
+    Color3f inScatter(0.0f);
+    float phaseFunctionNormalization = 1.0f / (4 * M_PI);
+
+    // Consultar la luz entrante en esa dirección
+    //Ray3f inRay(lp, sampleDir);
+    
+    // auto query = Pth::initBSDFQuery(scene, state);
+    
+    // Color3f directLight = integrateDiffuse(scene, sampler, inRay, state.intersection);
+    // Color3f directLight = Pth::nextEventEstimation(scene, sampler, state, query); // Luz directa en esa dirección
+    //Color3f directLight = Li(scene, sampler, inRay, 0, false); // Radiancia entrante
+    //radiance += phaseFunction * directLight;
+
+    Point3f lightP;
+    Emitter *emitterMesh = nullptr;
+
+    float lightPdf;
+
+    // Sample a point on a random emitter
+    Color3f Le = sampleRandomEmitter(scene, sampler, lp, 
+            emitterMesh, lightP, lightPdf);
+    
+    if (Le == Color3f(0.0f))
+        return Color3f(0.0f);
+
+    Vector3f g_wo = (lightP - lp);
+
+    //*********************** Sample emitter ******************************
+    if (checkVisibility(scene, lp, emitterMesh, g_wo))
+    {
+        Color3f direct = Le / g_wo.squaredNorm();
+
+        // Henyey-Greenstein phase function
+        float cosTheta = ray.d.dot(g_wo.normalized());
+        float phaseFunction = phaseFunctionNormalization * (1.0f - g * g) / std::pow(1.0f + g * g - 2.0f * g * cosTheta, 1.5f);
+    
+        inScatter = sigma_s/sigma_t * phaseFunction * direct;
+    }
+
+    return inScatter; 
+}
+
+
+
 /*
 
 

@@ -1,0 +1,46 @@
+<?xml version="1.0" ?>
+<scene>
+	<integrator type="whitted">
+		<float name="sigma_s" value="5.1"/>
+		<float name="sigma_t" value="0.1"/>
+		<float name="g" value="-0.99"/>
+		<float name="helios_coeff" value="10"/>
+	</integrator>
+	<sampler type="independent">
+		<integer name="sampleCount" value="64"/>
+		<integer name="nPasses" value="3"/>
+	</sampler>
+	<camera type="perspective">
+		<float name="fov" value="39.597755335771296"/>
+		<float name="nearClip" value="0.10000000149011612"/>
+		<float name="farClip" value="100.0"/>
+		<integer name="width" value="1024"/>
+		<integer name="height" value="768"/>
+		<transform name="toWorld">
+			<scale value="-1.000000 1.000000 -1.000000"/>
+			<matrix value="0.6799030900001526,0.027001800015568733,0.7328047156333923,9.535492897033691,0.7331023216247559,-0.04835307225584984,-0.6783974170684814,-9.007676124572754,0.017115410417318344,0.9984652400016785,-0.05267047882080078,1.8069730997085571,0.0,0.0,0.0,1.0"/>
+		</transform>
+	</camera>
+	<emitter type="pointlight">
+		<point name="position" value="0.000000,0.000000,140.704727"/>
+		<color name="radiance" value="90000.,90000.,90000."/>
+	</emitter>
+	<mesh type="obj">
+		<string name="filename" value="meshes/Cube_Material.obj"/>
+		<bsdf type="diffuse">
+			<color name="albedo" value="0.195988,0.195988,0.195988"/>
+		</bsdf>
+	</mesh>
+	<mesh type="obj">
+		<string name="filename" value="meshes/Cube.002_Material.002.obj"/>
+		<bsdf type="diffuse">
+			<color name="albedo" value="1.000000,1.000000,1.000000"/>
+		</bsdf>
+	</mesh>
+	<mesh type="obj">
+		<string name="filename" value="meshes/Cube.003_Material.001.obj"/>
+		<bsdf type="diffuse">
+			<color name="albedo" value="0.044455,0.044455,0.044455"/>
+		</bsdf>
+	</mesh>
+</scene>
