@@ -37,25 +37,20 @@ Mesh::~Mesh() {
     delete m_emitter;
 }
 
-void Mesh::activate() {
+void Mesh::activate() 
+{
     if (!m_bsdf) {
         /* If no material was assigned, instantiate a diffuse BRDF */
         m_bsdf = static_cast<BSDF *>(
             NoriObjectFactory::createInstance("diffuse", PropertyList()));
     }
 
-    _meshArea = 0.0f;
-
-    for (Eigen::Index i = 0; i < m_F.cols(); ++i)
-        _meshArea += surfaceArea(i);
-
-    std::cout << "Mesh triangles: " << m_F.cols() << ", area: " << _meshArea << std::endl;
-
     // Build triangle distribution
     m_pdf.clear();
     m_pdf.reserve(m_F.cols());
+    
     for (uint32_t i = 0; i < m_F.cols(); ++i) {
-        m_pdf.append(surfaceArea(i) / _meshArea);
+        m_pdf.append(surfaceArea(i));
     }
 
     m_pdf.normalize();
@@ -123,7 +118,7 @@ void Mesh::samplePosition(Sampler *sampler, Point3f &p,
     p = uvTo3D(triangleIndex, sample);
 
     // Compute the PDF
-    pdf = 1.0f / _meshArea;
+    pdf = m_pdf.getNormalization();
 }
 
 void Mesh::samplePositions(Sampler *sampler, 
@@ -171,14 +166,14 @@ void Mesh::samplePositions(Sampler *sampler,
 
 float Mesh::pdf(const Point3f &p, n_UINT triangleId) const
 {
-    return (1.0f / surfaceArea(triangleId)) * sampleTrianglePdf(triangleId);
+    return m_pdf.getNormalization();
 }
 
 float Mesh::pdf(const Point3f &p) const 
 {
-    uint32_t triangleIndex = getTriangleIndex(p);
+    //uint32_t triangleIndex = getTriangleIndex(p);
 
-    return pdf(p, triangleIndex);
+    return m_pdf.getNormalization();
 }
 
 Point3f Mesh::uvTo3D(n_UINT index, const Point2f &uv) const
