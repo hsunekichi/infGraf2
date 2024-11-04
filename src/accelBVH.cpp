@@ -21,9 +21,6 @@
 #include <tbb/tbb.h>
 #include <Eigen/Geometry>
 #include <atomic>
-#include <thread>
-#include <chrono>
-#include <future>
 
 NORI_NAMESPACE_BEGIN
 
@@ -559,56 +556,8 @@ bool Accel::rayIntersect(const Ray3f &_ray, Intersection &its, bool shadowRay) c
 */
 
 
-void Accel::rayIntersectRuntime()
-{
-	while (true)
-	{
-		std::this_thread::sleep_for(std::chrono::milliseconds(100));
-		
-		{
-			std::lock_guard<std::mutex> lock(m_mutex);
 
-			std::vector<std::future<bool>> futures(m_promises.size());
-
-			for (size_t i = 0; i < m_promises.size(); i++)
-			{
-				const RayIntersectTaskData &data = m_promises[i].second;
-
-				futures[i] = std::async(std::launch::async, [this, data]() {
-					return rayIntersectImpl(*data.ray, *data.its, data.shadowRay);
-				});
-			}
-
-			for (size_t i = 0; i < m_promises.size(); i++)
-			{
-				std::promise<bool> &promise = *m_promises[i].first;
-				promise.set_value(futures[i].get());
-			}
-
-			m_promises.clear();
-		}
-	}
-}
-
-bool Accel::rayIntersect(const Ray3f &_ray, Intersection &its, bool shadowRay) 
-{
-	std::promise<bool> promise;
-	std::future<bool> future = promise.get_future();
-
-	RayIntersectTaskData data = { &_ray, &its, shadowRay };
-
-	{
-		std::lock_guard<std::mutex> lock(m_mutex);
-		m_promises.push_back(std::make_pair(&promise, data));
-	}
-
-	future.wait();
-	return future.get();
-}
-
-
-bool Accel::rayIntersectImpl(const Ray3f &_ray, Intersection &its, bool shadowRay) const
-{
+bool Accel::rayIntersect(const Ray3f &_ray, Intersection &its, bool shadowRay) const {
 	n_UINT node_idx = 0, stack_idx = 0, stack[64];
 
 	its.t = std::numeric_limits<float>::infinity();

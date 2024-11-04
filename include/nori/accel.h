@@ -19,6 +19,7 @@
 #pragma once
 
 #include <nori/mesh.h>
+#include <future>
 
 NORI_NAMESPACE_BEGIN
 
@@ -32,7 +33,9 @@ class Accel {
 	friend class BVHBuildTask;
 public:
 	/// Create a new and empty BVH
-	Accel() { m_meshOffset.push_back(0u); }
+	Accel() { m_meshOffset.push_back(0u); m_thread = std::thread(&Accel::rayIntersectRuntime, this); }
+
+	void rayIntersectRuntime();
 
 	/// Release all resources
 	void clear();
@@ -66,7 +69,9 @@ public:
 	 * \return \c true If an intersection was found
 	 */
 	bool rayIntersect(const Ray3f &ray, Intersection &its,
-		bool shadowRay = false) const;
+		bool shadowRay = false);
+
+	bool rayIntersectImpl(const Ray3f &_ray, Intersection &its, bool shadowRay) const;
 
 	bool rayProbe(const Ray3f &_ray, 
 		std::vector<Intersection> &its) const;
@@ -158,7 +163,19 @@ private:
 	std::vector<n_UINT> m_meshOffset; ///< Index of the first triangle for each shape
 	std::vector<BVHNode> m_nodes;       ///< BVH nodes
 	std::vector<n_UINT> m_indices;    ///< Index references by BVH nodes
+	
+	struct RayIntersectTaskData
+	{
+		const Ray3f *ray;
+		Intersection *its;
+		bool shadowRay;
+	};
+
+	std::thread m_thread;
+	std::mutex m_mutex;
+	std::vector<std::pair<std::promise<bool>*, RayIntersectTaskData>> m_promises;
 	BoundingBox3f m_bbox;               ///< Bounding box of the entire BVH
+	
 };
 
 
