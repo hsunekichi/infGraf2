@@ -1,7 +1,7 @@
 #pragma once
 
 #include <nori/common.h>
-#include <nori/bbox.h>
+#include <nori/bbox.cu>
 #include <fstream>
 
 

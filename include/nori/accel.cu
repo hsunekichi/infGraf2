@@ -19,6 +19,9 @@
 #pragma once
 
 #include <nori/mesh.h>
+#include <cuda_runtime.h>
+#include <thrust/host_vector.h>
+#include <thrust/device_vector.h>
 
 
 NORI_NAMESPACE_BEGIN
@@ -27,12 +30,18 @@ NORI_NAMESPACE_BEGIN
 
 struct BVHmesh
 {
-    std::vector<Mesh*> originalMeshes;
+    thrust::host_vector<Mesh*> originalMeshes;
+	thrust::device_vector<Mesh*> device_originalMeshes;
 	MatrixXf      m_V;                   ///< Vertex positions
 	MatrixXu      m_F;                   ///< Faces
 	BoundingBox3f m_bbox;                ///< Bounding box
 
 	const Mesh *getOriginalMesh(n_UINT index) const { return originalMeshes[index]; }
+
+	void uploadToDevice()
+	{
+		device_originalMeshes = originalMeshes;
+	}
 
 	void clear() {
 		m_V.resize(3, 0);
@@ -41,18 +50,18 @@ struct BVHmesh
 		m_bbox = BoundingBox3f();
 	}
 
-
+	__host__ __device__
 	bool rayIntersect(n_UINT index, 
 			const Ray3f &ray, float &u, float &v, float &t) const
 	{
 		n_UINT i0 = m_F(0, index), i1 = m_F(1, index), i2 = m_F(2, index);
-    	const Point3f p0 = m_V.col(i0), p1 = m_V.col(i1), p2 = m_V.col(i2);
+    	const Eigen::Vector3f p0 = m_V.col(i0), p1 = m_V.col(i1), p2 = m_V.col(i2);
 
 		/* Find vectors for two edges sharing v[0] */
-		Vector3f edge1 = p1 - p0, edge2 = p2 - p0;
+		Eigen::Vector3f edge1 = p1 - p0, edge2 = p2 - p0;
 
 		/* Begin calculating determinant - also used to calculate U parameter */
-		Vector3f pvec = ray.d.cross(edge2);
+		Eigen::Vector3f pvec = ray.d.cross(edge2);
 
 		/* If determinant is near zero, ray lies in plane of triangle */
 		float det = edge1.dot(pvec);
@@ -62,7 +71,7 @@ struct BVHmesh
 		float inv_det = 1.0f / det;
 
 		/* Calculate distance from v[0] to ray origin */
-		Vector3f tvec = ray.o - p0;
+		Eigen::Vector3f tvec = ray.o - p0;
 
 		/* Calculate U parameter and test bounds */
 		u = tvec.dot(pvec) * inv_det;
@@ -70,7 +79,7 @@ struct BVHmesh
 			return false;
 
 		/* Prepare to test V parameter */
-		Vector3f qvec = tvec.cross(edge1);
+		Eigen::Vector3f qvec = tvec.cross(edge1);
 
 		/* Calculate V parameter and test bounds */
 		v = ray.d.dot(qvec) * inv_det;
@@ -169,6 +178,7 @@ public:
 	 *
 	 * \return \c true If an intersection was found
 	 */
+	__host__ __device__
 	bool rayIntersect(const Ray3f &ray, Intersection &its,
 		bool shadowRay = false) const;
 
@@ -197,7 +207,7 @@ public:
 		return m_bbox;
 	}
 
-protected:
+public:
 	/**
 	 * \brief Compute the mesh and triangle indices corresponding to
 	 * a primitive index used by the underlying generic BVH implementation.
@@ -223,6 +233,8 @@ protected:
 	/// Compute internal tree statistics
 	std::pair<float, n_UINT> statistics(n_UINT index = 0) const;
 
+	Intersection fillIntersection(Point2f uv, n_UINT f, float t) const;
+
 	/* BVH node in 32 bytes */
 	struct BVHNode {
 		union {
@@ -242,22 +254,27 @@ protected:
 		};
 		BoundingBox3f bbox;
 
+		__host__ __device__
 		bool isLeaf() const {
 			return leaf.flag == 1;
 		}
 
+		__host__ __device__
 		bool isInner() const {
 			return leaf.flag == 0;
 		}
 
+		__host__ __device__
 		bool isUnused() const {
 			return data == 0;
 		}
 
+		__host__ __device__
 		n_UINT start() const {
 			return leaf.start;
 		}
 
+		__host__ __device__
 		n_UINT end() const {
 			return leaf.start + leaf.size;
 		}
@@ -265,11 +282,14 @@ protected:
 private:
 	std::vector<Mesh *> m_meshes;       ///< List of meshes registered with the BVH
 	std::vector<n_UINT> m_meshOffset; ///< Index of the first triangle for each shape
-	std::vector<BVHNode> m_nodes;       ///< BVH nodes
-	std::vector<n_UINT> m_indices;    ///< Index references by BVH nodes
+	thrust::host_vector<n_UINT> m_indices;    ///< Index references by BVH nodes
+	thrust::device_vector<n_UINT> device_indices;    ///< Index references by BVH nodes
+
+
+	thrust::host_vector<BVHNode> m_nodes;       ///< BVH nodes
+	thrust::device_vector<BVHNode> device_nodes; ///< BVH nodes
 
 	BVHmesh globalMesh;                 ///< Global mesh containing all triangles
-
 	BoundingBox3f m_bbox;               ///< Bounding box of the entire BVH
 };
 

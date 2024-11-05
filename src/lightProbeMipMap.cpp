@@ -3,7 +3,7 @@
 #include <nori/math.h>
 #include <nori/sampler.h>
 #include <nori/warp.h>
-#include <nori/bbox.h>
+#include <nori/bbox.cu>
 
 NORI_NAMESPACE_BEGIN
 

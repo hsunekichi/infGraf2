@@ -16,7 +16,7 @@
     along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <nori/accel.h>
+#include <nori/accel.cu>
 #include <nori/timer.h>
 #include <tbb/tbb.h>
 #include <Eigen/Geometry>
@@ -466,6 +466,11 @@ void Accel::build()
 		<< ")." << endl;
 
 	m_nodes = std::move(compactified);
+
+	// Move the BVH to the device
+	device_nodes = m_nodes;
+	device_indices = m_indices;
+	globalMesh.uploadToDevice();
 }
 
 std::pair<float, n_UINT> Accel::statistics(n_UINT node_idx) const {
@@ -490,12 +495,15 @@ std::pair<float, n_UINT> Accel::statistics(n_UINT node_idx) const {
 }
 
 
-Intersection fillIntersection(Point2f uv, const Mesh *mesh, n_UINT f, float t)
+Intersection Accel::fillIntersection(Point2f uv, n_UINT f, float t) const
 {
+	const Mesh *mesh = globalMesh.getOriginalMesh(f);
+
 	Intersection its;
 	its.uv = uv;
 	its.mesh = mesh;
 	its.t = t;
+	its.f = f;
 
 	/* Find the barycentric coordinates */
 	Vector3f bary;
@@ -651,6 +659,13 @@ bool Accel::rayIntersect(const Ray3f &_ray, Intersection &its, bool shadowRay) c
 }
 */
 
+__host__ __device__
+void printIndex(n_UINT i)
+{
+	printf("%d\n", i);
+}
+
+
 void Accel::rayIntersect(const std::vector<bool> &mask, 
 						const std::vector<Ray3f> &ray, 
 						std::vector<Intersection> &its,
@@ -659,27 +674,43 @@ void Accel::rayIntersect(const std::vector<bool> &mask,
 	for (n_UINT i = 0; i < ray.size(); ++i) 
 	{
 		if (mask[i] && rayIntersect(ray[i], its[i]))
+		{
+			its[i] = fillIntersection(its[i].uv, its[i].f, its[i].t);
 			hit[i] = true;
+		}
 		else
 			hit[i] = false;
 	}
+
+	// THrust for each to print device indices
+	thrust::for_each(device_indices.begin(), device_indices.end(), printIndex);
 }
 
 bool Accel::rayIntersect(const Ray3f &_ray, Intersection &its, bool shadowRay) const {
 	n_UINT node_idx = 0, stack_idx = 0, stack[64];
 
-	its.t = std::numeric_limits<float>::infinity();
+	#ifdef __CUDA_ARCH__
+		its.t = INFINITY;
+	#else
+		its.t = std::numeric_limits<float>::infinity();
+	#endif
 
 	// Use an adaptive ray epsilon 
 	Ray3f ray(_ray);
 	if (ray.mint == Epsilon)
-		ray.mint = std::max(ray.mint, ray.mint * ray.o.array().abs().maxCoeff());
-
+	{
+		#ifdef __CUDA_ARCH__
+			ray.mint = fmaxf(ray.mint, ray.mint * ray.o.array().abs().maxCoeff());
+		#else
+			ray.mint = std::max(ray.mint, ray.mint * ray.o.array().abs().maxCoeff());
+		#endif
+	}
+	
 	if (m_nodes.empty() || ray.maxt < ray.mint)
 		return false;
 
 	bool foundIntersection = false;
-	n_UINT f = 0;
+	//n_UINT f = 0;
 
 	while (true) {
 		const BVHNode &node = m_nodes[node_idx];
@@ -727,74 +758,29 @@ bool Accel::rayIntersect(const Ray3f &_ray, Intersection &its, bool shadowRay) c
 		{
 			for (n_UINT i = node.start(), end = node.end(); i < end; ++i) 
 			{
-				n_UINT idx = m_indices[i];
+				#ifdef __CUDA_ARCH__
+					n_UINT idx = device_indices[i];
+				#else
+					n_UINT idx = m_indices[i];
+				#endif
 
 				float u, v, t;
 				if (globalMesh.rayIntersect(idx, ray, u, v, t)) 
 				{
 					ray.maxt = its.t = t;
 					its.uv = Point2f(u, v);
-					its.mesh = globalMesh.getOriginalMesh(idx);
 
 					if (shadowRay)
 						return true;
 
 					foundIntersection = true;
-					f = idx;
+					its.f = idx; //= f;
 				}
 			}
 			if (stack_idx == 0)
 				break;
 			node_idx = stack[--stack_idx];
 			continue;
-		}
-	}
-
-	if (foundIntersection) 
-	{
-		// Find the barycentric coordinates
-		Vector3f bary;
-		bary << 1 - its.uv.sum(), its.uv;
-
-		// References to all relevant mesh buffers
-		const Mesh *mesh = its.mesh;
-		const MatrixXf &V = mesh->getVertexPositions();
-		const MatrixXf &N = mesh->getVertexNormals();
-		const MatrixXf &UV = mesh->getVertexTexCoords();
-		const MatrixXu &F = mesh->getIndices();
-
-		// Vertex indices of the triangle 
-		n_UINT idx0 = F(0, f), idx1 = F(1, f), idx2 = F(2, f);
-
-		Point3f p0 = V.col(idx0), p1 = V.col(idx1), p2 = V.col(idx2);
-
-		// Compute the intersection positon accurately
-		//   using barycentric coordinates 
-		its.p = bary.x() * p0 + bary.y() * p1 + bary.z() * p2;
-
-		// Compute proper texture coordinates if provided by the mesh 
-		if (UV.size() > 0)
-			its.uv = bary.x() * UV.col(idx0) +
-			bary.y() * UV.col(idx1) +
-			bary.z() * UV.col(idx2);
-
-		// Compute the geometry frame 
-		its.geoFrame = Frame(its.p, (p1 - p0).cross(p2 - p0).normalized());
-
-		if (N.size() > 0) {
-			// Compute the shading frame. Note that for simplicity,
-			// the current implementation doesn't attempt to provide
-			// tangents that are continuous across the surface. That
-			// means that this code will need to be modified to be able
-			// use anisotropic BRDFs, which need tangent continuity 
-
-			its.shFrame = Frame(its.p,
-				(bary.x() * N.col(idx0) +
-					bary.y() * N.col(idx1) +
-					bary.z() * N.col(idx2)).normalized());
-		}
-		else {
-			its.shFrame = its.geoFrame;
 		}
 	}
 
@@ -869,8 +855,7 @@ bool Accel::rayProbe(const Ray3f &_ray, std::vector<Intersection> &its) const
 				float u, v, t; 
 				if (mesh->rayIntersect(idx, ray, u, v, t)) 
 				{
-					f = idx;
-					its.push_back(fillIntersection(Point2f(u, v), mesh, f, t));
+					its.push_back(fillIntersection(Point2f(u, v), f, t));
 				}
 			}
 

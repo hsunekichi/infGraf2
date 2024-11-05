@@ -18,7 +18,8 @@
 
 #pragma once
 
-#include <nori/ray.h>
+#include <nori/ray.cu>
+#include <cuda_runtime.h>
 
 NORI_NAMESPACE_BEGIN
 
@@ -402,6 +403,7 @@ template <typename _PointType> struct TBoundingBox {
         return ray.mint <= farT && nearT <= ray.maxt;
     }
 
+    __host__ __device__
     bool rayIntersect(const Ray3f &ray, float &minT) const 
     {
         Eigen::Vector3f _tmin = (min - ray.o).cwiseProduct(ray.dRcp);

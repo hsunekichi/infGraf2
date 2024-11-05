@@ -20,7 +20,7 @@
 
 #include <nori/object.h>
 #include <nori/frame.h>
-#include <nori/bbox.h>
+#include <nori/bbox.cu>
 #include <nori/dpdf.h>
 #include <nori/bsdf.h>
 
@@ -51,6 +51,7 @@ struct Intersection {
     Frame geoFrame;
     /// Pointer to the associated mesh
     const Mesh *mesh;
+    size_t f;
 
     /// Create an uninitialized intersection record
     Intersection() : mesh(nullptr) { }

@@ -19,7 +19,7 @@
 #include <nori/block.h>
 #include <nori/bitmap.h>
 #include <nori/rfilter.h>
-#include <nori/bbox.h>
+#include <nori/bbox.cu>
 #include <tbb/tbb.h>
 
 NORI_NAMESPACE_BEGIN

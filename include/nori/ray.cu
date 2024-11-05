@@ -19,6 +19,7 @@
 #pragma once
 
 #include <nori/vector.h>
+#include <cuda_runtime.h>
 
 NORI_NAMESPACE_BEGIN
 
@@ -48,33 +49,39 @@ template <typename _PointType, typename _VectorType> struct TRay {
     bool isCameraRay = false;
 
     /// Construct a new ray
+    __host__ __device__
     TRay() : mint(Epsilon), 
         maxt(std::numeric_limits<Scalar>::infinity()) { }
     
     /// Construct a new ray
+    __host__ __device__
     TRay(const PointType &o, const VectorType &d) : o(o), d(d), 
             mint(Epsilon), maxt(std::numeric_limits<Scalar>::infinity()) {
         update();
     }
 
     /// Construct a new ray
+    __host__ __device__
     TRay(const PointType &o, const VectorType &d, 
         Scalar mint, Scalar maxt) : o(o), d(d), mint(mint), maxt(maxt) {
         update();
     }
 
     /// Copy constructor
+    __host__ __device__
     TRay(const TRay &ray) 
      : o(ray.o), d(ray.d), dRcp(ray.dRcp),
        mint(ray.mint), maxt(ray.maxt),
        isCameraRay (ray.isCameraRay) { }
 
     /// Copy a ray, but change the covered segment of the copy
+    __host__ __device__
     TRay(const TRay &ray, Scalar mint, Scalar maxt) 
      : o(ray.o), d(ray.d), dRcp(ray.dRcp), mint(mint), maxt(maxt),
      isCameraRay (ray.isCameraRay) { }
 
     /// Update the reciprocal ray directions after changing 'd'
+    __host__ __device__
     void update() {
         dRcp = d.cwiseInverse();
     }
@@ -83,6 +90,7 @@ template <typename _PointType, typename _VectorType> struct TRay {
     TRay &operator=(const TRay &ray) = default;
 
     /// Return the position of a point along the ray
+    __host__ __device__
     PointType operator() (Scalar t) const { return o + t * d; }
 
     /// Return a ray that points into the opposite direction

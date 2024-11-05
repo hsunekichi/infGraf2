@@ -8,6 +8,9 @@ endif()
 
 add_subdirectory(ext ext_build)
 
+find_package(CUDA  REQUIRED)
+include_directories("${CUDA_INCLUDE_DIRS}")
+
 include_directories(
   # Nori include files
   ${CMAKE_CURRENT_SOURCE_DIR}/include
@@ -46,8 +49,8 @@ add_executable(nori
 
   # Header files
   include/nori/common.h
-  include/nori/accel.h
-  include/nori/bbox.h
+  include/nori/accel.cu
+  include/nori/bbox.cu
   include/nori/bitmap.h
   include/nori/block.h
   include/nori/bsdf.h
@@ -64,7 +67,7 @@ add_executable(nori
   include/nori/parser.h
   include/nori/proplist.h
   include/nori/math.h
-  include/nori/ray.h
+  include/nori/ray.cu
   include/nori/rfilter.h
   include/nori/sampler.h
   include/nori/scene.h
@@ -78,7 +81,7 @@ add_executable(nori
 
   # Source code files
   src/common.cpp
-  src/accel.cu
+  src/accelImpl.cu
   src/area.cpp
   src/bitmap.cpp
   src/block.cpp
@@ -130,29 +133,15 @@ add_executable(nori
 
 add_definitions(${NANOGUI_EXTRA_DEFS})
 
-# The following lines build the warping test application
-add_executable(warptest
-  include/nori/warp.h
-  include/nori/math.h
-  src/warp.cpp
-  src/warptest.cpp
-  src/microfacet.cpp
-  src/object.cpp
-  src/proplist.cpp
-  src/common.cpp
-  src/math.cpp
-)
 
-set_target_properties( nori
-                       PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+set_target_properties( nori PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+
 
 if (WIN32)
   target_link_libraries(nori tbb_static pugixml IlmImf nanogui ${NANOGUI_EXTRA_LIBS} zlibstatic)
 else()
   target_link_libraries(nori tbb_static pugixml IlmImf nanogui ${NANOGUI_EXTRA_LIBS})
 endif()
-
-target_link_libraries(warptest tbb_static nanogui ${NANOGUI_EXTRA_LIBS})
 
 set_property(TARGET nori PROPERTY CXX_STANDARD 17)
 set_property(TARGET nori PROPERTY CUDA_SEPARABLE_COMPILATION ON)

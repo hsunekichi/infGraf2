@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include <nori/accel.h>
+#include <nori/accel.cu>
 #include <nori/common.h>
 #include <nori/PathState.h>
 

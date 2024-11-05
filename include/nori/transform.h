@@ -19,7 +19,7 @@
 #pragma once
 
 #include <nori/common.h>
-#include <nori/ray.h>
+#include <nori/ray.cu>
 
 NORI_NAMESPACE_BEGIN
 
