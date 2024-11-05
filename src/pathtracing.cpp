@@ -49,25 +49,16 @@ bool checkVisibility (const Scene *scene,
             Emitter *emitterMesh,
             Vector3f &g_wi)
 {
-    Ray3f shadowRay(p, g_wi.normalized(), Epsilon, g_wi.norm() + Epsilon);
+    Ray3f shadowRay(p, g_wi.normalized(), Epsilon, g_wi.norm() - Epsilon);
 
-    Intersection lightIntersection;
-    bool intersects = scene->rayIntersect(shadowRay, lightIntersection);
+    //Intersection lightIntersection;
+    bool intersects = scene->rayIntersect(shadowRay);
 
     // Check visibility
-    bool objectSeesEmitter = true; //state.intersection.toLocal(g_wi).z() > 0.0f;
+    //bool objectSeesEmitter = true; //state.intersection.toLocal(g_wi).z() > 0.0f;
 
-    //*********************** Compute Le ******************************
-    return (objectSeesEmitter && !intersects)
-        ||
-        ( 
-            objectSeesEmitter && intersects 
-            && 
-            (   (lightIntersection.p - p).norm() > g_wi.norm()
-                ||
-                lightIntersection.mesh->getEmitter() == emitterMesh
-            )
-        );
+    return !intersects;
+    // || intersects && lightIntersection.mesh == emitterMesh;
 }
 
 
@@ -160,7 +151,7 @@ Color3f Pth::sampleBSDF(
     pdf = bsdf->pdf(bsdfQuery);
 
     // Create the new ray
-    Ray3f newRay(bsdfQuery.po, bsdfQuery.fro.vtoWorld(bsdfQuery.wo), 0.001, INFINITY);
+    Ray3f newRay(bsdfQuery.po, bsdfQuery.fro.vtoWorld(bsdfQuery.wo), Epsilon, INFINITY);
     newRay.isCameraRay = bsdfQuery.isCameraRay;
 
     // Apply scattering factor
