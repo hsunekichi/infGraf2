@@ -208,6 +208,8 @@ public:
     /// Return a human-readable summary of this instance
     std::string toString() const;
 
+    size_t size() const { return m_F.cols(); }
+
     /**
      * \brief Return the type of object (i.e. Mesh/BSDF/etc.)
      * provided by this instance

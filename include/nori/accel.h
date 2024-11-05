@@ -22,6 +22,109 @@
 
 NORI_NAMESPACE_BEGIN
 
+
+
+struct BVHmesh
+{
+    std::vector<Mesh*> originalMeshes;
+	MatrixXf      m_V;                   ///< Vertex positions
+	MatrixXu      m_F;                   ///< Faces
+	BoundingBox3f m_bbox;                ///< Bounding box
+
+	const Mesh *getOriginalMesh(n_UINT index) const { return originalMeshes[index]; }
+
+	void clear() {
+		m_V.resize(3, 0);
+		m_F.resize(3, 0);
+		originalMeshes.clear();
+		m_bbox = BoundingBox3f();
+	}
+
+
+	bool rayIntersect(n_UINT index, 
+			const Ray3f &ray, float &u, float &v, float &t) const
+	{
+		n_UINT i0 = m_F(0, index), i1 = m_F(1, index), i2 = m_F(2, index);
+    	const Point3f p0 = m_V.col(i0), p1 = m_V.col(i1), p2 = m_V.col(i2);
+
+		/* Find vectors for two edges sharing v[0] */
+		Vector3f edge1 = p1 - p0, edge2 = p2 - p0;
+
+		/* Begin calculating determinant - also used to calculate U parameter */
+		Vector3f pvec = ray.d.cross(edge2);
+
+		/* If determinant is near zero, ray lies in plane of triangle */
+		float det = edge1.dot(pvec);
+
+		if (det > -1e-8f && det < 1e-8f)
+			return false;
+		float inv_det = 1.0f / det;
+
+		/* Calculate distance from v[0] to ray origin */
+		Vector3f tvec = ray.o - p0;
+
+		/* Calculate U parameter and test bounds */
+		u = tvec.dot(pvec) * inv_det;
+		if (u < 0.0 || u > 1.0)
+			return false;
+
+		/* Prepare to test V parameter */
+		Vector3f qvec = tvec.cross(edge1);
+
+		/* Calculate V parameter and test bounds */
+		v = ray.d.dot(qvec) * inv_det;
+		if (v < 0.0 || u + v > 1.0)
+			return false;
+
+		/* Ray intersects triangle -> compute t */
+		t = edge2.dot(qvec) * inv_det;
+
+		return t >= ray.mint && t <= ray.maxt;
+	}
+
+	BoundingBox3f getBoundingBox(n_UINT index) const {
+		BoundingBox3f result(m_V.col(m_F(0, index)));
+		result.expandBy(m_V.col(m_F(1, index)));
+		result.expandBy(m_V.col(m_F(2, index)));
+		return result;
+	}
+
+	Point3f getCentroid(n_UINT index) const {
+		return (1.0f / 3.0f) *
+			(m_V.col(m_F(0, index)) +
+			m_V.col(m_F(1, index)) +
+			m_V.col(m_F(2, index)));
+	}
+
+	size_t size() const { return m_F.cols(); }
+
+
+	void append(Mesh *other, size_t meshId)
+	{
+		if (m_V.cols() == 0)
+		{
+			m_V = other->getVertexPositions();
+			m_F = other->getIndices();
+		}
+		else
+		{
+			m_V.conservativeResize(3, m_V.cols() + other->getVertexPositions().cols());
+			m_F.conservativeResize(3, m_F.cols() + other->getIndices().cols());
+
+			m_V.rightCols(other->getVertexPositions().cols()) = other->getVertexPositions();
+			m_F.rightCols(other->getIndices().cols()) = other->getIndices();
+		}
+
+		// Add the BSDF and emitter
+		for (size_t i = 0; i < other->size(); ++i)
+		{
+			originalMeshes.push_back(other);
+		}
+
+		m_bbox.expandBy(other->getBoundingBox());
+	}
+};  
+
 /**
  * \brief Acceleration data structure for ray intersection queries
  *
@@ -80,7 +183,7 @@ public:
 	n_UINT getMeshCount() const { return (n_UINT)m_meshes.size(); }
 
 	/// Return the total number of internally represented triangles 
-	n_UINT getTriangleCount() const { return m_meshOffset.back(); }
+	n_UINT getTriangleCount() const { return globalMesh.size(); }
 
 	/// Return one of the registered meshes
 	Mesh *getMesh(n_UINT idx) { return m_meshes[idx]; }
@@ -106,15 +209,15 @@ protected:
 
 	//// Return an axis-aligned bounding box containing the given triangle
 	BoundingBox3f getBoundingBox(n_UINT index) const {
-		n_UINT meshIdx = findMesh(index);
-		return m_meshes[meshIdx]->getBoundingBox(index);
+		return globalMesh.getBoundingBox(index);
 	}
 
 	//// Return the centroid of the given triangle
 	Point3f getCentroid(n_UINT index) const {
-		n_UINT meshIdx = findMesh(index);
-		return m_meshes[meshIdx]->getCentroid(index);
+		return globalMesh.getCentroid(index);
 	}
+
+	void compactMeshes();
 
 	/// Compute internal tree statistics
 	std::pair<float, n_UINT> statistics(n_UINT index = 0) const;
@@ -163,6 +266,9 @@ private:
 	std::vector<n_UINT> m_meshOffset; ///< Index of the first triangle for each shape
 	std::vector<BVHNode> m_nodes;       ///< BVH nodes
 	std::vector<n_UINT> m_indices;    ///< Index references by BVH nodes
+
+	BVHmesh globalMesh;                 ///< Global mesh containing all triangles
+
 	BoundingBox3f m_bbox;               ///< Bounding box of the entire BVH
 };
 

@@ -324,10 +324,10 @@ public:
     Color3f sample(BSDFQueryRecord &bRec, Sampler *sampler) const
     {
         bRec.measure = ESolidAngle;
-        float pdf;
+        //float pdf;
 
         bRec.wo = Warp::squareToCosineHemisphere(sampler->next2D());
-        pdf = Warp::squareToCosineHemispherePdf(bRec.wo);
+        //pdf = Warp::squareToCosineHemispherePdf(bRec.wo);
 
         Color3f f = eval(bRec) * Frame::cosTheta(bRec.wo);
         bRec.isCameraRay = false;

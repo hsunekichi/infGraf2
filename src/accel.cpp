@@ -315,7 +315,98 @@ void Accel::clear() {
 	m_indices.shrink_to_fit();
 }
 
-void Accel::build() {
+uint64_t float_to_morton(float value, int max_bits = 10) 
+{
+	uint64_t morton_code = 0;
+	uint32_t value_scaled = static_cast<uint32_t>(value * ((1 << max_bits) - 1)); // Scale to the number of bits
+	
+	for (int i = 0; i < max_bits; ++i) {
+		morton_code |= ((value_scaled >> i) & 1) << (3 * i); // 3D interleaving for Morton code
+	}
+	
+	return morton_code;
+}
+
+
+// Function to compute the Morton code for a 3D point in [0, 1]
+uint64_t morton3D(Point3f p, int bits = 10) 
+{
+	uint64_t x_morton = float_to_morton(p.x(), bits);
+	uint64_t y_morton = float_to_morton(p.y(), bits);
+	uint64_t z_morton = float_to_morton(p.z(), bits);  
+
+	uint64_t morton_code = 0;
+	for (int i = 0; i < bits; ++i) {
+		morton_code |= ((x_morton >> (3 * i)) & 1) << (3 * i);
+		morton_code |= ((y_morton >> (3 * i)) & 1) << (3 * i + 1);
+		morton_code |= ((z_morton >> (3 * i)) & 1) << (3 * i + 2);
+	}
+
+	return morton_code;
+}
+
+/*
+void order_faces_by_morton(
+		std::vector<Face> &loaded_faces,
+		const std::vector<Vector3f> &positions)
+{
+	Vector3f bbox_size = m_bbox.max - m_bbox.min;
+	for (int i = 0; i < 3; ++i)
+	{
+		if (bbox_size[i] == 0)
+			bbox_size[i] = 1.0f;
+	}
+
+	std::vector<uint64_t> morton_codes(loaded_faces.size());
+	for (uint32_t i = 0; i < loaded_faces.size(); ++i)
+	{
+		uint32_t index1 = loaded_faces[i].v[0].p;
+		uint32_t index2 = loaded_faces[i].v[1].p;
+		uint32_t index3 = loaded_faces[i].v[2].p;
+
+		Vector3f p0 = positions[index1-1];
+		Vector3f p1 = positions[index2-1];
+		Vector3f p2 = positions[index3-1];
+
+		Vector3f centroid = (p0 + p1 + p2) / 3.0f;
+		Vector3f normalized_centroid = (centroid - m_bbox.min);
+		
+		normalized_centroid = normalized_centroid.cwiseQuotient(bbox_size);
+		morton_codes[i] = morton3D(normalized_centroid);
+	}
+
+	std::vector<uint32_t> indices(loaded_faces.size());
+	for (uint32_t i = 0; i < loaded_faces.size(); ++i)
+		indices[i] = i;
+
+	std::sort(indices.begin(), indices.end(), [&morton_codes](uint32_t a, uint32_t b) {
+		return morton_codes[a] < morton_codes[b];
+	});
+
+	std::vector<Face> F(loaded_faces.size());
+	for (uint32_t i = 0; i < loaded_faces.size(); ++i)
+		F[i] = loaded_faces[indices[i]];
+
+	loaded_faces.swap(F);
+}
+*/
+
+void Accel::compactMeshes() 
+{
+	globalMesh.clear();
+
+	for (size_t i = 0; i < m_meshes.size(); ++i) 
+	{
+		globalMesh.append(m_meshes[i], i);
+	}
+
+}
+
+
+void Accel::build() 
+{
+	compactMeshes();
+
 	n_UINT size = getTriangleCount();
 	if (size == 0)
 		return;
@@ -632,14 +723,13 @@ bool Accel::rayIntersect(const Ray3f &_ray, Intersection &its, bool shadowRay) c
 			for (n_UINT i = node.start(), end = node.end(); i < end; ++i) 
 			{
 				n_UINT idx = m_indices[i];
-				const Mesh *mesh = m_meshes[findMesh(idx)];
 
 				float u, v, t;
-				if (mesh->rayIntersect(idx, ray, u, v, t)) 
+				if (globalMesh.rayIntersect(idx, ray, u, v, t)) 
 				{
 					ray.maxt = its.t = t;
 					its.uv = Point2f(u, v);
-					its.mesh = mesh;
+					its.mesh = globalMesh.getOriginalMesh(idx);
 
 					if (shadowRay)
 						return true;
@@ -769,9 +859,9 @@ bool Accel::rayProbe(const Ray3f &_ray, std::vector<Intersection> &its) const
 			for (n_UINT i = node.start(), end = node.end(); i < end; ++i) 
 			{
 				n_UINT idx = m_indices[i];
-				const Mesh *mesh = m_meshes[findMesh(idx)];
+				const Mesh *mesh = globalMesh.getOriginalMesh(idx);
 
-				float u, v, t;
+				float u, v, t; 
 				if (mesh->rayIntersect(idx, ray, u, v, t)) 
 				{
 					f = idx;
@@ -790,6 +880,8 @@ bool Accel::rayProbe(const Ray3f &_ray, std::vector<Intersection> &its) const
 
 	return its.size() > 0;
 }
+
+
 
 NORI_NAMESPACE_END
 
