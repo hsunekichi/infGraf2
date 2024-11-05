@@ -68,13 +68,14 @@ static void renderBlock(const Scene *scene, Sampler *sampler, ImageBlock &block)
     std::vector<Ray3f> rays(states.size());
     std::vector<Intersection> its(states.size());
     std::vector<bool> b_its(states.size());
+    std::vector<uint32_t> indices(states.size());
 
     bool anyAlive = true;
     while (anyAlive) 
     {
         anyAlive = false;
 
-        scene->rayIntersect(aliveMask, states, rays, its, b_its);
+        scene->rayIntersect(aliveMask, states, rays, its, b_its, indices);
 
         for (size_t i = 0; i < states.size(); i++)
         {   

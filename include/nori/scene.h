@@ -117,23 +117,84 @@ public:
         return m_accel->rayIntersect(ray, its, isShadowRay);
     }
 
+    static uint64_t float_to_morton(float value, int max_bits = 10) 
+    {
+        uint64_t morton_code = 0;
+        uint32_t value_scaled = static_cast<uint32_t>(value * ((1 << max_bits) - 1)); // Scale to the number of bits
+        
+        for (int i = 0; i < max_bits; ++i) {
+            morton_code |= ((value_scaled >> i) & 1) << (3 * i); // 3D interleaving for Morton code
+        }
+        
+        return morton_code;
+    }
+
+
+    // Function to compute the Morton code for a 3D point in [0, 1]
+    static uint64_t morton3D(Point3f p, int bits = 10)
+    {
+        uint64_t x_morton = float_to_morton(p.x(), bits);
+        uint64_t y_morton = float_to_morton(p.y(), bits);
+        uint64_t z_morton = float_to_morton(p.z(), bits);  
+
+        uint64_t morton_code = 0;
+        for (int i = 0; i < bits; ++i) {
+            morton_code |= ((x_morton >> (3 * i)) & 1) << (3 * i);
+            morton_code |= ((y_morton >> (3 * i)) & 1) << (3 * i + 1);
+            morton_code |= ((z_morton >> (3 * i)) & 1) << (3 * i + 2);
+        }
+
+        return morton_code;
+    }
+
+    void order_rays_by_morton(
+            const std::vector<PathState> &states,
+            std::vector<Ray3f> &rays,
+            std::vector<uint32_t> &indices) const
+    {
+        BoundingBox3f m_bbox;
+        for (const auto &state : states)
+            m_bbox.expandBy(state.ray.o);
+
+        Vector3f bbox_size = m_bbox.max - m_bbox.min;
+        std::vector<uint64_t> morton_codes(states.size());
+
+        for (uint32_t i = 0; i < states.size(); ++i)
+        {
+            Vector3f p = (states[i].ray.o - m_bbox.min);
+            
+            p = p.cwiseQuotient(bbox_size);
+            morton_codes[i] = morton3D(p);
+        }
+
+        for (uint32_t i = 0; i < states.size(); ++i)
+            indices[i] = i;
+
+        std::sort(indices.begin(), indices.end(), [&morton_codes](uint32_t a, uint32_t b) {
+            return morton_codes[a] < morton_codes[b];
+        });
+
+        for (uint32_t i = 0; i < states.size(); ++i)
+            rays[i] = states[indices[i]].ray;
+    }
+
     void rayIntersect(const std::vector<bool> &aliveMask, 
                         std::vector<PathState> &states,
                         std::vector<Ray3f> &rays,
                         std::vector<Intersection> its,
-                        std::vector<bool> &b_its) const
+                        std::vector<bool> &b_its,
+                        std::vector<uint32_t> &indices) const
     {
-        for (size_t i = 0; i < states.size(); i++)
-            rays[i] = states[i].ray;        
-
+        order_rays_by_morton(states, rays, indices);
+        
         m_accel->rayIntersect(aliveMask, rays, its, b_its);
 
         for (size_t i = 0; i < states.size(); i++)
         {
-            states[i].rayIntersected = b_its[i];
+            states[indices[i]].rayIntersected = b_its[i];
 
             if (b_its[i])
-                states[i].intersection = its[i];
+                states[indices[i]].intersection = its[i];
         }
     }
 
