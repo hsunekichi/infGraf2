@@ -168,14 +168,10 @@ Pth::IntegrationType Pth::getIntegrationType(const Intersection &its)
     if (emitter) { // Render emitter 
         return EMITTER;
     }
-    else if (mesh->getBSDF()->isDiffuse()
-        && !mesh->hasSubsurfaceScattering()) 
+    else if (mesh->getBSDF()->isDiffuse()) 
     { 
         // Render diffuse surface
         return DIFFUSE;
-    }
-    else if (mesh->hasSubsurfaceScattering()) { // Render subsurface scattering
-        return SUBSURFACE;
     }
     else { // Render specular surface
         return SPECULAR;

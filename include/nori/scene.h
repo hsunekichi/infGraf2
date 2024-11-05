@@ -23,6 +23,8 @@
 
 #include <nori/accel.h>
 #include <nori/common.h>
+#include <nori/PathState.h>
+
 
 
 NORI_NAMESPACE_BEGIN
@@ -113,6 +115,26 @@ public:
      */
     bool rayIntersect(const Ray3f &ray, Intersection &its, bool isShadowRay=false) const {
         return m_accel->rayIntersect(ray, its, isShadowRay);
+    }
+
+    void rayIntersect(const std::vector<bool> &aliveMask, 
+                        std::vector<PathState> &states,
+                        std::vector<Ray3f> &rays,
+                        std::vector<Intersection> its,
+                        std::vector<bool> &b_its) const
+    {
+        for (size_t i = 0; i < states.size(); i++)
+            rays[i] = states[i].ray;        
+
+        m_accel->rayIntersect(aliveMask, rays, its, b_its);
+
+        for (size_t i = 0; i < states.size(); i++)
+        {
+            states[i].rayIntersected = b_its[i];
+
+            if (b_its[i])
+                states[i].intersection = its[i];
+        }
     }
 
     bool rayProbe(const Ray3f &ray, const Mesh *mesh, std::vector<Intersection> &its) const 

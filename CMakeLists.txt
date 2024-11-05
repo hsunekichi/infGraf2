@@ -52,6 +52,7 @@ add_executable(nori
   include/nori/frame.h
   include/nori/gui.h
   include/nori/integrator.h
+  include/nori/PathState.h
   include/nori/emitter.h
   include/nori/mesh.h
   include/nori/object.h
@@ -97,27 +98,27 @@ add_executable(nori
   src/texture.cpp
   src/ttest.cpp
   src/warp.cpp
-  src/normals.cpp
-  src/simpleIntegrator.cpp
-  src/AOintegrator.cpp
-  src/whitted.cpp
   src/GGX.cpp
   src/area.cpp
   src/orenNayar.cpp
   src/stratified.cpp
   src/pointLight.cpp
-  src/path_ems.cpp
-  src/path_mats.cpp
+  #src/path_ems.cpp
+  #src/path_mats.cpp
   src/path_mis.cpp
   src/beckmann.cpp
   src/lightProbeMipMap.cpp
   src/pathtracing.cpp
-  src/directWhitted.cpp
-  src/depthIntegrator.cpp
+  #src/directWhitted.cpp
+  #src/depthIntegrator.cpp
+  #src/normals.cpp
+  #src/simpleIntegrator.cpp
+  #src/AOintegrator.cpp
+  #src/whitted.cpp
   src/dipole.cpp
   src/subsurfacePbrt.cpp
   src/normalizedDiffusion.cpp
-  src/indirectWhitted.cpp
+  #src/indirectWhitted.cpp
   src/agregate.cpp
   src/skin.cpp
 )

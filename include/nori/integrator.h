@@ -20,6 +20,7 @@
 
 #include <nori/object.h>
 #include <nori/scene.h>
+#include <nori/PathState.h>
 
 NORI_NAMESPACE_BEGIN
 
@@ -52,7 +53,18 @@ public:
      * \return
      *    A (usually) unbiased estimate of the radiance in this direction
      */
-    virtual Color3f Li(const Scene *scene, Sampler *sampler, const Ray3f &ray) const = 0;
+    virtual Color3f Li(const Scene *scene, Sampler *sampler, const Ray3f &ray) const 
+    {
+        throw NoriException("Li() is not implemented!");
+    }
+
+    // Apply the scattering of the intersection and generate new direction
+    //  This is the main integrator function
+    virtual void shadeIntersection(const Scene *scene, Sampler *sampler, PathState &state) const = 0;
+    
+    // Shade the ray when intersecting with the environment (ray intersected on the infinite)
+    //  This is zero by default
+    virtual void shadeEnvironment(const Scene *scene, Sampler *sampler, PathState &state) const {}
 
     /**
      * \brief Return the type of object (i.e. Mesh/BSDF/etc.) 

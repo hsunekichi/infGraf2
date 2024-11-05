@@ -6,30 +6,16 @@
 #include <nori/vector.h>
 #include <nori/scene.h>
 #include <nori/kdtree.h>
+#include <nori/integrator.h>
 
 
 
 NORI_NAMESPACE_BEGIN
 
-
-struct PathState
-{
-    bool previous_diffuse = false; bool previous_sss = false;
-    float bsdfPdf = 0.0f; Point3f prevP = Point3f(0.0f);    
-    Intersection intersection;
-
-    Ray3f ray;
-    int depth = 0;
-
-    Color3f radiance = Color3f(0.0f);
-    Color3f scatteringFactor = Color3f(1.0f);
-};
-
-
 struct Pth
 {
 
-enum IntegrationType {EMITTER, DIFFUSE, SUBSURFACE, SPECULAR, NONE};
+enum IntegrationType {EMITTER, DIFFUSE, SPECULAR, NONE};
 
 
 static Color3f nextEventEstimation(const Scene *scene, 

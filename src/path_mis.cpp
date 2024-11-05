@@ -103,8 +103,25 @@ public:
         state.scatteringFactor = Color3f(0.0f);
     }
 
-    void sampleIntersection(const Scene *scene, Sampler *sampler, PathState &state) const
+    // Compute radiance over a full path
+    void shadeIntersection(const Scene *scene, Sampler *sampler, PathState &state) const 
     {
+        if (state.depth > 3)     // Apply roussian roulette
+        {
+            constexpr float roulettePdf = 0.95f;
+            if (sampler->next1D() < roulettePdf) 
+            {
+                // Apply roulette pdf
+                state.scatteringFactor /= roulettePdf;
+            }
+            else 
+            { 
+                state.scatteringFactor = Color3f(0.0f);
+                return;
+            }
+        }
+
+        // Integrate the current intersection
         Pth::IntegrationType integrationType = Pth::getIntegrationType(state.intersection);
 
         switch (integrationType)
@@ -115,9 +132,6 @@ public:
             case Pth::DIFFUSE:
                 integrateDiffuse(scene, sampler, state);
                 break;
-            case Pth::SUBSURFACE:
-                integrateDiffuse(scene, sampler, state);
-                break;
             case Pth::SPECULAR:
                 integrateSpecular(scene, sampler, state);
                 break;
@@ -126,57 +140,8 @@ public:
         }
     }
 
-    // Compute radiance over a full path
-    void Li(const Scene *scene, Sampler *sampler, PathState &state) const 
-    {
-        while (state.scatteringFactor != Color3f(0.0f))
-        {
-            /* Find the surface that is visible in the requested direction */
-            if (!scene->rayIntersect(state.ray, state.intersection))
-            {
-                if (scene->getEnvironmentalEmitter() != nullptr && state.depth < 2){
-                    EmitterQueryRecord emitterQuery (-state.ray.d, EMeasure::EDiscrete);
-                    emitterQuery.lightP = state.ray.d*1e15;
-
-                    float weight = 1.0f;
-                    if (state.previous_diffuse)
-                    {
-                        emitterQuery.surfaceP = state.prevP;
-                        emitterQuery.measure = EMeasure::ESolidAngle;
-                        
-                        float lightPdf = scene->getEnvironmentalEmitter()->pdf(emitterQuery);
-                        int nSamples = state.previous_sss ? N_SSS_NES_SAMPLES : 1;
-                        weight = Math::powerHeuristic(1, state.bsdfPdf, nSamples, lightPdf);
-                    }
-                    state.radiance += scene->getEnvironmentalEmitter()->eval(emitterQuery)*state.scatteringFactor * weight;
-                }
-                state.scatteringFactor = Color3f(0.0f);
-                return;
-            }
-           
-            if (state.depth > 3)     // Apply roussian roulette
-            {
-                constexpr float roulettePdf = 0.95f;
-                if (sampler->next1D() < roulettePdf) 
-                {
-                    // Apply roulette pdf
-                    state.scatteringFactor /= roulettePdf;
-                }
-                else 
-                { 
-                    state.scatteringFactor = Color3f(0.0f);
-                    return;
-                }
-            }
-
-            // Integrate the current intersection
-            sampleIntersection(scene, sampler, state);
-
-            state.depth++;
-        }
-    }
-
     // Compute radiance over a given ray
+    /*
     Color3f Li(const Scene *scene, Sampler *sampler, const Ray3f &ray) const 
     {
         // Initialize path state
@@ -186,6 +151,32 @@ public:
         Li(scene, sampler, state);
 
         return state.radiance;
+    }
+    */
+
+    void shadeEnvironment(const Scene *scene, Sampler *sampler, PathState &state) const
+    {
+        if (scene->getEnvironmentalEmitter() != nullptr && state.depth < 2)
+        {
+            EmitterQueryRecord emitterQuery (-state.ray.d, EMeasure::EDiscrete);
+            emitterQuery.lightP = state.ray.d*1e15;
+
+            float weight = 1.0f;
+            if (state.previous_diffuse)
+            {
+                emitterQuery.surfaceP = state.prevP;
+                emitterQuery.measure = EMeasure::ESolidAngle;
+                
+                float lightPdf = scene->getEnvironmentalEmitter()->pdf(emitterQuery);
+                int nSamples = state.previous_sss ? N_SSS_NES_SAMPLES : 1;
+                weight = Math::powerHeuristic(1, state.bsdfPdf, nSamples, lightPdf);
+            }
+
+            state.radiance += scene->getEnvironmentalEmitter()->eval(emitterQuery)*state.scatteringFactor * weight;
+        }
+
+        state.scatteringFactor = Color3f(0.0f);
+        return;
     }
 
 
