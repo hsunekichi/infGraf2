@@ -1,5 +1,10 @@
 cmake_minimum_required (VERSION 3.2)
-project(nori)
+project(nori LANGUAGES CXX CUDA)
+
+
+if(NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
+  set(CMAKE_CUDA_ARCHITECTURES 89)
+endif()
 
 add_subdirectory(ext ext_build)
 
@@ -73,7 +78,7 @@ add_executable(nori
 
   # Source code files
   src/common.cpp
-  src/accel.cpp
+  src/accel.cu
   src/area.cpp
   src/bitmap.cpp
   src/block.cpp
@@ -138,6 +143,9 @@ add_executable(warptest
   src/math.cpp
 )
 
+set_target_properties( nori
+                       PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+
 if (WIN32)
   target_link_libraries(nori tbb_static pugixml IlmImf nanogui ${NANOGUI_EXTRA_LIBS} zlibstatic)
 else()
@@ -147,6 +155,7 @@ endif()
 target_link_libraries(warptest tbb_static nanogui ${NANOGUI_EXTRA_LIBS})
 
 set_property(TARGET nori PROPERTY CXX_STANDARD 17)
+set_property(TARGET nori PROPERTY CUDA_SEPARABLE_COMPILATION ON)
 
 # Force colored output for the ninja generator
 if (CMAKE_GENERATOR STREQUAL "Ninja")

@@ -22,6 +22,8 @@
 #include <Eigen/Geometry>
 #include <atomic>
 
+#include <cuda_runtime.h>
+
 NORI_NAMESPACE_BEGIN
 
 /* Bin data structure for counting triangles and computing their bounding box */
@@ -345,51 +347,53 @@ uint64_t morton3D(Point3f p, int bits = 10)
 	return morton_code;
 }
 
-/*
-void order_faces_by_morton(
-		std::vector<Face> &loaded_faces,
-		const std::vector<Vector3f> &positions)
+
+void order_faces_by_morton(BVHmesh &mesh)
 {
-	Vector3f bbox_size = m_bbox.max - m_bbox.min;
+	Vector3f bbox_size = mesh.m_bbox.max - mesh.m_bbox.min;
 	for (int i = 0; i < 3; ++i)
 	{
 		if (bbox_size[i] == 0)
 			bbox_size[i] = 1.0f;
 	}
 
-	std::vector<uint64_t> morton_codes(loaded_faces.size());
-	for (uint32_t i = 0; i < loaded_faces.size(); ++i)
+	std::vector<uint64_t> morton_codes(mesh.size());
+	for (uint32_t i = 0; i < mesh.size(); ++i)
 	{
-		uint32_t index1 = loaded_faces[i].v[0].p;
-		uint32_t index2 = loaded_faces[i].v[1].p;
-		uint32_t index3 = loaded_faces[i].v[2].p;
+		uint32_t index1 = mesh.m_F(0, i);
+		uint32_t index2 = mesh.m_F(1, i);
+		uint32_t index3 = mesh.m_F(2, i);
 
-		Vector3f p0 = positions[index1-1];
-		Vector3f p1 = positions[index2-1];
-		Vector3f p2 = positions[index3-1];
+		Vector3f p0 = mesh.m_V.col(index1);
+		Vector3f p1 = mesh.m_V.col(index2);
+		Vector3f p2 = mesh.m_V.col(index3);
 
 		Vector3f centroid = (p0 + p1 + p2) / 3.0f;
-		Vector3f normalized_centroid = (centroid - m_bbox.min);
+		Vector3f normalized_centroid = (centroid - mesh.m_bbox.min);
 		
 		normalized_centroid = normalized_centroid.cwiseQuotient(bbox_size);
 		morton_codes[i] = morton3D(normalized_centroid);
 	}
 
-	std::vector<uint32_t> indices(loaded_faces.size());
-	for (uint32_t i = 0; i < loaded_faces.size(); ++i)
+	std::vector<uint32_t> indices(mesh.size());
+	for (uint32_t i = 0; i < mesh.size(); ++i)
 		indices[i] = i;
 
 	std::sort(indices.begin(), indices.end(), [&morton_codes](uint32_t a, uint32_t b) {
 		return morton_codes[a] < morton_codes[b];
 	});
 
-	std::vector<Face> F(loaded_faces.size());
-	for (uint32_t i = 0; i < loaded_faces.size(); ++i)
-		F[i] = loaded_faces[indices[i]];
 
-	loaded_faces.swap(F);
+	MatrixXu newF = MatrixXu(3, mesh.size());
+
+	for (uint32_t i = 0; i < mesh.size(); ++i)
+	{
+		newF.col(i) = mesh.m_F.col(indices[i]);
+	}
+
+	mesh.m_F = newF;
 }
-*/
+
 
 void Accel::compactMeshes() 
 {
@@ -400,6 +404,7 @@ void Accel::compactMeshes()
 		globalMesh.append(m_meshes[i], i);
 	}
 
+	//order_faces_by_morton(globalMesh); // Does not work
 }
 
 
