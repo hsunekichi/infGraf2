@@ -13,13 +13,31 @@
 		<integer name="height" value="982"/>
 		<transform name="toWorld">
 			<scale value="-1.000000 1.000000 -1.000000"/>
-			<matrix value="1.0,0.0,0.0,-0.0036308581475168467,0.0,-0.05368456616997719,-0.9985579252243042,-1.614412546157837,0.0,0.9985579252243042,-0.05368456616997719,4.585289478302002,0.0,0.0,0.0,1.0"/>
+			<matrix value="1.0,0.0,0.0,-0.05926178768277168,0.0,-0.05368456616997719,-0.9985579252243042,-0.6858136057853699,0.0,0.9985579252243042,-0.05368456616997719,4.529738903045654,0.0,0.0,0.0,1.0"/>
 		</transform>
 	</camera>
 	<mesh type="obj">
+		<string name="filename" value="meshes/g¡j43_h_Iron.obj"/>
+		<bsdf type="GGX">
+			<color name="albedo" value="0.141647,0.140231,0.136124"/>
+			<float name="roughness" value="0.300043"/>
+			<color name="internIOR" value="2.0874,1.79,1.62"/>
+			<color name="K" value="3.17,2.81,3.27"/>
+		</bsdf>
+	</mesh>
+	<mesh type="obj">
+		<string name="filename" value="meshes/option2_head_helmet_Iron.obj"/>
+		<bsdf type="GGX">
+			<color name="albedo" value="0.141647,0.140231,0.136124"/>
+			<float name="roughness" value="0.300043"/>
+			<color name="internIOR" value="2.0874,1.79,1.62"/>
+			<color name="K" value="3.17,2.81,3.27"/>
+		</bsdf>
+	</mesh>
+	<mesh type="obj">
 		<string name="filename" value="meshes/option1_hair_eyebrows_EyebrowsHair.obj"/>
 		<bsdf type="GGX">
-			<color name="albedo" value="0.382972,0.187513,0.019612"/>
+			<color name="albedo" value="0.524154,0.254437,0.025226"/>
 			<float name="roughness" value="0.500000"/>
 		</bsdf>
 	</mesh>
@@ -32,22 +50,14 @@
 	</mesh>
 	<mesh type="obj">
 		<string name="filename" value="meshes/option1_eyes_Eyes.obj"/>
-		<bsdf type="agregate"> <!-- Eyes BSDF -->
-			<float name="w1" value="0.875"/>
-			<float name="w2" value="0.125"/>
-
-			<bsdf type="diffuse">
-				<texture type="textmap" name="albedo">
-					<string name="filename" value="Eyes.bmp"/>
-					<string name="interpolation" value="Linear"/>
-					<string name="extension" value="REPEAT"/>
-					<string name="projection" value="FLAT"/>
-				</texture>
-				<float name="roughness" value="0.2"/>
-			</bsdf>
-			<bsdf type="mirror">
-				<color name="reflectance" value="1,1,1"/>
-			</bsdf>
+		<bsdf type="diffuse">
+			<texture type="textmap" name="albedo">
+				<string name="filename" value="Eyes.bmp"/>
+				<string name="interpolation" value="Linear"/>
+				<string name="extension" value="REPEAT"/>
+				<string name="projection" value="FLAT"/>
+			</texture>
+			<float name="roughness" value="0.099924"/>
 		</bsdf>
 	</mesh>
 	<mesh type="obj">
