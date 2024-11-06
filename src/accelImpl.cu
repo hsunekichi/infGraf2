@@ -470,7 +470,7 @@ void Accel::build()
 	// Move the BVH to the device
 	device_nodes = m_nodes;
 	device_indices = m_indices;
-	globalMesh.uploadToDevice();
+	globalMesh.uploadToDevice(deviceVertices, deviceFaces);
 }
 
 std::pair<float, n_UINT> Accel::statistics(n_UINT node_idx) const {
@@ -552,53 +552,116 @@ Intersection Accel::fillIntersection(Point2f uv, n_UINT f, float t) const
 	return its;
 }
 
+class rayIntersectFunctor
+{
+public:
+	const Accel::BVHNode *nodes;
+	const n_UINT *indices;
+	const MatrixXu *F;
+	const MatrixXf *V;
+	Ray3f *rays;
+	Intersection *its;
 
-/*
-bool Accel::rayIntersect(const Ray3f &_ray, Intersection &its, bool shadowRay) const {
+rayIntersectFunctor(const Accel::BVHNode *nodes, const n_UINT *indices, 
+		const MatrixXu *F, const MatrixXf *V, Ray3f *rays, Intersection *its)
+	: nodes(nodes), indices(indices), F(F), V(V), rays(rays), its(its) {}
+
+__host__ __device__
+bool operator()(bool mask, n_UINT i) const
+{
+	if (!mask)
+		return false;
+	else
+		return rayIntersect(F, V, nodes, indices, rays[i], its[i]);
+}
+
+__host__ __device__
+bool rayIntersect(const MatrixXu *F, const MatrixXf *V, const Accel::BVHNode *nodes, const n_UINT *indices, 
+				const Ray3f &_ray, Intersection &its) const 
+{
 	n_UINT node_idx = 0, stack_idx = 0, stack[64];
 
-	its.t = std::numeric_limits<float>::infinity();
+	#ifdef __CUDA_ARCH__
+		its.t = INFINITY;
+	#else
+		its.t = std::numeric_limits<float>::infinity();
+	#endif
 
-	// Use an adaptive ray epsilon
+	// Use an adaptive ray epsilon 
 	Ray3f ray(_ray);
 	if (ray.mint == Epsilon)
-		ray.mint = std::max(ray.mint, ray.mint * ray.o.array().abs().maxCoeff());
-
-	if (m_nodes.empty() || ray.maxt < ray.mint)
+	{
+		#ifdef __CUDA_ARCH__
+			ray.mint = fmaxf(ray.mint, ray.mint * ray.o.array().abs().maxCoeff());
+		#else
+			ray.mint = std::max(ray.mint, ray.mint * ray.o.array().abs().maxCoeff());
+		#endif
+	}
+	
+	if (ray.maxt < ray.mint)
 		return false;
 
 	bool foundIntersection = false;
-	n_UINT f = 0;
+	//n_UINT f = 0;
 
-	while (true) {
-		const BVHNode &node = m_nodes[node_idx];
+	while (true) 
+	{
+		const Accel::BVHNode &node = nodes[node_idx];
 
-		if (!node.bbox.rayIntersect(ray)) {
-			if (stack_idx == 0)
-				break;
-			node_idx = stack[--stack_idx];
-			continue;
+		if (node.isInner()) 
+		{
+			const n_UINT right = node.inner.rightChild;
+			const n_UINT left = node_idx + 1;
+			float tRight, tLeft;
+			bool right_intersected = nodes[right].bbox.rayIntersect(ray, tRight);
+			bool left_intersected  = nodes[left].bbox.rayIntersect(ray, tLeft);
+
+			if (left_intersected && right_intersected)
+			{
+				if (tRight > tLeft)
+				{
+					stack[stack_idx++] = right;
+					node_idx = left;
+				}
+				else
+				{
+					stack[stack_idx++] = left;
+					node_idx = right;
+				}
+
+				assert(stack_idx < 64);
+			}
+			else if (left_intersected)
+			{
+				node_idx = left;
+			}
+			else if (right_intersected)
+			{
+				node_idx = right;
+			}
+			else
+			{
+				if (stack_idx == 0)
+					break;
+				node_idx = stack[--stack_idx];
+				continue;
+			}
 		}
+		else 
+		{
+			for (n_UINT i = node.start(), end = node.end(); i < end; ++i) 
+			{
 
-		if (node.isInner()) {
-			stack[stack_idx++] = node.inner.rightChild;
-			node_idx++;
-			assert(stack_idx < 64);
-		}
-		else {
-			for (n_UINT i = node.start(), end = node.end(); i < end; ++i) {
-				n_UINT idx = m_indices[i];
-				const Mesh *mesh = m_meshes[findMesh(idx)];
+				n_UINT idx = indices[i];
 
 				float u, v, t;
-				if (mesh->rayIntersect(idx, ray, u, v, t)) {
-					if (shadowRay)
-						return true;
-					foundIntersection = true;
+				if (rayIntersect(F, V, idx, ray, u, v, t)) 
+				{
 					ray.maxt = its.t = t;
 					its.uv = Point2f(u, v);
-					its.mesh = mesh;
-					f = idx;
+
+					foundIntersection = true;
+					its.f = idx; //= f;
 				}
 			}
 			if (stack_idx == 0)
@@ -608,62 +671,51 @@ bool Accel::rayIntersect(const Ray3f &_ray, Intersection &its, bool shadowRay) c
 		}
 	}
 
-	if (foundIntersection) {
-		// Find the barycentric coordinates
-		Vector3f bary;
-		bary << 1 - its.uv.sum(), its.uv;
-
-		// References to all relevant mesh buffers
-		const Mesh *mesh = its.mesh;
-		const MatrixXf &V = mesh->getVertexPositions();
-		const MatrixXf &N = mesh->getVertexNormals();
-		const MatrixXf &UV = mesh->getVertexTexCoords();
-		const MatrixXu &F = mesh->getIndices();
-
-		// Vertex indices of the triangle
-		n_UINT idx0 = F(0, f), idx1 = F(1, f), idx2 = F(2, f);
-
-		Point3f p0 = V.col(idx0), p1 = V.col(idx1), p2 = V.col(idx2);
-
-		// Compute the intersection positon accurately
-		   using barycentric coordinates
-		its.p = bary.x() * p0 + bary.y() * p1 + bary.z() * p2;
-
-		// Compute proper texture coordinates if provided by the mesh
-		if (UV.size() > 0)
-			its.uv = bary.x() * UV.col(idx0) +
-			bary.y() * UV.col(idx1) +
-			bary.z() * UV.col(idx2);
-
-		// Compute the geometry frame
-		its.geoFrame = Frame(its.p, (p1 - p0).cross(p2 - p0).normalized());
-
-		if (N.size() > 0) {
-			// Compute the shading frame. Note that for simplicity,
-			// the current implementation doesn't attempt to provide
-			// tangents that are continuous across the surface. That
-			// means that this code will need to be modified to be able
-			// use anisotropic BRDFs, which need tangent continuity
-
-			its.shFrame = Frame(its.p,
-				(bary.x() * N.col(idx0) +
-					bary.y() * N.col(idx1) +
-					bary.z() * N.col(idx2)).normalized());
-		}
-		else {
-			its.shFrame = its.geoFrame;
-		}
-	}
-
 	return foundIntersection;
 }
-*/
 
 __host__ __device__
-void printIndex(n_UINT i)
+bool rayIntersect(const MatrixXu *F, const MatrixXf *V, 
+				n_UINT index, const Ray3f &ray, float &u, float &v, float &t) const	
 {
-	printf("%d\n", i);
+	n_UINT i0 = (*F)(0, index), i1 = (*F)(1, index), i2 = (*F)(2, index);
+	const Eigen::Vector3f p0 = (*V).col(i0), p1 = (*V).col(i1), p2 = (*V).col(i2);
+
+	/* Find vectors for two edges sharing v[0] */
+	Eigen::Vector3f edge1 = p1 - p0, edge2 = p2 - p0;
+
+	/* Begin calculating determinant - also used to calculate U parameter */
+	Eigen::Vector3f pvec = ray.d.cross(edge2);
+
+	/* If determinant is near zero, ray lies in plane of triangle */
+	float det = edge1.dot(pvec);
+
+	if (det > -1e-8f && det < 1e-8f)
+		return false;
+	float inv_det = 1.0f / det;
+
+	/* Calculate distance from v[0] to ray origin */
+	Eigen::Vector3f tvec = ray.o - p0;
+
+	/* Calculate U parameter and test bounds */
+	u = tvec.dot(pvec) * inv_det;
+	if (u < 0.0 || u > 1.0)
+		return false;
+
+	/* Prepare to test V parameter */
+	Eigen::Vector3f qvec = tvec.cross(edge1);
+
+	/* Calculate V parameter and test bounds */
+	v = ray.d.dot(qvec) * inv_det;
+	if (v < 0.0 || u + v > 1.0)
+		return false;
+
+	/* Ray intersects triangle -> compute t */
+	t = edge2.dot(qvec) * inv_det;
+
+	return t >= ray.mint && t <= ray.maxt;
 }
+};
 
 
 void Accel::rayIntersect(const std::vector<bool> &mask, 
@@ -671,6 +723,7 @@ void Accel::rayIntersect(const std::vector<bool> &mask,
 						std::vector<Intersection> &its,
 						std::vector<bool> &hit) const
 {
+	/*
 	for (n_UINT i = 0; i < ray.size(); ++i) 
 	{
 		if (mask[i] && rayIntersect(ray[i], its[i]))
@@ -681,9 +734,37 @@ void Accel::rayIntersect(const std::vector<bool> &mask,
 		else
 			hit[i] = false;
 	}
+	*/
 
-	// THrust for each to print device indices
-	thrust::for_each(device_indices.begin(), device_indices.end(), printIndex);
+	// Intersect rays with thrust on cpu
+	thrust::device_vector<bool> hit_device(ray.size(), false);
+	thrust::device_vector<Intersection> its_device(ray.size());
+	thrust::device_vector<Ray3f> ray_device(ray.begin(), ray.end());
+	thrust::device_vector<bool> mask_device(mask.begin(), mask.end());
+
+	// Build functor
+	rayIntersectFunctor functor(m_nodes.data(), m_indices.data(), 
+								&globalMesh.m_F, &globalMesh.m_V,
+								ray_device.data().get(), its_device.data().get());
+
+	// thrust transform indices into bools
+	thrust::transform(mask_device.begin(), mask_device.end(), 
+					thrust::make_counting_iterator(0), hit_device.begin(), 
+					functor);
+
+	// Copy back to std
+	hit = std::vector<bool>(hit_device.begin(), hit_device.end());
+	its = std::vector<Intersection>(its_device.begin(), its_device.end());
+
+	for (n_UINT i = 0; i < its.size(); ++i)
+	{
+		if (hit[i])
+			its[i] = fillIntersection(its[i].uv, its[i].f, its[i].t);
+	}
+
+
+
+
 }
 
 bool Accel::rayIntersect(const Ray3f &_ray, Intersection &its, bool shadowRay) const {

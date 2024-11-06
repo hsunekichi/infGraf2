@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include <nori/vector.h>
+#include <nori/vector.cu>
 #include <cuda_runtime.h>
 
 NORI_NAMESPACE_BEGIN
@@ -49,19 +49,16 @@ template <typename _PointType, typename _VectorType> struct TRay {
     bool isCameraRay = false;
 
     /// Construct a new ray
-    __host__ __device__
     TRay() : mint(Epsilon), 
         maxt(std::numeric_limits<Scalar>::infinity()) { }
     
     /// Construct a new ray
-    __host__ __device__
     TRay(const PointType &o, const VectorType &d) : o(o), d(d), 
             mint(Epsilon), maxt(std::numeric_limits<Scalar>::infinity()) {
         update();
     }
 
     /// Construct a new ray
-    __host__ __device__
     TRay(const PointType &o, const VectorType &d, 
         Scalar mint, Scalar maxt) : o(o), d(d), mint(mint), maxt(maxt) {
         update();

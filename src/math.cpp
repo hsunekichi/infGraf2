@@ -4,7 +4,6 @@
 #include <nori/common.h>
 #include <nori/transform.h>
 #include <nori/bitmap.h>
-#include <nori/vector.h>
 
 #include <chrono>
 #include <thread>

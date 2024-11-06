@@ -19,7 +19,7 @@
 #pragma once
 
 #include <nori/color.h>
-#include <nori/vector.h>
+#include <nori/vector.cu>
 
 NORI_NAMESPACE_BEGIN
 

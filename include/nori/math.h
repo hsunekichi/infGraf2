@@ -2,7 +2,7 @@
 
 #include <nori/common.h>
 #include <nori/transform.h>
-#include <nori/vector.h>
+#include <nori/vector.cu>
 #include <nori/color.h>
 #include <nori/bsdf.h>
 

@@ -30,17 +30,21 @@ NORI_NAMESPACE_BEGIN
 
 struct BVHmesh
 {
-    thrust::host_vector<Mesh*> originalMeshes;
-	thrust::device_vector<Mesh*> device_originalMeshes;
+    std::vector<Mesh *> originalMeshes;
+	size_t nMeshes = 0;
 	MatrixXf      m_V;                   ///< Vertex positions
 	MatrixXu      m_F;                   ///< Faces
 	BoundingBox3f m_bbox;                ///< Bounding box
 
 	const Mesh *getOriginalMesh(n_UINT index) const { return originalMeshes[index]; }
 
-	void uploadToDevice()
+	void uploadToDevice(MatrixXf *&d_V, MatrixXu *&d_F) const
 	{
-		device_originalMeshes = originalMeshes;
+		cudaMalloc(&d_V, m_V.size() * sizeof(float));
+		cudaMalloc(&d_F, m_F.size() * sizeof(n_UINT));
+
+		cudaMemcpy(d_V, m_V.data(), m_V.size() * sizeof(float), cudaMemcpyHostToDevice);
+		cudaMemcpy(d_F, m_F.data(), m_F.size() * sizeof(n_UINT), cudaMemcpyHostToDevice);
 	}
 
 	void clear() {
@@ -125,11 +129,9 @@ struct BVHmesh
 			m_F.rightCols(other->getIndices().cols()) = other->getIndices();
 		}
 
-		// Add the BSDF and emitter
-		for (size_t i = 0; i < other->size(); ++i)
-		{
+		// Add the original mesh
+		for (size_t i = 0; i < other->getIndices().cols(); ++i)
 			originalMeshes.push_back(other);
-		}
 
 		m_bbox.expandBy(other->getBoundingBox());
 	}
@@ -290,6 +292,9 @@ private:
 	thrust::device_vector<BVHNode> device_nodes; ///< BVH nodes
 
 	BVHmesh globalMesh;                 ///< Global mesh containing all triangles
+	MatrixXf *deviceVertices;            ///< Global vertex positions
+	MatrixXu *deviceFaces;             ///< Global triangle indices
+
 	BoundingBox3f m_bbox;               ///< Bounding box of the entire BVH
 };
 

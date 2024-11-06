@@ -19,6 +19,7 @@
 #pragma once
 
 #include <nori/common.h>
+#include <cuda_runtime.h>
 
 NORI_NAMESPACE_BEGIN
 
@@ -45,23 +46,27 @@ public:
     typedef TPoint<Scalar, Dimension>           PointType;
 
     /// Create a new vector with constant component vlaues
+    __host__ __device__
     TVector(Scalar value = (Scalar) 0) { Base::setConstant(value); }
 
     /// Create a new 2D vector (type error if \c Dimension != 2)
+    __host__ __device__
     TVector(Scalar x, Scalar y) : Base(x, y) { }
 
     /// Create a new 3D vector (type error if \c Dimension != 3)
+    __host__ __device__
     TVector(Scalar x, Scalar y, Scalar z) : Base(x, y, z) { }
 
     /// Create a new 4D vector (type error if \c Dimension != 4)
+    __host__ __device__
     TVector(Scalar x, Scalar y, Scalar z, Scalar w) : Base(x, y, z, w) { }
 
     /// Construct a vector from MatrixBase (needed to play nice with Eigen)
-    template <typename Derived> TVector(const Eigen::MatrixBase<Derived>& p)
+    template <typename Derived> __host__ __device__ TVector(const Eigen::MatrixBase<Derived>& p)
         : Base(p) { }
 
     /// Assign a vector from MatrixBase (needed to play nice with Eigen)
-    template <typename Derived> TVector &operator=(const Eigen::MatrixBase<Derived>& p) {
+    template <typename Derived> __host__ __device__ TVector &operator=(const Eigen::MatrixBase<Derived>& p) {
         this->Base::operator=(p);
         return *this;
     }
@@ -93,23 +98,27 @@ public:
     typedef TPoint<Scalar, Dimension>           PointType;
 
     /// Create a new point with constant component vlaues
+    __host__ __device__
     TPoint(Scalar value = (Scalar) 0) { Base::setConstant(value); }
 
     /// Create a new 2D point (type error if \c Dimension != 2)
+    __host__ __device__
     TPoint(Scalar x, Scalar y) : Base(x, y) { }
 
     /// Create a new 3D point (type error if \c Dimension != 3)
+    __host__ __device__
     TPoint(Scalar x, Scalar y, Scalar z) : Base(x, y, z) { }
 
     /// Create a new 4D point (type error if \c Dimension != 4)
+    __host__ __device__
     TPoint(Scalar x, Scalar y, Scalar z, Scalar w) : Base(x, y, z, w) { }
 
     /// Construct a point from MatrixBase (needed to play nice with Eigen)
-    template <typename Derived> TPoint(const Eigen::MatrixBase<Derived>& p)
+    template <typename Derived> __host__ __device__ TPoint(const Eigen::MatrixBase<Derived>& p)
         : Base(p) { }
 
     /// Assign a point from MatrixBase (needed to play nice with Eigen)
-    template <typename Derived> TPoint &operator=(const Eigen::MatrixBase<Derived>& p) {
+    template <typename Derived> __host__ __device__ TPoint &operator=(const Eigen::MatrixBase<Derived>& p) {
         this->Base::operator=(p);
         return *this;
     }
@@ -142,17 +151,19 @@ public:
 
 
     /// Create a new normal with constant component vlaues
+    __host__ __device__
     Normal3f(Scalar value = 0.0f) { Base::setConstant(value); }
 
     /// Create a new 3D normal
+    __host__ __device__
     Normal3f(Scalar x, Scalar y, Scalar z) : Base(x, y, z) { }
 
     /// Construct a normal from MatrixBase (needed to play nice with Eigen)
-    template <typename Derived> Normal3f(const Eigen::MatrixBase<Derived>& p)
+    template <typename Derived> __host__ __device__ Normal3f(const Eigen::MatrixBase<Derived>& p)
         : Base(p) { }
 
     /// Assign a normal from MatrixBase (needed to play nice with Eigen)
-    template <typename Derived> Normal3f &operator=(const Eigen::MatrixBase<Derived>& p) {
+    template <typename Derived> __host__ __device__ Normal3f &operator=(const Eigen::MatrixBase<Derived>& p) {
         this->Base::operator=(p);
         return *this;
     }

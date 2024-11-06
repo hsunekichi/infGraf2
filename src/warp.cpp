@@ -5,7 +5,7 @@
 */
 
 #include <nori/warp.h>
-#include <nori/vector.h>
+#include <nori/vector.cu>
 #include <nori/frame.h>
 #include <nori/math.h>
 

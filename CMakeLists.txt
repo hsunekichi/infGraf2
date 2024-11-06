@@ -74,7 +74,7 @@ add_executable(nori
   include/nori/texture.h
   include/nori/timer.h
   include/nori/transform.h
-  include/nori/vector.h
+  include/nori/vector.cu
   include/nori/warp.h
   include/nori/pathtracing.h
   include/nori/kdtree.h

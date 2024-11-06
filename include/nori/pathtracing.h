@@ -3,7 +3,7 @@
 #include <nori/pathtracing.h>
 
 #include <nori/common.h>
-#include <nori/vector.h>
+#include <nori/vector.cu>
 #include <nori/scene.h>
 #include <nori/kdtree.h>
 #include <nori/integrator.h>
