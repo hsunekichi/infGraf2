@@ -3,27 +3,61 @@
 	<integrator type="path_mis"/>
 	<sampler type="independent">
 		<integer name="sampleCount" value="32"/>
-		<integer name="nPasses" value="32"/>
+		<integer name="nPasses" value="16"/>
 	</sampler>
 	<camera type="perspective">
-		<float name="fov" value="30.0"/>
+		<float name="fov" value="21.0"/>
 		<float name="nearClip" value="0.10000000149011612"/>
 		<float name="farClip" value="1000.0"/>
 		<integer name="width" value="793"/>
 		<integer name="height" value="982"/>
 		<transform name="toWorld">
 			<scale value="-1.000000 1.000000 -1.000000"/>
-			<matrix value="1.0,0.0,0.0,0.0832282230257988,0.0,-0.05368456616997719,-0.9985579252243042,-1.612417459487915,0.0,0.9985579252243042,-0.05368456616997719,4.54818058013916,0.0,0.0,0.0,1.0"/>
+			<matrix value="1.0,0.0,0.0,-0.0036308581475168467,0.0,-0.05368456616997719,-0.9985579252243042,-1.614412546157837,0.0,0.9985579252243042,-0.05368456616997719,4.585289478302002,0.0,0.0,0.0,1.0"/>
 		</transform>
 	</camera>
 	<mesh type="obj">
-		<string name="filename" value="meshes/option1_head_Skin.obj"/>
+		<string name="filename" value="meshes/option1_hair_eyebrows_EyebrowsHair.obj"/>
+		<bsdf type="GGX">
+			<color name="albedo" value="0.382972,0.187513,0.019612"/>
+			<float name="roughness" value="0.500000"/>
+		</bsdf>
+	</mesh>
+	<mesh type="obj">
+		<string name="filename" value="meshes/eyelasesHair_eyelashesHair.obj"/>
+		<bsdf type="GGX">
+			<color name="albedo" value="0.075011,0.070109,0.053563"/>
+			<float name="roughness" value="0.500000"/>
+		</bsdf>
+	</mesh>
+	<mesh type="obj">
+		<string name="filename" value="meshes/option1_eyes_Eyes.obj"/>
+		<bsdf type="agregate"> <!-- Eyes BSDF -->
+			<float name="w1" value="0.875"/>
+			<float name="w2" value="0.125"/>
+
+			<bsdf type="diffuse">
+				<texture type="textmap" name="albedo">
+					<string name="filename" value="Eyes.bmp"/>
+					<string name="interpolation" value="Linear"/>
+					<string name="extension" value="REPEAT"/>
+					<string name="projection" value="FLAT"/>
+				</texture>
+				<float name="roughness" value="0.2"/>
+			</bsdf>
+			<bsdf type="mirror">
+				<color name="reflectance" value="1,1,1"/>
+			</bsdf>
+		</bsdf>
+	</mesh>
+	<mesh type="obj">
+		<string name="filename" value="meshes/only_head_Skin.002.obj"/>
 		<bsdf type="agregate">
 			<float name="w1" value="0.92"/>
 			<float name="w2" value="0.06"/>
 			<float name="w3" value="0.02"/>
 
-			<bsdf type="normalizedDiffusion">   <!-- Skin properties -->
+			<bsdf type="diffuse">   <!-- Skin properties -->
 				<color name="ld" value="1.8 1.6 1.5"/>
 				<float name="eta" value="1.3"/>
 				<texture type="textmap" name="albedo">
@@ -42,70 +76,6 @@
 				<color name="internIOR" value="1.51 1.51 1.51"/>
 				<color name="kd" value="1 1 1"/>
 				<float name="roughness" value="0.05"/>
-			</bsdf>
-		</bsdf>
-	</mesh>
-	
-	<mesh type="obj">
-		<string name="filename" value="meshes/option1_hair_Hair.obj"/>
-		<bsdf type="agregate"> 
-			<float name="w1" value="0.25"/>
-			<float name="w2" value="0.75"/>
-
-			<bsdf type="normalizedDiffusion">
-				<color name="ld" value="4 3.6 2.5"/>
-				<float name="eta" value="1.55"/>
-				<color name="albedo" value="0.9843,0.9059,0.6314"/>
-			</bsdf>
-			<bsdf type="microfacet">
-				<color name="internIOR" value="1.55 1.55 1.55"/>
-				<color name="albedo" value="0.9843,0.9059,0.6314"/>
-				<float name="roughness" value="1"/>
-			</bsdf>
-		</bsdf>
-	</mesh>
-	
-	<mesh type="obj">
-		<string name="filename" value="meshes/option1_hair_eyebrows_EyebrowsHair.obj"/>
-		<bsdf type="orenNayar">
-			<color name="albedo" value="0.229838,0.134117,0.088607"/>
-			<float name="roughness" value="0.500000"/>
-		</bsdf>
-	</mesh>
-	<mesh type="obj">
-		<string name="filename" value="meshes/eyelasesHair_eyelashesHair.obj"/>
-		<bsdf type="agregate"> 
-			<float name="w1" value="0.5"/>
-			<float name="w2" value="0.5"/>
-
-			<bsdf type="normalizedDiffusion">
-				<color name="ld" value="4 3.6 2.5"/>
-				<float name="eta" value="1.55"/>
-				<color name="albedo" value="0.036493,0.034260,0.026665"/>
-			</bsdf>
-			<bsdf type="orenNayar">
-				<color name="albedo" value="0.036493,0.034260,0.026665"/>
-				<float name="roughness" value="0.500000"/>
-			</bsdf>
-		</bsdf>
-	</mesh>
-	<mesh type="obj">
-		<string name="filename" value="meshes/option1_eyes_Eyes.obj"/>
-		<bsdf type="agregate">
-			<float name="w1" value="0.875"/>
-			<float name="w2" value="0.125"/>
-
-			<bsdf type="diffuse">
-				<texture type="textmap" name="albedo">
-					<string name="filename" value="Eyes.bmp"/>
-					<string name="interpolation" value="Linear"/>
-					<string name="extension" value="REPEAT"/>
-					<string name="projection" value="FLAT"/>
-				</texture>
-				<float name="roughness" value="0.2"/>
-			</bsdf>
-			<bsdf type="mirror">
-				<color name="reflectance" value="1,1,1"/>
 			</bsdf>
 		</bsdf>
 	</mesh>
@@ -128,7 +98,7 @@
 			<color name="albedo" value="0.800000,0.800000,0.800000"/>
 		</bsdf>
 		<emitter type="area">
-			<color name="radiance" value="10.000000,10.000000,10.000000"/>
+			<color name="radiance" value="5.000000,5.000000,5.000000"/>
 		</emitter>
 	</mesh>
 	<mesh type="obj">
@@ -137,7 +107,7 @@
 			<color name="albedo" value="0.800000,0.800000,0.800000"/>
 		</bsdf>
 		<emitter type="area">
-			<color name="radiance" value="8.000000,8.000000,8.000000"/>
+			<color name="radiance" value="7.671321,7.695287,8.000000"/>
 		</emitter>
 	</mesh>
 	<mesh type="obj">
@@ -147,6 +117,24 @@
 		</bsdf>
 		<emitter type="area">
 			<color name="radiance" value="10.000000,10.000000,10.000000"/>
+		</emitter>
+	</mesh>
+	<mesh type="obj">
+		<string name="filename" value="meshes/Plane.005_Material.005.obj"/>
+		<bsdf type="diffuse">
+			<color name="albedo" value="0.800000,0.800000,0.800000"/>
+		</bsdf>
+		<emitter type="area">
+			<color name="radiance" value="0.150000,0.150000,0.150000"/>
+		</emitter>
+	</mesh>
+	<mesh type="obj">
+		<string name="filename" value="meshes/Plane.006_Material.006.obj"/>
+		<bsdf type="diffuse">
+			<color name="albedo" value="0.800000,0.800000,0.800000"/>
+		</bsdf>
+		<emitter type="area">
+			<color name="radiance" value="0.150000,0.150000,0.150000"/>
 		</emitter>
 	</mesh>
 </scene>
