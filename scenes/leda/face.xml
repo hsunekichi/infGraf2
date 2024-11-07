@@ -6,7 +6,7 @@
 		<integer name="nPasses" value="16"/>
 	</sampler>
 	<camera type="perspective">
-		<float name="fov" value="21.0"/>
+		<float name="fov" value="25.0"/>
 		<float name="nearClip" value="0.10000000149011612"/>
 		<float name="farClip" value="1000.0"/>
 		<integer name="width" value="793"/>
@@ -16,6 +16,24 @@
 			<matrix value="1.0,0.0,0.0,-0.0036308581475168467,0.0,-0.05368456616997719,-0.9985579252243042,-1.614412546157837,0.0,0.9985579252243042,-0.05368456616997719,4.585289478302002,0.0,0.0,0.0,1.0"/>
 		</transform>
 	</camera>
+	<mesh type="obj">
+		<string name="filename" value="meshes/option1_hair_Hair.obj"/>
+		<bsdf type="agregate">  <!-- Hair -->
+			<float name="w1" value="0.25"/>
+			<float name="w2" value="0.75"/>
+
+			<bsdf type="normalizedDiffusion">
+				<color name="ld" value="4 3.6 2.5"/>
+				<float name="eta" value="1.55"/>
+				<color name="albedo" value="0.9843,0.9059,0.6314"/>
+			</bsdf>
+			<bsdf type="microfacet">
+				<color name="internIOR" value="1.55 1.55 1.55"/>
+				<color name="albedo" value="0.9843,0.9059,0.6314"/>
+				<float name="roughness" value="1"/>
+			</bsdf>
+		</bsdf>
+	</mesh>
 	<mesh type="obj">
 		<string name="filename" value="meshes/option1_hair_eyebrows_EyebrowsHair.obj"/>
 		<bsdf type="GGX">
@@ -51,7 +69,7 @@
 		</bsdf>
 	</mesh>
 	<mesh type="obj">
-		<string name="filename" value="meshes/only_head_Skin.002.obj"/>
+		<string name="filename" value="meshes/option1_head_Skin.obj"/>
 		<bsdf type="agregate">
 			<float name="w1" value="0.92"/>
 			<float name="w2" value="0.06"/>
@@ -119,6 +137,7 @@
 			<color name="radiance" value="10.000000,10.000000,10.000000"/>
 		</emitter>
 	</mesh>
+	<!--
 	<mesh type="obj">
 		<string name="filename" value="meshes/Plane.005_Material.005.obj"/>
 		<bsdf type="diffuse">
@@ -137,4 +156,5 @@
 			<color name="radiance" value="0.150000,0.150000,0.150000"/>
 		</emitter>
 	</mesh>
+	-->
 </scene>

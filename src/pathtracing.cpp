@@ -51,14 +51,14 @@ bool checkVisibility (const Scene *scene,
 {
     Ray3f shadowRay(p, g_wi.normalized(), Epsilon, g_wi.norm() - Epsilon);
 
-    //Intersection lightIntersection;
-    bool intersects = scene->rayIntersect(shadowRay);
+    Intersection lightIntersection;
+    bool intersects = scene->rayIntersect(shadowRay, lightIntersection);
 
     // Check visibility
     //bool objectSeesEmitter = true; //state.intersection.toLocal(g_wi).z() > 0.0f;
 
-    return !intersects;
-    // || intersects && lightIntersection.mesh == emitterMesh;
+    return !intersects
+        || ( intersects && lightIntersection.mesh->getEmitter() == emitterMesh);
 }
 
 

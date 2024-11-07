@@ -106,7 +106,6 @@ public:
                 if (scene->getEnvironmentalEmitter() != nullptr && state.depth < 2){
                     EmitterQueryRecord emitterQuery (-state.ray.d, EMeasure::EDiscrete);
                     emitterQuery.lightP = state.ray.d*1e15;
-                    float weight = state.depth > 0 ? 0.5f : 1.0f;
                     state.radiance += scene->getEnvironmentalEmitter()->eval(emitterQuery) * 1 * state.scatteringFactor;
                 }
                 state.scatteringFactor = Color3f(0.0f);
