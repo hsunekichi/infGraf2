@@ -206,26 +206,26 @@ Color3f Pth::integrateBSDF(const BSDF *bsdf, Sampler *sampler)
 }
 
 template <std::size_t N>
-constexpr std::array<float, N> precompute_sin(float constant)
+std::array<float, N> precompute_sin(float constant)
 {
     std::array<float, N> array {};
 
     for(unsigned i = 0; i < N; i++){
         float th = float(i) / float(N - 1) * M_PI * constant;
-        array[i] = sin(th);
+        array[i] = std::sin(th);
     }
 
     return array;
 }
 
 template <std::size_t N>
-constexpr std::array<float, N> precompute_cos(float constant)
+std::array<float, N> precompute_cos(float constant)
 {
     std::array<float, N> array {};
 
     for(unsigned i = 0; i < N; i++){
         float th = float(i) / float(N - 1) * M_PI * constant;
-        array[i] = cos(th);
+        array[i] = std::cos(th);
     }
 
     return array;
@@ -236,10 +236,10 @@ Color3f Pth::integrateSkinSpecular(const BSDF *bsdf, std::unique_ptr<Sampler> sa
     Color3f result(0.0f, 0.0f, 0.0f);
 
     constexpr unsigned nSteps = 512;
-    constexpr auto sinphi = precompute_sin<nSteps>(2.0f);
-    constexpr auto cosphi = precompute_cos<nSteps>(2.0f);
-    constexpr auto sinth = precompute_sin<nSteps>(1.0f/2.0f);
-    constexpr auto costh = precompute_cos<nSteps>(1.0f/2.0f);
+    auto sinphi = precompute_sin<nSteps>(2.0f);
+    auto cosphi = precompute_cos<nSteps>(2.0f);
+    auto sinth =  precompute_sin<nSteps>(1.0f/2.0f);
+    auto costh =  precompute_cos<nSteps>(1.0f/2.0f);
 
     Vector3f V = Vector3f(0.0, sqrt(1.0 - costheta * costheta), costheta);
 

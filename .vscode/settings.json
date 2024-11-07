@@ -97,7 +97,9 @@
         "forward_list": "cpp",
         "tensor": "cpp",
         "text_encoding": "cpp",
-        "strstream": "cpp"
+        "strstream": "cpp",
+        "__locale": "cpp",
+        "ios": "cpp"
     },
     "ros.distro": "noetic"
 }
