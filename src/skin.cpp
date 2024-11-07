@@ -19,6 +19,8 @@
     along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <future>
+
 #include <nori/bsdf.h>
 #include <nori/frame.h>
 #include <nori/warp.h>
@@ -49,21 +51,33 @@ public:
         m_pdf.clear();
 
         Color3f c1 = Pth::integrateBSDF(m_bsdfs[0], sampler);
-        w1 = c1.getLuminance();
-        ws = 1.0f - w1;
+        float w1 = c1.getLuminance();
+        float ws = 1.0f - w1;
 
         m_pdf.append(w1);
         m_pdf.append(ws);
         m_pdf.normalize();
 
 
-        int nSamples = 128;
+        int nSamples = 1024;
+        precomputed_specular_integral.resize(nSamples);
+        std::vector<std::future<Color3f>> futures(nSamples);
+
+        //auto init = std::chrono::high_resolution_clock::now();
         for (int i = 0; i < nSamples; i++)
         {
             float costheta = float(i) / float(nSamples - 1);
-
-            precomputed_specular_integral.push_back(Pth::integrateSkinSpecular(m_bsdfs[0], sampler, costheta, specWeight));
+            futures[i] = std::async(std::launch::async, Pth::integrateSkinSpecular, m_bsdfs[0], std::move(sampler->clone()), costheta, specWeight);
         }
+
+        for (int i = 0; i < nSamples; i++) {
+            precomputed_specular_integral[i] = futures[i].get();
+        }
+
+        //auto end = std::chrono::high_resolution_clock::now();
+
+        //std::chrono::duration<double> elapsed = end - init;
+        //std::cout << "Elapsed time: " << elapsed.count() << std::endl;
     }
 
     Color3f interpolateSpecularWeight(float cosTheta) const
@@ -156,7 +170,7 @@ public:
 private:
     //Texture *m_albedo;
     std::vector<BSDF*> m_bsdfs;
-    float w1, ws, specWeight = 0.0277778;
+    float specWeight = 0.0277778;
 
     std::vector<Color3f> precomputed_specular_integral;
 

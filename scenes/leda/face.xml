@@ -81,7 +81,7 @@
 			<bsdf type="beckmann"> <!-- Skin specular part -->
 				<color name="internIOR" value="1.51 1.51 1.51"/>
 				<color name="kd" value="1 1 1"/>
-				<float name="roughness" value="0.3"/>
+				<float name="roughness" value="0.25"/>
 			</bsdf>
 
 			<bsdf type="normalizedDiffusion">   <!-- Skin properties -->

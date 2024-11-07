@@ -73,6 +73,7 @@ static void render(Scene* scene, const std::string& filename, bool nogui) {
     const Camera* camera = scene->getCamera();
     Vector2i outputSize = camera->getOutputSize();
 
+    std::cout << "Preprocessing... \n";
     scene->preprocess();
     scene->getIntegrator()->preprocess(scene, scene->getSampler());
 

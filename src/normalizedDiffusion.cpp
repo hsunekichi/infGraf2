@@ -46,7 +46,8 @@ public:
         
         scale = 1.0f/1000.0f; // Sigmas are in mm^-1
 
-        etaT = propList.getFloat("eta", 1.0f);
+        float etaT = propList.getFloat("eta", 1.0f);
+        eta = 1.0f / etaT;
         
         // Constant used on the sampling method
         //Color3f D = (sigmaT + sigmaA) / (3.0f * Math::pow2(sigmaT));
@@ -86,8 +87,9 @@ public:
         //Color3f s = scalingFactor(uv);
         Color3f d = ld;
 
-        Color3f num1 = Math::exp(-r/d);
-        Color3f num2 = Math::exp(-r / (3.0f*d));
+        Color3f minusR_D = -r/d;
+        Color3f num1 = Math::exp(minusR_D);
+        Color3f num2 = Math::exp(minusR_D * Math::rcp(3.0f)); // exp(-r / (d*3))
         Color3f den = 8.0f * M_PI * d * r;
         
         Color3f result = (num1 + num2) / den;
@@ -162,11 +164,8 @@ public:
         if (bRec.measure != ESolidAngle)
             return Color3f(0.0f);
 
-        //if (!bRec.isCameraRay)
-        //    return INV_PI * m_albedo->eval(bRec.uv);
-
         // Compute the Fresnel term
-        float Fr_o = 1 - fresnel(Math::absCosTheta(bRec.wo), 1.0f, etaT);
+        float Fr_o = 1 - Math::schlick(Math::absCosTheta(bRec.wo), eta);
         //float c = 1.0f;
 
         return Color3f(Fr_o); 
@@ -175,12 +174,12 @@ public:
     
     Color3f evalMS(const BSDFQueryRecord &bRec) const
     {
-        float Fr_i = 1 - fresnel(Math::absCosTheta(bRec.wi), 1.0f, etaT);
+        float Fr_i = 1 - Math::schlick(Math::absCosTheta(bRec.wi), eta);
         float r = (bRec.po - bRec.pi).norm();
         
         Color3f Sp = Sr(r, bRec.uv);
 
-        return Fr_i * Sp * INV_PI;
+        return (Fr_i * INV_PI) * Sp;
     } 
 
 
@@ -197,13 +196,6 @@ public:
 
     Color3f samplePoint(BSDFQueryRecord &bRec, Sampler *sampler) const
     {
-        //if (!bRec.isCameraRay)
-        //{
-        //    bRec.fro = bRec.fri;
-        //    bRec.po = bRec.pi;
-        //    return Color3f(1.0f);
-        //}
-
         bool validSample = false;
         float itsPdf, srPdfInv;
 
@@ -235,8 +227,9 @@ public:
             }
 
             // Select random channel
-            int channel =  rnd * 3;
-            rnd = rnd * 3.0f - channel; // Adjust random sample
+            float rnd3 = rnd * 3.0f;
+            int channel = Math::floor(rnd3);
+            rnd = rnd3 - channel; // Adjust random sample
 
             // Select sphere radius
             float rMax = sampleSr(0.9999f, channel, bRec.uv, srPdfInv);
@@ -255,8 +248,10 @@ public:
 
             // Project to sphere
             Point3f w_center = bRec.pi + r * (vx*std::cos(th) + vy*std::sin(th));
-            Point3f w_base = w_center - l*vz*0.5f;
-            Point3f w_target = w_base + l*vz; 
+
+            Vector3f lvz = l*vz;
+            Point3f w_base = w_center - lvz*0.5f;
+            Point3f w_target = w_base + lvz; 
 
             /************ Project point to shape ****************/
 
@@ -289,7 +284,7 @@ public:
         return evalMS(bRec) / pdf;
     }
 
-    double pointPdf(const BSDFQueryRecord &bRec) const
+    float pointPdf(const BSDFQueryRecord &bRec) const
     {
         Vector3f d = bRec.po - bRec.pi;
         Vector3f l_d = bRec.fri.vtoLocal(d);
@@ -297,12 +292,12 @@ public:
 
         // Compute the radius that has been sampled for each axis
         //  (d projected into each axis)
-        double rProjected[3] = { std::sqrt(l_d.y()*l_d.y() + l_d.z()*l_d.z()),
+        float rProjected[3] = { std::sqrt(l_d.y()*l_d.y() + l_d.z()*l_d.z()),
                                 std::sqrt(l_d.z()*l_d.z() + l_d.x()*l_d.x()),
                                 std::sqrt(l_d.x()*l_d.x() + l_d.y()*l_d.y()) };
 
-        double pdf = 0, axisPdf[3] = { .25f, .25f, .5f };
-        double chProb = 1 / 3.0f; // 3 channels
+        float pdf = 0, axisPdf[3] = { .25f, .25f, .5f };
+        float chProb = 1 / 3.0f; // 3 channels
 
         for (int axis = 0; axis < 3; axis++)
         {
@@ -406,7 +401,7 @@ public:
 private:
     Texture *m_albedo;
     Color3f sigmaA, sigmaS, sigmaT, ld;
-    float etaT, scale;
+    float eta, scale;
 
     std::vector<float> SrCdfInverse, XICdfInverse;
 };

@@ -147,6 +147,13 @@ target_link_libraries(warptest tbb_static nanogui ${NANOGUI_EXTRA_LIBS})
 
 set_property(TARGET nori PROPERTY CXX_STANDARD 17)
 
+# Add fast math
+if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffast-math")
+elseif (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffast-math")
+endif()
+
 # Force colored output for the ninja generator
 if (CMAKE_GENERATOR STREQUAL "Ninja")
   if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")

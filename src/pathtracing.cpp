@@ -205,28 +205,56 @@ Color3f Pth::integrateBSDF(const BSDF *bsdf, Sampler *sampler)
     return result / nSteps;
 }
 
-Color3f Pth::integrateSkinSpecular(const BSDF *bsdf, Sampler *sampler, float costheta, float specWeight)
+template <std::size_t N>
+constexpr std::array<float, N> precompute_sin(float constant)
+{
+    std::array<float, N> array {};
+
+    for(unsigned i = 0; i < N; i++){
+        float th = float(i) / float(N - 1) * M_PI * constant;
+        array[i] = sin(th);
+    }
+
+    return array;
+}
+
+template <std::size_t N>
+constexpr std::array<float, N> precompute_cos(float constant)
+{
+    std::array<float, N> array {};
+
+    for(unsigned i = 0; i < N; i++){
+        float th = float(i) / float(N - 1) * M_PI * constant;
+        array[i] = cos(th);
+    }
+
+    return array;
+}
+
+Color3f Pth::integrateSkinSpecular(const BSDF *bsdf, std::unique_ptr<Sampler> sampler, float costheta, float specWeight)
 {
     Color3f result(0.0f, 0.0f, 0.0f);
 
-    int nSteps = 80;
+    constexpr unsigned nSteps = 512;
+    constexpr auto sinphi = precompute_sin<nSteps>(2.0f);
+    constexpr auto cosphi = precompute_cos<nSteps>(2.0f);
+    constexpr auto sinth = precompute_sin<nSteps>(1.0f/2.0f);
+    constexpr auto costh = precompute_cos<nSteps>(1.0f/2.0f);
 
     Vector3f V = Vector3f(0.0, sqrt(1.0 - costheta * costheta), costheta);
 
-    for (int i = 0; i < nSteps; i++)
+    for (unsigned i = 0; i < nSteps; i++)
     {
-        float phip = float(i) / float(nSteps - 1) * 2.0 * M_PI;
+        float cosp = cosphi[i];
+        float sinp = sinphi[i];
+
         Color3f localsum = 0.0f;
-        float cosp = cos(phip);
-        float sinp = sin(phip);
 
-        for (int j = 0; j < nSteps; j++)
+        for (unsigned j = 0; j < nSteps; j++)
         {
-            float thetap = float(j) / float(nSteps - 1) * M_PI / 2.0;
-            float sint = sin(thetap);
-            float cost = cos(thetap);
+            float sint = sinth[j];
+            float cost = costh[j];
             Vector3f L = Vector3f(sinp * sint, cosp * sint, cost);
-
 
             BSDFQueryRecord bsdfQuery;
             bsdfQuery.wi = L;

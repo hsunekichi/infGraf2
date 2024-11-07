@@ -59,7 +59,7 @@ static IntegrationType getIntegrationType(const Intersection &its);
 
 
 static Color3f integrateBSDF(const BSDF *bsdf, Sampler *sampler);
-static Color3f integrateSkinSpecular(const BSDF *bsdf, Sampler *sampler, float cosTh, float specWeight);
+static Color3f integrateSkinSpecular(const BSDF *bsdf, std::unique_ptr<Sampler> sampler, float cosTh, float specWeight);
 
 };
 

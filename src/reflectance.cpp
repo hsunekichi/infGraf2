@@ -17,6 +17,7 @@
 #include <nori/vector.h>
 #include <nori/color.h>
 #include <nori/frame.h>
+#include <nori/math.h>
 
 NORI_NAMESPACE_BEGIN
 
@@ -84,7 +85,7 @@ float Reflectance::fresnel(float cosThetaI, float extIOR, float intIOR) {
 
 Color3f Reflectance::fresnel(float cosThetaI, const Color3f &R0)
 {
-    return R0 + (1. - R0) * pow(1. - cosThetaI, 5.);
+    return R0 + (1.0 - R0) * Math::pow5(1.0 - cosThetaI);
 }
 
 
