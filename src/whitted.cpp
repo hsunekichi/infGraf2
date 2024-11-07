@@ -39,7 +39,7 @@ public:
         // Sample the BSDF
         const BSDF *bsdf = state.intersection.mesh->getBSDF();
         
-        auto query = Pth::initBSDFQuery(scene, state);
+        auto query = Pth::initBSDFQuery(scene, sampler, state);
         Color3f fp = bsdf->samplePoint(query, sampler);
 
         if (fp == Color3f(0.0f))
@@ -66,7 +66,7 @@ public:
 
         const BSDF *bsdf = state.intersection.mesh->getBSDF();
         
-        auto query = Pth::initBSDFQuery(scene, state);
+        auto query = Pth::initBSDFQuery(scene, sampler, state);
         Color3f fp = bsdf->samplePoint(query, sampler);
 
         float lightPdf, bsdfPdf;
@@ -90,7 +90,7 @@ public:
 
             const BSDF *bsdf = state.intersection.mesh->getBSDF();
             
-            auto query = Pth::initBSDFQuery(scene, state);
+            auto query = Pth::initBSDFQuery(scene, sampler, state);
             Color3f fp = bsdf->samplePoint(query, sampler);
 
             radiance += fp * Pth::nextEventEstimation(scene, sampler, state, query);

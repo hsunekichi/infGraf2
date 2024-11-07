@@ -54,6 +54,7 @@ struct BSDFQueryRecord {
     Frame fro, fri; // Shading frames
     const Mesh *mesh = nullptr; 
     const Scene *scene = nullptr;
+    Sampler *sampler = nullptr;
     bool isCameraRay = false;
 
     int agregate_id = -1;

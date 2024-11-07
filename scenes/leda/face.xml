@@ -2,7 +2,7 @@
 <scene>
 	<integrator type="path_mis"/>
 	<sampler type="independent">
-		<integer name="sampleCount" value="32"/>
+		<integer name="sampleCount" value="16"/>
 		<integer name="nPasses" value="16"/>
 	</sampler>
 	<camera type="perspective">
@@ -16,9 +16,10 @@
 			<matrix value="1.0,0.0,0.0,-0.0036308581475168467,0.0,-0.05368456616997719,-0.9985579252243042,-1.614412546157837,0.0,0.9985579252243042,-0.05368456616997719,4.585289478302002,0.0,0.0,0.0,1.0"/>
 		</transform>
 	</camera>
+	<!--
 	<mesh type="obj">
 		<string name="filename" value="meshes/option1_hair_Hair.obj"/>
-		<bsdf type="agregate">  <!-- Hair -->
+		<bsdf type="agregate">
 			<float name="w1" value="0.25"/>
 			<float name="w2" value="0.75"/>
 
@@ -34,6 +35,7 @@
 			</bsdf>
 		</bsdf>
 	</mesh>
+	-->
 	<mesh type="obj">
 		<string name="filename" value="meshes/option1_hair_eyebrows_EyebrowsHair.obj"/>
 		<bsdf type="GGX">
@@ -70,10 +72,17 @@
 	</mesh>
 	<mesh type="obj">
 		<string name="filename" value="meshes/option1_head_Skin.obj"/>
-		<bsdf type="agregate">
+		<bsdf type="skin">
+		
 			<float name="w1" value="0.92"/>
 			<float name="w2" value="0.06"/>
 			<float name="w3" value="0.02"/>
+		
+			<bsdf type="beckmann"> <!-- Skin specular part -->
+				<color name="internIOR" value="1.51 1.51 1.51"/>
+				<color name="kd" value="1 1 1"/>
+				<float name="roughness" value="0.3"/>
+			</bsdf>
 
 			<bsdf type="normalizedDiffusion">   <!-- Skin properties -->
 				<color name="ld" value="1.8 1.6 1.5"/>
@@ -84,16 +93,6 @@
 					<string name="extension" value="REPEAT"/>
 					<string name="projection" value="FLAT"/>
 				</texture>
-			</bsdf>
-			<bsdf type="beckmann"> <!-- Skin specular part -->
-				<color name="internIOR" value="1.51 1.51 1.51"/>
-				<color name="kd" value="1 1 1"/>
-				<float name="roughness" value="0.3"/>
-			</bsdf>
-			<bsdf type="beckmann"> <!-- Skin sheen part -->
-				<color name="internIOR" value="1.51 1.51 1.51"/>
-				<color name="kd" value="1 1 1"/>
-				<float name="roughness" value="0.05"/>
 			</bsdf>
 		</bsdf>
 	</mesh>

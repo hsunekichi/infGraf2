@@ -165,7 +165,7 @@ def generate_random_samples(size=10000):
 r = np.linspace(0, 10, 1000)
 
 # Calculate the corresponding f(r) values
-f_r = Sr(r)
+f_r = Rdipole(r)
 
 # Plot the function over the previous 
 plt.plot(r, f_r, label='f(r)')

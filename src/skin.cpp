@@ -40,59 +40,57 @@ public:
 
     void preprocess(Sampler *sampler) 
     {
-        if (m_bsdfs.size() != 3)
-            throw NoriException("Skin::preprocess(): A skin BSDF must have 3 components!");
+        if (m_bsdfs.size() != 2)
+            throw NoriException("Skin::preprocess(): A skin BSDF must have 2 components!");
 
         for (size_t i = 0; i < m_bsdfs.size(); i++)
             m_bsdfs[i]->preprocess(sampler);
 
         m_pdf.clear();
 
-        BSDF *spec1 = m_bsdfs[1];
-        BSDF *spec2 = m_bsdfs[2];
-        
-        Color3f c1 = Pth::integrateBSDF(spec1, sampler);
-        Color3f c2 = Pth::integrateBSDF(spec2, sampler);
-
+        Color3f c1 = Pth::integrateBSDF(m_bsdfs[0], sampler);
         w1 = c1.getLuminance();
-        w2 = c2.getLuminance();
+        ws = 1.0f - w1;
 
-        ws = 1.0f - w1 * (1.0f - w2);
-
-        m_pdf.append(ws);
         m_pdf.append(w1);
-        m_pdf.append(w2);
+        m_pdf.append(ws);
         m_pdf.normalize();
+
+
+        int nSamples = 128;
+        for (int i = 0; i < nSamples; i++)
+        {
+            float costheta = float(i) / float(nSamples - 1);
+
+            precomputed_specular_integral.push_back(Pth::integrateSkinSpecular(m_bsdfs[0], sampler, costheta, specWeight));
+        }
     }
 
-    /// Evaluate the BRDF model
-    Color3f evalIntegrated(const BSDFQueryRecord &bRec) const 
+    Color3f interpolateSpecularWeight(float cosTheta) const
     {
-        float w = 1.0f;
+        int index1 = Math::floor(cosTheta * (precomputed_specular_integral.size() - 1));
+        int index2 = Math::ceil(cosTheta * (precomputed_specular_integral.size() - 1));
 
-        if (bRec.agregate_id == 0)
-            w = ws; 
+        float cosTheta1 = float(index1) / float(precomputed_specular_integral.size() - 1);
+        float cosTheta2 = float(index2) / float(precomputed_specular_integral.size() - 1);
 
-        return m_bsdfs[bRec.agregate_id]->eval(bRec) * w;
+        return Math::lerp(precomputed_specular_integral[index1], precomputed_specular_integral[index2], cosTheta1, cosTheta2);
     }
 
     Color3f eval(const BSDFQueryRecord &bRec) const 
     {
-        if (bRec.agregate_id == 1) {
-            return m_bsdfs[bRec.agregate_id]->eval(bRec) * w1;
-        }
-        else if (bRec.agregate_id == 2) {
-            return m_bsdfs[bRec.agregate_id]->eval(bRec) * w2;
+        if (bRec.agregate_id == 0) {
+            return m_bsdfs[bRec.agregate_id]->eval(bRec) * specWeight;
         }
         else
-        {
-            Color3f _w1 = m_bsdfs[1]->eval(bRec);
-            Color3f _w2 = m_bsdfs[2]->eval(bRec);
+        { 
+            Color3f w_wi = interpolateSpecularWeight(bRec.wi.z());
+            Color3f w_wo = interpolateSpecularWeight(bRec.wo.z());
 
-            Color3f w = 1.0f - _w1 * (1.0f - _w2);
+            Color3f w = (1.0f - w_wi) * (1.0f - w_wo);
             w = Math::clamp(w, 0.0f, 1.0f);
 
-            return m_bsdfs[0]->eval(bRec) * w;
+            return m_bsdfs[bRec.agregate_id]->eval(bRec) * w;
         }
     }
 
@@ -108,7 +106,7 @@ public:
         int index = m_pdf.sample(sampler->next1D());
         bRec.agregate_id = index;
 
-        return m_bsdfs[bRec.agregate_id]->samplePoint(bRec, sampler);
+        return m_bsdfs[bRec.agregate_id]->samplePoint(bRec, sampler) / m_pdf[index];
     }
 
     /// Draw a a sample from the BRDF model
@@ -139,8 +137,8 @@ public:
         {
             BSDF *bsdf = static_cast<BSDF*>(obj);
 
-            if (bsdf->isSubsurfaceScattering() && m_bsdfs.size() > 0)
-                throw NoriException("Skin::addChild(): First skin BSDF must be subsurface scattering!");
+            if (bsdf->isSubsurfaceScattering() && m_bsdfs.size() != 1)
+                throw NoriException("Skin::addChild(): Second skin BSDF must be subsurface scattering!");
 
             m_bsdfs.push_back(bsdf);
 
@@ -158,8 +156,10 @@ public:
 private:
     //Texture *m_albedo;
     std::vector<BSDF*> m_bsdfs;
-    float w1, w2, ws;
-    
+    float w1, ws, specWeight = 0.0277778;
+
+    std::vector<Color3f> precomputed_specular_integral;
+
     DiscretePDF m_pdf;
 };
 

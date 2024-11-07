@@ -104,7 +104,7 @@ public:
         int index = m_pdf.sample(sampler->next1D());
         bRec.agregate_id = index;
 
-        return m_bsdfs[index]->samplePoint(bRec, sampler);
+        return m_bsdfs[index]->samplePoint(bRec, sampler);  // / m_pdf[index]
     }
 
     /// Draw a a sample from the BRDF model

@@ -62,7 +62,7 @@ bool checkVisibility (const Scene *scene,
 }
 
 
-BSDFQueryRecord Pth::initBSDFQuery(const Scene *scene, const PathState &state)
+BSDFQueryRecord Pth::initBSDFQuery(const Scene *scene, Sampler *sampler, const PathState &state)
 {
     BSDFQueryRecord bsdfQuery;
     bsdfQuery.wi = state.intersection.vtoLocal(-state.ray.d);
@@ -75,6 +75,7 @@ BSDFQueryRecord Pth::initBSDFQuery(const Scene *scene, const PathState &state)
     
     bsdfQuery.mesh = state.intersection.mesh;
     bsdfQuery.scene = scene;
+    bsdfQuery.sampler = sampler;
 
     return bsdfQuery;
 }
@@ -184,10 +185,11 @@ Pth::IntegrationType Pth::getIntegrationType(const Intersection &its)
 
 
 
+
 Color3f Pth::integrateBSDF(const BSDF *bsdf, Sampler *sampler)
 {
     Color3f result(0.0f, 0.0f, 0.0f);
-    int nSteps = 16384;
+    int nSteps = 2048;
 
     for (int i = 0; i < nSteps; i++)
     {
@@ -201,6 +203,42 @@ Color3f Pth::integrateBSDF(const BSDF *bsdf, Sampler *sampler)
     }
 
     return result / nSteps;
+}
+
+Color3f Pth::integrateSkinSpecular(const BSDF *bsdf, Sampler *sampler, float costheta, float specWeight)
+{
+    Color3f result(0.0f, 0.0f, 0.0f);
+
+    int nSteps = 80;
+
+    Vector3f V = Vector3f(0.0, sqrt(1.0 - costheta * costheta), costheta);
+
+    for (int i = 0; i < nSteps; i++)
+    {
+        float phip = float(i) / float(nSteps - 1) * 2.0 * M_PI;
+        Color3f localsum = 0.0f;
+        float cosp = cos(phip);
+        float sinp = sin(phip);
+
+        for (int j = 0; j < nSteps; j++)
+        {
+            float thetap = float(j) / float(nSteps - 1) * M_PI / 2.0;
+            float sint = sin(thetap);
+            float cost = cos(thetap);
+            Vector3f L = Vector3f(sinp * sint, cosp * sint, cost);
+
+
+            BSDFQueryRecord bsdfQuery;
+            bsdfQuery.wi = L;
+            bsdfQuery.wo = V;
+
+            localsum += bsdf->eval(bsdfQuery) * specWeight * sint;
+        }
+
+        result += localsum * (M_PI / 2.0) / float(nSteps);
+    }
+
+    return result * (2.0 * M_PI) / (float(nSteps));
 }
 
 

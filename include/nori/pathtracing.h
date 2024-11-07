@@ -41,7 +41,7 @@ static Color3f nextEventEstimation(const Scene *scene,
     return nextEventEstimation(scene, sampler, state, bsdfQuery, lightPdf, bsdfPdf);
 }
 
-static BSDFQueryRecord initBSDFQuery(const Scene *scene, const PathState &state);
+static BSDFQueryRecord initBSDFQuery(const Scene *scene, Sampler *sampler, const PathState &state);
 
 static Color3f nextEventEstimation(const Scene *scene, 
                 Sampler *sampler,
@@ -57,7 +57,9 @@ static Color3f sampleBSDF(
 
 static IntegrationType getIntegrationType(const Intersection &its); 
 
+
 static Color3f integrateBSDF(const BSDF *bsdf, Sampler *sampler);
+static Color3f integrateSkinSpecular(const BSDF *bsdf, Sampler *sampler, float cosTh, float specWeight);
 
 };
 

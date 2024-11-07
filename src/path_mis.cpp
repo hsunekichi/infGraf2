@@ -31,7 +31,7 @@ public:
         /*************** Sample outgoing point *******************/
         const BSDF *bsdf = state.intersection.mesh->getBSDF();
         
-        auto query = Pth::initBSDFQuery(scene, state);
+        auto query = Pth::initBSDFQuery(scene, sampler, state);
         Color3f fp = bsdf->samplePoint(query, sampler);
         state.scatteringFactor *= fp;
 
@@ -67,7 +67,7 @@ public:
         // Sample the specular BSDF
         const BSDF *bsdf = state.intersection.mesh->getBSDF();
         
-        auto query = Pth::initBSDFQuery(scene, state);
+        auto query = Pth::initBSDFQuery(scene, sampler, state);
         Color3f fp = bsdf->samplePoint(query, sampler);
 
         float bsdfPdf;

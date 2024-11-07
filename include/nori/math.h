@@ -94,6 +94,7 @@ class Math
     inline static Color3f min (const Color3f &a, float b) { return Color3f(std::min(a.x(), b), std::min(a.y(), b), std::min(a.z(), b)); }
 
     inline static float lerp(float a, float b, float t) { return a + (b - a) * t; }
+    inline static Color3f lerp(const Color3f &a, const Color3f &b, float t1, float t2) { return a * t1 + b * t2; } 
 
 
     // Compute sin of a vector in local coordinates
