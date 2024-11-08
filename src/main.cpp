@@ -68,26 +68,35 @@ static void renderBlock(const Scene *scene, Sampler *sampler, ImageBlock &block)
     // Local data for ray intersection to prevent unnecesary allocations
     std::vector<Ray3f> rays(states.size());
     std::vector<Intersection> its(states.size());
-    std::vector<bool> b_its(states.size());
-    std::vector<uint32_t> indices(states.size());
+    std::vector<bool> hit(states.size());
 
     bool anyAlive = true;
     while (anyAlive) 
     {
         anyAlive = false;
 
-        scene->rayIntersect(aliveMask, states, rays, its, b_its, indices);
+        // Initialize rays
+        for (size_t i = 0; i < states.size(); i++) {
+            if (aliveMask[i])
+                rays[i] = states[i].ray;
+        }
+
+        scene->rayIntersect(aliveMask, rays, its, hit);
 
         for (size_t i = 0; i < states.size(); i++)
         {   
             if (!aliveMask[i])
                 continue;
 
-            if (states[i].rayIntersected)
+            if (hit[i])
+            {
+                states[i].intersection = its[i];
                 integrator->shadeIntersection(scene, sampler, states[i]);
-            else
+            }
+            else {
                 integrator->shadeEnvironment(scene, sampler, states[i]);
-
+            }
+            
             states[i].depth++;
 
             aliveMask[i] = states[i].scatteringFactor != BLACK;

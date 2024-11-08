@@ -179,23 +179,11 @@ public:
     }
 
     void rayIntersect(const std::vector<bool> &aliveMask, 
-                        std::vector<PathState> &states,
                         std::vector<Ray3f> &rays,
-                        std::vector<Intersection> its,
-                        std::vector<bool> &b_its,
-                        std::vector<uint32_t> &indices) const
+                        std::vector<Intersection> &its,
+                        std::vector<bool> &hit) const
     {
-        order_rays_by_morton(states, rays, indices);
-        
-        m_accel->rayIntersect(aliveMask, rays, its, b_its);
-
-        for (size_t i = 0; i < states.size(); i++)
-        {
-            states[indices[i]].rayIntersected = b_its[i];
-
-            if (b_its[i])
-                states[indices[i]].intersection = its[i];
-        }
+        m_accel->rayIntersect(aliveMask, rays, its, hit);
     }
 
     bool rayProbe(const Ray3f &ray, const Mesh *mesh, std::vector<Intersection> &its) const 
