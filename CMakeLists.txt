@@ -3,7 +3,7 @@ project(nori)
 
 add_subdirectory(ext ext_build)
 
-set(CMAKE_CXX_COMPILER "nvc++")
+#set(CMAKE_CXX_COMPILER "nvc++")
 
 include_directories(
   # Nori include files
@@ -151,7 +151,7 @@ set_property(TARGET nori PROPERTY CXX_STANDARD 17)
 
 
 # Prevent switch errors on nvc++
-set(CMAKE_CXX_FLAGS " -noswitcherror")
+#set(CMAKE_CXX_FLAGS " -noswitcherror")
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
