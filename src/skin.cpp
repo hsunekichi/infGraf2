@@ -20,6 +20,8 @@
 */
 
 #include <future>
+#include <chrono>
+#include <vector>
 
 #include <nori/bsdf.h>
 #include <nori/frame.h>
@@ -39,6 +41,8 @@ public:
     {
         
     }
+
+    ~Skin() {}
 
     void preprocess(Sampler *sampler) 
     {
