@@ -3,6 +3,8 @@ project(nori)
 
 add_subdirectory(ext ext_build)
 
+#set(CMAKE_CXX_COMPILER "nvc++")
+
 include_directories(
   # Nori include files
   ${CMAKE_CURRENT_SOURCE_DIR}/include
@@ -147,11 +149,13 @@ target_link_libraries(warptest tbb_static nanogui ${NANOGUI_EXTRA_LIBS})
 
 set_property(TARGET nori PROPERTY CXX_STANDARD 17)
 
-# Add fast math
+message("CMAKE_CXX_COMPILER_ID: ${CMAKE_CXX_COMPILER_ID}")
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
 elseif (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
+else()
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -noswitcherror")
 endif()
 
 # Force colored output for the ninja generator
