@@ -51,6 +51,7 @@ struct Intersection {
     Frame geoFrame;
     /// Pointer to the associated mesh
     const Mesh *mesh;
+    size_t f;
 
     /// Create an uninitialized intersection record
     Intersection() : mesh(nullptr) { }

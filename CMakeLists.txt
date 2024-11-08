@@ -3,7 +3,7 @@ project(nori)
 
 add_subdirectory(ext ext_build)
 
-#set(CMAKE_CXX_COMPILER "nvc++")
+set(CMAKE_CXX_COMPILER "nvc++")
 
 include_directories(
   # Nori include files
@@ -43,6 +43,7 @@ add_executable(nori
 
   # Header files
   include/nori/common.h
+  include/nori/PathState.h
   include/nori/accel.h
   include/nori/bbox.h
   include/nori/bitmap.h
@@ -99,27 +100,27 @@ add_executable(nori
   src/texture.cpp
   src/ttest.cpp
   src/warp.cpp
-  src/normals.cpp
-  src/simpleIntegrator.cpp
-  src/AOintegrator.cpp
-  src/whitted.cpp
+  #src/normals.cpp
+  #src/simpleIntegrator.cpp
+  #src/AOintegrator.cpp
+  #src/whitted.cpp
   src/GGX.cpp
   src/area.cpp
   src/orenNayar.cpp
   src/stratified.cpp
   src/pointLight.cpp
-  src/path_ems.cpp
-  src/path_mats.cpp
+  #src/path_ems.cpp
+  #src/path_mats.cpp
   src/path_mis.cpp
   src/beckmann.cpp
   src/lightProbeMipMap.cpp
   src/pathtracing.cpp
-  src/directWhitted.cpp
-  src/depthIntegrator.cpp
+  #src/directWhitted.cpp
+  #src/depthIntegrator.cpp
   src/dipole.cpp
   src/subsurfacePbrt.cpp
   src/normalizedDiffusion.cpp
-  src/indirectWhitted.cpp
+  #src/indirectWhitted.cpp
   src/agregate.cpp
   src/skin.cpp
 )
@@ -147,9 +148,12 @@ endif()
 
 target_link_libraries(warptest tbb_static nanogui ${NANOGUI_EXTRA_LIBS})
 
-set_property(TARGET nori PROPERTY CXX_STANDARD 17)
+set_property(TARGET nori PROPERTY CXX_STANDARD 20)
 
 message("CMAKE_CXX_COMPILER_ID: ${CMAKE_CXX_COMPILER_ID}")
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -noswitcherror -stdpar=gpu")
+
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
 elseif (CMAKE_CXX_COMPILER_ID MATCHES "GNU")

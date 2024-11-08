@@ -35,7 +35,8 @@ using namespace nori;
 
 static int threadCount = -1;
 
-static void renderBlock(const Scene *scene, Sampler *sampler, ImageBlock &block) {
+static void renderBlock(const Scene *scene, Sampler *sampler, ImageBlock &block) 
+{
     const Camera *camera = scene->getCamera();
     const Integrator *integrator = scene->getIntegrator();
 
@@ -45,31 +46,64 @@ static void renderBlock(const Scene *scene, Sampler *sampler, ImageBlock &block)
     /* Clear the block contents */
     block.clear();
 
-    /* For each pixel and pixel sample sample */
-    for (int y=0; y<size.y(); ++y) 
-    {
+    size_t nSamples = sampler->getSampleCount();
+
+    std::vector<PathState> states(size.x() * size.y() * nSamples);
+    std::vector<bool> aliveMask(size.x() * size.y() * nSamples, true);
+
+    // Initialize path states
+    for (int y=0; y<size.y(); ++y)
         for (int x=0; x<size.x(); ++x) 
-        {
-            for (uint32_t i=0; i<sampler->getSampleCount(); ++i) 
+            for (uint32_t i=0; i<nSamples; ++i) 
             {
-                Point2f pixelSample = Point2f((float) (x + offset.x()), (float) (y + offset.y())) + sampler->next2D();
+                size_t index = y * size.x() * nSamples + x * nSamples + i;
+
+                states[index].pixel = Point2f((float) (x + offset.x()), (float) (y + offset.y())) + sampler->next2D();
                 Point2f apertureSample = sampler->next2D();
 
                 /* Sample a ray from the camera */
-                Ray3f ray;
-                Color3f value = camera->sampleRay(ray, pixelSample, apertureSample);
-
-                /* Compute the incident radiance */
-                value *= integrator->Li(scene, sampler, ray);
-
-                /* Store in the image block */
-                block.put(pixelSample, value);
+                states[index].scatteringFactor = camera->sampleRay(states[index].ray, states[index].pixel, apertureSample);
             }
+
+    // Local data for ray intersection to prevent unnecesary allocations
+    std::vector<Ray3f> rays(states.size());
+    std::vector<Intersection> its(states.size());
+    std::vector<bool> b_its(states.size());
+    std::vector<uint32_t> indices(states.size());
+
+    bool anyAlive = true;
+    while (anyAlive) 
+    {
+        anyAlive = false;
+
+        scene->rayIntersect(aliveMask, states, rays, its, b_its, indices);
+
+        for (size_t i = 0; i < states.size(); i++)
+        {   
+            if (!aliveMask[i])
+                continue;
+
+            if (states[i].rayIntersected)
+                integrator->shadeIntersection(scene, sampler, states[i]);
+            else
+                integrator->shadeEnvironment(scene, sampler, states[i]);
+
+            states[i].depth++;
+
+            aliveMask[i] = states[i].scatteringFactor != BLACK;
+            anyAlive |= aliveMask[i];
         }
+    }
+
+    /* Store in the image block */
+    for (size_t i = 0; i < states.size(); i++)
+    {   
+        block.put(states[i].pixel, states[i].radiance);
     }
 }
 
-static void render(Scene* scene, const std::string& filename, bool nogui) {
+static void render(Scene* scene, const std::string& filename, bool nogui) 
+{
     const Camera* camera = scene->getCamera();
     Vector2i outputSize = camera->getOutputSize();
 

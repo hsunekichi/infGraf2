@@ -284,16 +284,12 @@ public:
         return tfm::format(
             "GGX[\n"
             "  alpha = %f,\n"
-            "  etaI = %f,\n"
-            "  etaT = %f,\n"
-            "  extIOR = %f,\n"
-            "  kd = %s,\n"
-            "  ks = %f\n"
+            "  ior = %f,\n"
+            "  k = %f,\n"
             "]",
             m_alpha,
             internIOR.toString(),
-            K.toString(),
-            m_extIOR
+            K.toString()
             );
     }
 private:
