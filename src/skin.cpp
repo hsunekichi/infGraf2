@@ -58,7 +58,7 @@ public:
         float w1 = c1.getLuminance();
         float ws = 1.0f - w1;
 
-        m_pdf.append(w1);
+        m_pdf.append(std::max(w1, 0.15f));
         m_pdf.append(ws);
         m_pdf.normalize();
 
@@ -67,7 +67,7 @@ public:
         precomputed_specular_integral.resize(nSamples);
         std::vector<std::future<Color3f>> futures(nSamples);
 
-        auto init = std::chrono::high_resolution_clock::now();
+        //auto init = std::chrono::high_resolution_clock::now();
         for (int i = 0; i < nSamples; i++)
         {
             float costheta = float(i) / float(nSamples - 1);
@@ -78,10 +78,10 @@ public:
             precomputed_specular_integral[i] = futures[i].get();
         }
 
-        auto end = std::chrono::high_resolution_clock::now();
+        //auto end = std::chrono::high_resolution_clock::now();
 
-        std::chrono::duration<double> elapsed = end - init;
-        std::cout << "Elapsed time: " << elapsed.count() << std::endl;
+        //std::chrono::duration<double> elapsed = end - init;
+        //std::cout << "Elapsed time: " << elapsed.count() << std::endl;
     }
 
     Color3f interpolateSpecularWeight(float cosTheta) const

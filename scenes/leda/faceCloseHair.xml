@@ -13,9 +13,27 @@
 		<integer name="height" value="982"/>
 		<transform name="toWorld">
 			<scale value="-1.000000 1.000000 -1.000000"/>
-			<matrix value="1.0,0.0,0.0,-0.05926178768277168,0.0,-0.05368456616997719,-0.9985579252243042,-0.6858136057853699,0.0,0.9985579252243042,-0.05368456616997719,4.529738903045654,0.0,0.0,0.0,1.0"/>
+			<matrix value="1.0,0.0,0.0,0.08599752932786942,0.0,-0.05368456616997719,-0.9985579252243042,-0.9279187917709351,0.0,0.9985579252243042,-0.05368456616997719,4.512156963348389,0.0,0.0,0.0,1.0"/>
 		</transform>
 	</camera>
+	<mesh type="obj">
+		<string name="filename" value="meshes/option1_hair_Hair.obj"/>
+		<bsdf type="agregate">
+			<float name="w1" value="0.25"/>
+			<float name="w2" value="0.75"/>
+
+			<bsdf type="normalizedDiffusion">
+				<color name="ld" value="4 3.6 2.5"/>
+				<float name="eta" value="1.55"/>
+				<color name="albedo" value="0.9843,0.9059,0.6314"/>
+			</bsdf>
+			<bsdf type="microfacet">
+				<color name="internIOR" value="1.55 1.55 1.55"/>
+				<color name="albedo" value="0.9843,0.9059,0.6314"/>
+				<float name="roughness" value="1"/>
+			</bsdf>
+		</bsdf>
+	</mesh>
 	<mesh type="obj">
 		<string name="filename" value="meshes/option1_hair_eyebrows_EyebrowsHair.obj"/>
 		<bsdf type="GGX">

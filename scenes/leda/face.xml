@@ -2,11 +2,11 @@
 <scene>
 	<integrator type="path_mis"/>
 	<sampler type="independent">
-		<integer name="sampleCount" value="1"/>
-		<integer name="nPasses" value="16"/>
+		<integer name="sampleCount" value="64"/>
+		<integer name="nPasses" value="4"/>
 	</sampler>
 	<camera type="perspective">
-		<float name="fov" value="25.0"/>
+		<float name="fov" value="25.0"/> <!-- 25.0 -->
 		<float name="nearClip" value="0.10000000149011612"/>
 		<float name="farClip" value="1000.0"/>
 		<integer name="width" value="793"/>
@@ -16,7 +16,7 @@
 			<matrix value="1.0,0.0,0.0,-0.0036308581475168467,0.0,-0.05368456616997719,-0.9985579252243042,-1.614412546157837,0.0,0.9985579252243042,-0.05368456616997719,4.585289478302002,0.0,0.0,0.0,1.0"/>
 		</transform>
 	</camera>
-	<!--
+	
 	<mesh type="obj">
 		<string name="filename" value="meshes/option1_hair_Hair.obj"/>
 		<bsdf type="agregate">
@@ -35,7 +35,7 @@
 			</bsdf>
 		</bsdf>
 	</mesh>
-	-->
+	
 	<mesh type="obj">
 		<string name="filename" value="meshes/option1_hair_eyebrows_EyebrowsHair.obj"/>
 		<bsdf type="GGX">
