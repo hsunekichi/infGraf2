@@ -41,45 +41,73 @@ struct BVHmesh
 		m_bbox = BoundingBox3f();
 	}
 
+	Eigen::Vector3f cross(const Eigen::Vector3f &a, const Eigen::Vector3f &b) const 
+	{
+		// Non eigen implementation
+		return Eigen::Vector3f(
+			a.y() * b.z() - a.z() * b.y(),
+			a.z() * b.x() - a.x() * b.z(),
+			a.x() * b.y() - a.y() * b.x()
+		);
+	}
+
+	float dot(const Eigen::Vector3f &a, const Eigen::Vector3f &b) const
+	{
+		return a.x() * b.x() + a.y() * b.y() + a.z() * b.z();
+	}
+
 	bool rayIntersect(n_UINT index, 
 			const Ray3f &ray, float &u, float &v, float &t) const
 	{
 		n_UINT i0 = m_F(0, index), i1 = m_F(1, index), i2 = m_F(2, index);
-    	const Eigen::Vector3f p0 = m_V.col(i0), p1 = m_V.col(i1), p2 = m_V.col(i2);
+    	//const Eigen::Vector3f p0 = m_V.col(i0), p1 = m_V.col(i1), p2 = m_V.col(i2);
+		Eigen::Vector3f p0, p1, p2;
+		p0.x() = m_V(0, i0);
+		p0.y() = m_V(1, i0);
+		p0.z() = m_V(2, i0);
 
-		/* Find vectors for two edges sharing v[0] */
+		p1.x() = m_V(0, i1);
+		p1.y() = m_V(1, i1);
+		p1.z() = m_V(2, i1);
+
+		p2.x() = m_V(0, i2);
+		p2.y() = m_V(1, i2);
+		p2.z() = m_V(2, i2);
+
+		// Find vectors for two edges sharing v[0]
 		Eigen::Vector3f edge1 = p1 - p0, edge2 = p2 - p0;
 
-		/* Begin calculating determinant - also used to calculate U parameter */
-		Eigen::Vector3f pvec = ray.d.cross(edge2);
-
-		/* If determinant is near zero, ray lies in plane of triangle */
-		float det = edge1.dot(pvec);
+		// Begin calculating determinant - also used to calculate U parameter
+		Eigen::Vector3f pvec = cross(ray.d, edge2);
+		
+		// If determinant is near zero, ray lies in plane of triangle
+		float det = dot(edge1, pvec);
 
 		if (det > -1e-8f && det < 1e-8f)
 			return false;
 		float inv_det = 1.0f / det;
-
-		/* Calculate distance from v[0] to ray origin */
+		
+		// Calculate distance from v[0] to ray origin
 		Eigen::Vector3f tvec = ray.o - p0;
 
-		/* Calculate U parameter and test bounds */
-		u = tvec.dot(pvec) * inv_det;
+		// Calculate U parameter and test bounds
+		u = dot(tvec, pvec) * inv_det;
 		if (u < 0.0 || u > 1.0)
 			return false;
 
-		/* Prepare to test V parameter */
-		Eigen::Vector3f qvec = tvec.cross(edge1);
+		// Prepare to test V parameter
+		Eigen::Vector3f qvec = cross(tvec, edge1);
 
-		/* Calculate V parameter and test bounds */
-		v = ray.d.dot(qvec) * inv_det;
+		// Calculate V parameter and test bounds
+		v = dot(ray.d, qvec) * inv_det;
 		if (v < 0.0 || u + v > 1.0)
 			return false;
 
-		/* Ray intersects triangle -> compute t */
-		t = edge2.dot(qvec) * inv_det;
+		// Ray intersects triangle -> compute t
+		t = dot(edge2, qvec) * inv_det;
 
 		return t >= ray.mint && t <= ray.maxt;
+		
 	}
 
 	BoundingBox3f getBoundingBox(n_UINT index) const {

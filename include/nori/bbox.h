@@ -402,7 +402,7 @@ template <typename _PointType> struct TBoundingBox {
         return ray.mint <= farT && nearT <= ray.maxt;
     }
 
-    bool rayIntersect(const Ray3f &ray, float &minT) const 
+    bool rayIntersectEigen(const Ray3f &ray, float &minT) const 
     {
         Eigen::Vector3f _tmin = (min - ray.o).cwiseProduct(ray.dRcp);
         Eigen::Vector3f tmax = (max - ray.o).cwiseProduct(ray.dRcp);
@@ -412,6 +412,33 @@ template <typename _PointType> struct TBoundingBox {
 
         minT = tmin.maxCoeff();
         float t1 = tmax.minCoeff();
+
+        return t1 >= minT && minT <= ray.maxt && t1 >= ray.mint;
+    }
+
+    bool rayIntersect(const Ray3f &ray, float &minT) const 
+    {
+        Eigen::Vector3f _tmin = (min - ray.o);
+        _tmin.x() *= ray.dRcp.x();
+        _tmin.y() *= ray.dRcp.y();
+        _tmin.z() *= ray.dRcp.z();
+
+        Eigen::Vector3f tmax = (max - ray.o);
+        tmax.x() *= ray.dRcp.x();
+        tmax.y() *= ray.dRcp.y();
+        tmax.z() *= ray.dRcp.z();
+
+        Eigen::Vector3f tmin;
+        tmin.x() = std::min(_tmin.x(), tmax.x());
+        tmin.y() = std::min(_tmin.y(), tmax.y());
+        tmin.z() = std::min(_tmin.z(), tmax.z());
+
+        tmax.x() = std::max(_tmin.x(), tmax.x());
+        tmax.y() = std::max(_tmin.y(), tmax.y());
+        tmax.z() = std::max(_tmin.z(), tmax.z());
+
+        minT = std::max(tmin.x(), std::max(tmin.y(), tmin.z()));
+        float t1 = std::min(tmax.x(), std::min(tmax.y(), tmax.z()));
 
         return t1 >= minT && minT <= ray.maxt && t1 >= ray.mint;
     }

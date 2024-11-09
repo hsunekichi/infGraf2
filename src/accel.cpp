@@ -688,7 +688,7 @@ void Accel::rayIntersect(const std::vector<bool> &mask,
 						std::vector<Intersection> &its,
 						std::vector<bool> &hit) const
 {
-	
+	/*
 	for (n_UINT i = 0; i < ray.size(); ++i) 
 	{
 		if (mask[i] && rayIntersect(ray[i], its[i]))
@@ -699,8 +699,8 @@ void Accel::rayIntersect(const std::vector<bool> &mask,
 		else
 			hit[i] = false;
 	}
-	
 	return;
+	*/
 
 	// Indices
 	auto indices = std::ranges::views::iota(size_t{0}, ray.size());
@@ -714,7 +714,8 @@ void Accel::rayIntersect(const std::vector<bool> &mask,
 							if (!b)
 								return false;
 							else
-								return rayIntersect(ray[i], its[i], false);	
+								//return true;
+								return rayIntersectImpl(ray[i], its[i], false);	
 						});
 
 	for (n_UINT i = 0; i < its.size(); ++i)
@@ -736,20 +737,24 @@ bool Accel::rayIntersect(const Ray3f &_ray, Intersection &its, bool shadowRay) c
 bool Accel::rayIntersectImpl(const Ray3f &_ray, Intersection &its, bool shadowRay) const 
 {
 	n_UINT node_idx = 0, stack_idx = 0, stack[64];
+	bool foundIntersection = false;
 
 	its.t = std::numeric_limits<float>::infinity();
 
 	// Use an adaptive ray epsilon 
 	Ray3f ray(_ray);
+	
 	if (ray.mint == Epsilon)
 	{
-		ray.mint = std::max(ray.mint, ray.mint * ray.o.array().abs().maxCoeff());
+		const auto absP = ray.o.array().abs();
+		float maxCoeff = std::max(absP.x(), std::max(absP.y(), absP.z()));
+		ray.mint = std::max(ray.mint, ray.mint * maxCoeff);
 	}
 	
 	if (m_nodes.empty() || ray.maxt < ray.mint)
 		return false;
 
-	bool foundIntersection = false;
+	
 	//n_UINT f = 0;
 
 	while (true) {
@@ -820,6 +825,7 @@ bool Accel::rayIntersectImpl(const Ray3f &_ray, Intersection &its, bool shadowRa
 		}
 	}
 
+	
 	return foundIntersection;
 }
 
