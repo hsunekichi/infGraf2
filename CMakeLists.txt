@@ -150,13 +150,10 @@ target_link_libraries(warptest tbb_static nanogui ${NANOGUI_EXTRA_LIBS})
 set_property(TARGET nori PROPERTY CXX_STANDARD 17)
 
 
-# Prevent switch errors on nvc++
-#set(CMAKE_CXX_FLAGS " -noswitcherror")
-
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 elseif (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 endif()
 
 # Force colored output for the ninja generator
