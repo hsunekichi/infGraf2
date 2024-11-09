@@ -62,6 +62,17 @@ public:
         state.scatteringFactor = Color3f(0.0f);
     }
 
+    void shadeEnvironment(const Scene *scene, PathState &state) const
+    {
+        if (scene->getEnvironmentalEmitter() != nullptr && state.depth < 2)
+        {
+            EmitterQueryRecord emitterQuery (-state.ray.d, EMeasure::EDiscrete);
+            emitterQuery.lightP = state.ray.d*1e15;
+            state.radiance += scene->getEnvironmentalEmitter()->eval(emitterQuery) * state.scatteringFactor;
+        }
+
+        state.scatteringFactor = Color3f(0.0f);
+    }
 
     void sampleIntersection(const Scene *scene, Sampler *sampler, PathState &state) const
     {
@@ -94,12 +105,7 @@ public:
             /* Find the surface that is visible in the requested direction */
             if (!scene->rayIntersect(state.ray, state.intersection))
             {
-                if (scene->getEnvironmentalEmitter() != nullptr && state.depth < 2){
-                    EmitterQueryRecord emitterQuery (-state.ray.d, EMeasure::EDiscrete);
-                    emitterQuery.lightP = state.ray.d*1e15;
-                    state.radiance += scene->getEnvironmentalEmitter()->eval(emitterQuery)*state.scatteringFactor;
-                }
-                state.scatteringFactor = Color3f(0.0f);
+                shadeEnvironment(scene, state);
                 return;
             }
            

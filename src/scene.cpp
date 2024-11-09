@@ -205,7 +205,8 @@ Color3f Scene::getBackground(const Ray3f& ray) const
 }
 
 
-std::string Scene::toString() const {
+std::string Scene::toString() const 
+{
     std::string meshes;
     for (size_t i=0; i<m_meshes.size(); ++i) {
         meshes += std::string("  ") + indent(m_meshes[i]->toString(), 2);

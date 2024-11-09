@@ -2,7 +2,7 @@
 <scene>
 	<integrator type="path_mis"/>
 	<sampler type="independent">
-		<integer name="sampleCount" value="32"/>
+		<integer name="sampleCount" value="64"/>
 		<integer name="nPasses" value="16"/>
 	</sampler>
 	<camera type="perspective">
@@ -16,24 +16,6 @@
 			<matrix value="1.0,0.0,0.0,-0.05926178768277168,0.0,-0.05368456616997719,-0.9985579252243042,-0.6858136057853699,0.0,0.9985579252243042,-0.05368456616997719,4.529738903045654,0.0,0.0,0.0,1.0"/>
 		</transform>
 	</camera>
-	<mesh type="obj">
-		<string name="filename" value="meshes/g¡j43_h_Iron.obj"/>
-		<bsdf type="GGX">
-			<color name="albedo" value="0.141647,0.140231,0.136124"/>
-			<float name="roughness" value="0.300043"/>
-			<color name="internIOR" value="2.0874,1.79,1.62"/>
-			<color name="K" value="3.17,2.81,3.27"/>
-		</bsdf>
-	</mesh>
-	<mesh type="obj">
-		<string name="filename" value="meshes/option2_head_helmet_Iron.obj"/>
-		<bsdf type="GGX">
-			<color name="albedo" value="0.141647,0.140231,0.136124"/>
-			<float name="roughness" value="0.300043"/>
-			<color name="internIOR" value="2.0874,1.79,1.62"/>
-			<color name="K" value="3.17,2.81,3.27"/>
-		</bsdf>
-	</mesh>
 	<mesh type="obj">
 		<string name="filename" value="meshes/option1_hair_eyebrows_EyebrowsHair.obj"/>
 		<bsdf type="GGX">
@@ -67,7 +49,7 @@
 			<float name="w2" value="0.06"/>
 			<float name="w3" value="0.02"/>
 
-			<bsdf type="normalizedDiffusion">   <!-- Skin properties -->
+			<bsdf type="diffuse">   <!-- Skin properties -->
 				<color name="ld" value="1.8 1.6 1.5"/>
 				<float name="eta" value="1.3"/>
 				<texture type="textmap" name="albedo">

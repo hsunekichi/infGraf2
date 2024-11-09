@@ -74,6 +74,21 @@ public:
         return result;
     }
 
+    Color3f shadeEnvironment(const Scene *scene, const Ray3f &ray, Intersection &its) const
+    {
+        Color3f radiance = BLACK;
+
+        if (scene->getEnvironmentalEmitter() != nullptr)
+        {
+            EmitterQueryRecord emitterQuery(-ray.d, EDiscrete);
+            emitterQuery.lightP = ray.d*1e15;
+            
+            radiance += scene->getEnvironmentalEmitter()->eval(emitterQuery);
+        }
+
+        return radiance;
+    }
+
     Color3f integrateSubsurface(const Scene *scene, 
                 Sampler *sampler,
                 const Ray3f &ray,
@@ -107,16 +122,9 @@ public:
         Color3f radiance(0.0f);
 
         /* Find the surface that is visible in the requested direction */
-        if (!scene->rayIntersect(ray, its)){
-            if (scene->getEnvironmentalEmitter() != nullptr){
-                EmitterQueryRecord emitterQuery(-ray.d, EDiscrete);
-                emitterQuery.lightP = ray.d*1e15;
-                radiance += scene->getEnvironmentalEmitter()->eval(emitterQuery);
-                return radiance;
-            }else{
-                return Color3f(0.0f);
-            }
-
+        if (!scene->rayIntersect(ray, its))
+        {
+            return shadeEnvironment(scene, ray, its);
         }
 
         Pth::IntegrationType type = Pth::getIntegrationType(its);        
