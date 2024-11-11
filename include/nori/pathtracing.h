@@ -14,8 +14,9 @@ NORI_NAMESPACE_BEGIN
 
 struct PathState
 {
-    bool intersectionComputed = false;
-    bool intersected = false;
+    bool previous_diffuse = false; 
+    size_t previous_n_samples = 1;
+    float bsdfPdf = 0.0f; Point3f prevP = Point3f(0.0f);    
     Intersection intersection;
 
     Ray3f ray;
@@ -29,7 +30,7 @@ struct PathState
 struct Pth
 {
 
-enum IntegrationType {EMITTER, DIFFUSE, SUBSURFACE, SPECULAR, NONE};
+enum IntegrationType {EMITTER, DIFFUSE, SUBSURFACE, SPECULAR, VOLUME, NONE};
 
 
 static Color3f nextEventEstimation(const Scene *scene, 
@@ -41,7 +42,7 @@ static Color3f nextEventEstimation(const Scene *scene,
     return nextEventEstimation(scene, sampler, state, bsdfQuery, lightPdf, bsdfPdf);
 }
 
-static BSDFQueryRecord initBSDFQuery(const Scene *scene, const PathState &state);
+static BSDFQueryRecord initBSDFQuery(const Scene *scene, Sampler *sampler, const PathState &state);
 
 static Color3f estimateDirectLight(const Scene *scene, 
                 Sampler *sampler,
@@ -64,14 +65,9 @@ static Color3f sampleBSDF(
 
 static IntegrationType getIntegrationType(const Intersection &its); 
 
-static Color3f integrateBSDF(const BSDF *bsdf, Sampler *sampler);
 
-static Color3f computeInScattering(const Scene *scene, 
-        Sampler *sampler, 
-        const Ray3f &ray, 
-        const Point3f &lp,
-        float sigma_s, float sigma_t,
-        float g);
+static Color3f integrateBSDF(const BSDF *bsdf, Sampler *sampler);
+static Color3f integrateSkinSpecular(const BSDF *bsdf, std::unique_ptr<Sampler> sampler, float cosTh, float specWeight);
 
 };
 

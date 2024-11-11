@@ -139,7 +139,7 @@ void Bitmap::savePNG(const std::string &filename) {
 
 Color3f Bitmap::eval(const Point2f& uv) const
 {
-    float x = (1.f - uv[0]) * cols();;
+    float x = (uv[0]) * cols();;
     float y = (1.f - uv[1]) * rows();
 
     int ix = x, iy = y;
@@ -182,7 +182,7 @@ LDRBitmap::LDRBitmap(const std::string& filename)
 
 Color3f LDRBitmap::eval(const Point2f& uv) const
 {
-    float x = (1.f - uv[0]) * cols();;
+    float x = (uv[0]) * cols();;
     float y = (1.f - uv[1]) * rows();
 
     int ix = x, iy = y;

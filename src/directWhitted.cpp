@@ -17,41 +17,68 @@ public:
     directWhitted(const PropertyList &props) {}
 
     // Integrate a diffuse surface
-    Color3f diffuseIntegration(const Scene *scene, Sampler *sampler, const Ray3f &ray,
-                Intersection &intersection) const
+    Color3f integrateDiffuse(const Scene *scene, Sampler *sampler, const Ray3f &ray,
+                Intersection &its) const
     {
         PathState state;
+        state.intersection = its;
         state.ray = ray;
-        state.intersection = intersection;
 
-        BSDFQueryRecord bsdfQuery;
-        Color3f incoming = Pth::nextEventEstimation(scene, sampler, state, bsdfQuery);
-        return incoming;
+        const BSDF *bsdf = state.intersection.mesh->getBSDF();
+        
+        auto query = Pth::initBSDFQuery(scene, sampler, state);
+        Color3f fp = bsdf->samplePoint(query, sampler);
+
+        float lightPdf, bsdfPdf;
+        Color3f result = fp * Pth::nextEventEstimation(scene, sampler, state, query, lightPdf, bsdfPdf);
+        return result;
     }
 
     Color3f Li (const Scene *scene, Sampler *sampler, const Ray3f &ray, int depth) const
     {
+        Intersection its;
+        Color3f radiance(0.0f);
+
         /* Find the surface that is visible in the requested direction */
-        Intersection intersection;
-        if (!scene->rayIntersect(ray, intersection))
-            return Color3f(0.0f);
+        if (!scene->rayIntersect(ray, its)){
+            if (scene->getEnvironmentalEmitter() != nullptr){
+                EmitterQueryRecord emitterQuery(-ray.d, EDiscrete);
+                emitterQuery.lightP = ray.d*1e15;
+                radiance += scene->getEnvironmentalEmitter()->eval(emitterQuery);
+                return radiance;
+            }else{
+                return Color3f(0.0f);
+            }
 
-        /* Retrieve the emitter associated with the surface */
-        const Emitter *emitter = intersection.mesh->getEmitter();
-        
-        Color3f radiance = Color3f(0.0f);
+        }
 
-        if (emitter != nullptr)
+        Pth::IntegrationType type = Pth::getIntegrationType(its);        
+
+        switch(type)
         {
-            // Render emitter
-            EmitterQueryRecord emitterQuery(-ray.d, EDiscrete);
-            emitterQuery.lightP = intersection.p;
-            radiance += emitter->eval(emitterQuery);
-        } 
-        else if (intersection.mesh->getBSDF()->isDiffuse()) 
-        {
-            // Render diffuse surface
-            radiance += diffuseIntegration(scene, sampler, ray, intersection);
+            case Pth::EMITTER:
+            {
+                // Render emitter
+                EmitterQueryRecord emitterQuery(-ray.d, EDiscrete);
+                emitterQuery.lightP = its.p;
+                radiance = its.mesh->getEmitter()->eval(emitterQuery);
+                break;
+            }
+            case Pth::DIFFUSE:
+                // Render diffuse surface
+                radiance = integrateDiffuse(scene, sampler, ray, its);
+                break;
+
+            case Pth::SUBSURFACE:
+                radiance = integrateDiffuse(scene, sampler, ray, its);
+                break;
+
+            case Pth::SPECULAR:
+                return BLACK;
+                break;
+            
+            default:
+                break;
         }
 
         return radiance;

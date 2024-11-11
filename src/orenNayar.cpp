@@ -18,7 +18,10 @@ public:
         sigma = propList.getFloat("roughness", 0.1f);
         sigma = sigma / SQRT_TWO;
 
-        Kd = propList.getColor("kd", Color3f(0.5f));
+        Kd = propList.getColor("albedo", Color3f(0.5f));
+
+        if (Kd.maxCoeff() > 1)
+            Kd /= Kd.maxCoeff();
         
         float sigma2 = sigma * sigma;
         A = 1.f - (sigma2 / (2.f * (sigma2 + 0.33f)));

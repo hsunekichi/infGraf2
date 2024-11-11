@@ -9,7 +9,11 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/nori",
+<<<<<<< HEAD
+            "args": ["${workspaceFolder}/scenes/leda/leda.xml", "--threads", "1"],
+=======
             "args": ["${workspaceFolder}/scenes/serapis/serapis_env.xml", "--threads", "1"],
+>>>>>>> 101ad3290c68e64b98a67adbdbb6829c6c57e3cf
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

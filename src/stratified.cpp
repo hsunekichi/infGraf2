@@ -213,7 +213,7 @@ private:
     int nStrats;
 
     MatrixXf m_lastStrat;
-    size_t currentPass;
+    size_t currentPass = 0;
     size_t weightedPassTotalSamples;
 
     Eigen::MatrixXf samplesPerPixel;

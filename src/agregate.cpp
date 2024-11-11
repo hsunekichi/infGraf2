@@ -87,7 +87,7 @@ public:
     /// Evaluate the BRDF model
     Color3f eval(const BSDFQueryRecord &bRec) const 
     {
-        return m_weights[bRec.agregate_id] * m_bsdfs[bRec.agregate_id]->eval(bRec);
+        return m_bsdfs[bRec.agregate_id]->eval(bRec); // * m_weights[bRec.agregate_id]
     }
 
     /// Compute the density of \ref sample() wrt. solid angles
@@ -104,7 +104,7 @@ public:
         int index = m_pdf.sample(sampler->next1D());
         bRec.agregate_id = index;
 
-        return m_bsdfs[index]->samplePoint(bRec, sampler);
+        return m_bsdfs[index]->samplePoint(bRec, sampler);  // / m_pdf[index]
     }
 
     /// Draw a a sample from the BRDF model

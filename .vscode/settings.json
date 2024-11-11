@@ -99,7 +99,9 @@
         "text_encoding": "cpp",
         "csignal": "cpp",
         "strstream": "cpp",
-        "codecvt": "cpp"
+        "codecvt": "cpp",
+        "__locale": "cpp",
+        "ios": "cpp"
     },
     "ros.distro": "noetic"
 }

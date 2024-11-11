@@ -8,6 +8,7 @@
 #include <nori/frame.h>
 #include <nori/warp.h>
 #include <nori/math.h>
+#include <nori/texture.h>
 
 NORI_NAMESPACE_BEGIN
 
@@ -18,7 +19,7 @@ public:
         m_alpha = propList.getFloat("alpha", 0.1f);
 
         float roughness = propList.getFloat("roughness", -1.0f);
-        if (roughness > 0.0f)
+        if (roughness >= 0.0f)
             m_alpha = roughness * roughness;
 
         /* Interior IOR (default: BK7 borosilicate optical glass) */
@@ -28,9 +29,15 @@ public:
 
         /* Exterior IOR (default: air) */
         m_extIOR = propList.getColor("extIOR", Color3f(1.000277f));
+        ior = internIOR / m_extIOR;
 
         /* Albedo of the diffuse base material (a.k.a "kd") */
-        Kd = propList.getColor("kd", Color3f(0.5f));
+        Color3f kd = propList.getColor("albedo", Color3f(0.5f));
+        
+        if (kd.maxCoeff() > 1.0f)
+            kd /= 255.0f;
+
+        m_kd = new ConstantSpectrumTexture(kd);
     }
 
     float lambda(const Vector3f &rayDir) const
@@ -71,7 +78,7 @@ public:
     Color3f l_fresnel(float cosTheta) const 
     {
         if (K == Color3f(0.0f))
-            return Math::fresnel(cosTheta, m_extIOR, internIOR);
+            return Math::schlick(cosTheta, ior);
         else
             return Math::fresnel(cosTheta, m_extIOR, internIOR, K);
     }
@@ -87,29 +94,29 @@ public:
         if (effectivelySmooth())
             return Color3f(0.0f); 
 
-
         // Get the incident and outgoing directions
-        Vector3f wi = bRec.wi;
-        Vector3f wo = bRec.wo;
+        const Vector3f wi = bRec.wi;
+        const Vector3f wo = bRec.wo;
 
         // Cosines of the angles between directions and surface normal (z-axis)
-        float cosThetaI = std::abs(Frame::cosTheta(wi));
-        float cosThetaO = std::abs(Frame::cosTheta(wo));
+        const float cosThetaI = std::abs(Frame::cosTheta(wi));
+        const float cosThetaO = std::abs(Frame::cosTheta(wo));
 
         // Half-vector calculation
-        Vector3f wh = (wi + wo).normalized();
+        const Vector3f wh = (wi + wo).normalized();
 
         // Beckmann normal distribution function D(wh)
-        float D = Warp::squareToBeckmannPdf(wh, m_alpha);
+        const float D = Warp::squareToBeckmannPdf(wh, m_alpha);
 
         // Fresnel term F(wh ⋅ wi)
-        Color3f F = l_fresnel(wi.dot(wh));
+        const Color3f F = l_fresnel(wi.dot(wh));
 
         // Geometry term G(wi, wo, wh)
-        float G = GeometryTerm(wi, wo, wh);
+        const float G = GeometryTerm(wi, wo, wh);
 
         // Specular term
-        Color3f result = (Kd * D * F * G) / (4.0f * cosThetaI * cosThetaO);
+        const Color3f Kd = m_kd->eval(bRec.uv);
+        const Color3f result = (Kd * D * F * G) / (4.0f * cosThetaI * cosThetaO);
 
         // Return the sum of diffuse and specular terms
         return result;
@@ -119,14 +126,14 @@ public:
     float pdf(const BSDFQueryRecord &bRec) const {
 
         // Calculate the half-vector
-        Vector3f wh = (bRec.wi + bRec.wo).normalized();
+        const Vector3f wh = (bRec.wi + bRec.wo).normalized();
 
         // Calculate the specular density using the Beckmann distribution
-        float D = Warp::squareToBeckmannPdf(wh, m_alpha);
-        float jacobian = 1.0f / (4.0f * std::abs(bRec.wo.dot(wh)));
+        const float D = Warp::squareToBeckmannPdf(wh, m_alpha);
+        const float jacobian = 1.0f / (4.0f * std::abs(bRec.wo.dot(wh)));
         
         // Specular density
-        float PDF = D * jacobian;
+        const float PDF = D * jacobian;
 
         return PDF;
     }
@@ -151,17 +158,17 @@ public:
         //  of the microfacet normal reflecting below the surface
         while (bRec.wo.z() <= 0)
         {
-            Point2f sample = sampler->next2D();
+            const Point2f sample = sampler->next2D();
 
             // Sample a normal according to the Beckmann distribution
-            Vector3f wh = Warp::squareToBeckmann(sample, m_alpha);
+            const Vector3f wh = Warp::squareToBeckmann(sample, m_alpha);
             
             // Reflect the incident direction in the normal 
             //  to get the outgoing direction
             bRec.wo = Math::reflect(bRec.wi, wh);
         }
 
-        float PDF = pdf(bRec);
+        const float PDF = pdf(bRec);
         if (std::abs(PDF) <= Epsilon)
             return Color3f(0.0f);
 
@@ -173,6 +180,25 @@ public:
            handled by sampling techniques for diffuse/non-specular materials,
            hence we return true here */
         return true;
+    }
+
+    void addChild(NoriObject* obj, const std::string& name = "none") {
+        switch (obj->getClassType()) {
+        case ETexture:
+            if (name == "albedo")
+            {
+                delete m_kd;
+                m_kd = static_cast<Texture*>(obj);
+            }
+            else
+                throw NoriException("Diffuse::addChild(<%s>,%s) is not supported!",
+                classTypeName(obj->getClassType()), name);
+            break;
+
+        default:
+            throw NoriException("Diffuse::addChild(<%s>) is not supported!",
+                classTypeName(obj->getClassType()));
+        }
     }
 
     std::string toString() const {
@@ -187,14 +213,13 @@ public:
             m_alpha,
             internIOR.toString(),
             K.toString(),
-            m_extIOR,
-            Kd.toString()
+            m_extIOR
         );
     }
 private:
     float m_alpha;
-    Color3f internIOR, K, m_extIOR;
-    Color3f Kd;
+    Color3f internIOR, K, m_extIOR, ior;
+    Texture *m_kd;
 };
 
 NORI_REGISTER_CLASS(Beckmann, "beckmann");

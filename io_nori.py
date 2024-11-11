@@ -106,8 +106,15 @@ class NoriWriter:
         try:
             if len(linked_nodes)> 0 and self.export_textures:
                 if (linked_nodes[0].from_node.bl_label == "Image Texture"):
-                    texture = self.__createElement("texture",{"type":"image_texture", "name":name})
-                    texture.appendChild(self.__createEntry("string","filename", linked_nodes[0].from_node.image.filepath.replace("\\","/")))
+                    
+                    fileName = linked_nodes[0].from_node.image.filepath.replace("\\","/").replace("png", "bmp")
+
+                    # Delete initial // if present
+                    if filename[0] == "/" and filename[1] == "/":
+                        filename = filename[2:]
+
+                    texture = self.__createElement("texture",{"type":"textmap", "name":name})
+                    texture.appendChild(self.__createEntry("string","filename", fileName))
                     texture.appendChild(self.__createEntry("string","interpolation", linked_nodes[0].from_node.interpolation))
                     texture.appendChild(self.__createEntry("string","extension", linked_nodes[0].from_node.extension))
                     texture.appendChild(self.__createEntry("string","projection", linked_nodes[0].from_node.projection))
@@ -243,7 +250,7 @@ class NoriWriter:
             bsdfElement = self.__createElement("bsdf", {"type":"GGX"})   # , "name" : slot.material.name
 
 
-        bsdfElement.appendChild(self.__createColorOrTexture("kd", principled.inputs["Base Color"]))
+        bsdfElement.appendChild(self.__createColorOrTexture("albedo", principled.inputs["Base Color"]))
         bsdfElement.appendChild(self.__createEntry("float", "roughness","%f" %(principled.inputs["Roughness"].default_value)))
 
 
@@ -295,13 +302,13 @@ class NoriWriter:
         if (glass and exportMaterialColor):
             ior = glass.inputs["IOR"].default_value
             bsdfElement = self.__createElement("bsdf", {"type":"dielectric"})   # , "name" : slot.material.name # For compatibility reasons this is not called roughdielectric
-            bsdfElement.appendChild(self.__createColorOrTexture("color", glass.inputs["Color"]))
+            bsdfElement.appendChild(self.__createColorOrTexture("albedo", glass.inputs["Color"]))
             bsdfElement.appendChild(self.__createEntry("float", "IOR","%f" % ior))
             bsdfElement.appendChild(self.__createEntry("float", "roughness","%f" % glass.inputs["Roughness"].default_value))
         elif (glossy and exportMaterialColor):
             alpha = glossy.inputs["Roughness"].default_value
             bsdfElement = self.__createElement("bsdf", {"type":"microfacet"})   # , "name" : slot.material.name
-            bsdfElement.appendChild(self.__createColorOrTexture("kd", glossy.inputs["Color"]))
+            bsdfElement.appendChild(self.__createColorOrTexture("albedo", glossy.inputs["Color"]))
             bsdfElement.appendChild(self.__createEntry("float", "alpha","%f" % alpha))
         elif (diffuse and exportMaterialColor):
             bsdfElement = self.__createElement("bsdf", {"type":"diffuse"})  # , "name" : slot.material.name

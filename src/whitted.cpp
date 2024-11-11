@@ -22,7 +22,7 @@ public:
         sigma_t = props.getFloat("sigma_t", 0.001f);
 
         g = props.getFloat("g", -0.1f);
-        helios_coeff = props.getFloat("helios_coeff", 100.f);
+        helios_coeff = props.getFloat("helios_coeff", 0.f);
     }
 
     Color3f specularIntegration(const Scene *scene, 
@@ -47,7 +47,7 @@ public:
         // Sample the BSDF
         const BSDF *bsdf = state.intersection.mesh->getBSDF();
         
-        auto query = Pth::initBSDFQuery(scene, state);
+        auto query = Pth::initBSDFQuery(scene, sampler, state);
         Color3f fp = bsdf->samplePoint(query, sampler);
 
         if (fp == Color3f(0.0f))
@@ -74,10 +74,27 @@ public:
 
         const BSDF *bsdf = state.intersection.mesh->getBSDF();
         
-        auto query = Pth::initBSDFQuery(scene, state);
+        auto query = Pth::initBSDFQuery(scene, sampler, state);
         Color3f fp = bsdf->samplePoint(query, sampler);
 
-        return fp * Pth::nextEventEstimation(scene, sampler, state, query);
+        float lightPdf, bsdfPdf;
+        Color3f result = fp * Pth::nextEventEstimation(scene, sampler, state, query, lightPdf, bsdfPdf);
+        return result;
+    }
+
+    Color3f shadeEnvironment(const Scene *scene, const Ray3f &ray, Intersection &its) const
+    {
+        Color3f radiance = BLACK;
+
+        if (scene->getEnvironmentalEmitter() != nullptr)
+        {
+            EmitterQueryRecord emitterQuery(-ray.d, EDiscrete);
+            emitterQuery.lightP = ray.d*1e15;
+            
+            radiance += scene->getEnvironmentalEmitter()->eval(emitterQuery);
+        }
+
+        return radiance;
     }
 
     Color3f integrateSubsurface(const Scene *scene, 
@@ -96,13 +113,46 @@ public:
 
             const BSDF *bsdf = state.intersection.mesh->getBSDF();
             
-            auto query = Pth::initBSDFQuery(scene, state);
+            auto query = Pth::initBSDFQuery(scene, sampler, state);
             Color3f fp = bsdf->samplePoint(query, sampler);
 
             radiance += fp * Pth::nextEventEstimation(scene, sampler, state, query);
         }
 
         return radiance / nSamples;
+    }
+
+    Color3f integrateVolume(const Scene *scene, 
+                Sampler *sampler,
+                const Ray3f &ray,
+                Intersection &its) const
+    {
+        const auto phaseFunction = [g = g]
+                            (const Vector3f &wo,
+                            const Vector3f &wi) -> float
+        {
+            return (1.0f / (4 * M_PI)) * (1.0f - g * g) / std::pow(1.0f + g * g - 2.0f * g * std::abs(wo.dot(wi)), 1.5f);
+        };
+
+        Point3f lp = ray(its.t);
+        float transmittance = std::exp(-sigma_t * its.t);
+        float density = sigma_t * transmittance;
+        float atmos_pdf = density; //(density.x + density.y + density.z) / 3.0f;
+        Color3f mediumScattering = transmittance * sigma_s * helios_coeff / atmos_pdf;
+
+        /******************* Direct *********************/
+        Vector3f g_wo; Emitter *emitterMesh; float lightPdf;
+        Color3f Le = Pth::estimateDirectLight(scene, sampler, lp, lightPdf, g_wo, emitterMesh);
+
+        if (Le != Color3f(0.0f))
+        {
+            Color3f direct = Le / g_wo.squaredNorm();
+            float phase = phaseFunction(-ray.d, g_wo.normalized());
+
+            Le = mediumScattering * phase * direct;
+        }
+
+        return Le;
     }
 
     Color3f Li (const Scene *scene, Sampler *sampler,
@@ -113,21 +163,24 @@ public:
         Color3f radiance(0.0f);
 
         /* Find the surface that is visible in the requested direction */
-        if (!scene->rayIntersect(ray, its)){
-            // Render emitter
-            EmitterQueryRecord emitterQuery(-ray.d, EDiscrete);
-            emitterQuery.lightP = ray.d*1e15;
-
-            if (scene->getEnvironmentalEmitter() != nullptr){
-                radiance += scene->getEnvironmentalEmitter()->eval(emitterQuery);
-                return radiance;
-            }else{
-                return Color3f(0.0f);
-            }
-
+        if (!scene->rayIntersect(ray, its))
+        {
+            return shadeEnvironment(scene, ray, its);
         }
 
-        Pth::IntegrationType type = Pth::getIntegrationType(its);        
+        Pth::IntegrationType type = Pth::getIntegrationType(its);   
+
+        #ifndef DISABLE_VOLUME_INTEGRATION
+        if (sigma_s != 0 && helios_coeff != 0)
+        {
+            float volume_t = Math::abs(std::log(1 - sampler->next1D()) / sigma_t);
+            if (volume_t < its.t)
+            {
+                its.t = volume_t;
+                type = Pth::VOLUME;
+            }
+        }
+        #endif
 
         switch(type)
         {
@@ -151,12 +204,23 @@ public:
             case Pth::SPECULAR:
                 radiance += specularIntegration(scene, sampler, ray, its, depth);
                 break;
+
+            case Pth::VOLUME:
+                radiance += integrateVolume(scene, sampler, ray, its);
+                break;
             
             default:
                 break;
         }
 
-        return radiance * std::exp(-sigma_t * its.t);
+        #ifndef DISABLE_VOLUME_INTEGRATION
+        if (type != Pth::VOLUME)
+        {
+            radiance *= std::exp(-sigma_t * its.t);
+        }
+        #endif
+
+        return radiance;
     }
 
     Color3f Li(const Scene *scene, Sampler *sampler, const Ray3f &ray) const 
@@ -168,8 +232,6 @@ public:
         return "Whitted[]";
     }
 
-    protected:
-        PhotonMap photonMap;
     private:
         float sigma_s; // Scatter coefficient
         float sigma_t; // Extinction Coefficient

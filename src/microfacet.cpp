@@ -18,7 +18,7 @@ public:
         m_alpha = propList.getFloat("alpha", 0.1f);
 
         float roughness = propList.getFloat("roughness", -1.0f);
-        if (roughness > 0.0f)
+        if (roughness >= 0.0f)
             m_alpha = roughness * roughness;
 
 
@@ -31,7 +31,10 @@ public:
         m_extIOR = propList.getColor("extIOR", Color3f(1.000277f));
 
         /* Albedo of the diffuse base material (a.k.a "kd") */
-        m_kd = propList.getColor("kd", Color3f(0.5f));
+        m_kd = propList.getColor("albedo", Color3f(0.5f));
+
+        if (m_kd.maxCoeff() > 1.0f)
+            m_kd /= 255.0f;
 
         /* To ensure energy conservation, we must scale the 
            specular component by 1-kd. 

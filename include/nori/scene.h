@@ -90,6 +90,8 @@ public:
 
     float pdfEmitter(const Emitter *em) const;
 
+    void preprocess();
+
 	/// Get enviromental emmiter
 	const Emitter *getEnvironmentalEmitter() const
 	{

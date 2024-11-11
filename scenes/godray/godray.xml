@@ -1,14 +1,14 @@
 <?xml version="1.0" ?>
 <scene>
-	<integrator type="path_ems_volume">
+	<integrator type="path_mis">
 		<float name="sigma_s" value="0.05"/>
 		<float name="sigma_t" value="0.05"/>
 		<float name="g" value="0"/>
 		<float name="helios_coeff" value="8"/>
 	</integrator>
 	<sampler type="independent">
-		<integer name="sampleCount" value="64"/>
-		<integer name="nPasses" value="8"/>
+		<integer name="sampleCount" value="128"/>
+		<integer name="nPasses" value="16"/>
 	</sampler>
 	<camera type="perspective">
 		<float name="fov" value="39.597755335771296"/>

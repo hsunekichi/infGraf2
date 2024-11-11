@@ -2,11 +2,11 @@
 	<!-- Independent sample generator -->
 	<sampler type="independent">
 		<!-- <integer name="sampleCount" value="256"/> -->
-		<integer name="sampleCount" value="32"/>
+		<integer name="sampleCount" value="512"/>
 	</sampler>
 
 	<!-- Use the ambient occlusion integrator -->
-    <integrator type="whitted"/>
+    <integrator type="direct_whitted"/>
 
 	<!-- Load the Serapis bust -->
 	<mesh type="obj">

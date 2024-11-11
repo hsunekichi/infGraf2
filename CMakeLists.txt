@@ -3,6 +3,9 @@ project(nori)
 
 add_subdirectory(ext ext_build)
 
+#set(CMAKE_CXX_COMPILER "nvc++")
+#add_compile_definitions(DISABLE_VOLUME_INTEGRATION)
+
 include_directories(
   # Nori include files
   ${CMAKE_CURRENT_SOURCE_DIR}/include
@@ -117,14 +120,12 @@ add_executable(nori
   src/pathtracing.cpp
   src/directWhitted.cpp
   src/depthIntegrator.cpp
-  src/subsurface.cpp
+  src/dipole.cpp
   src/subsurfacePbrt.cpp
-  src/subsurfaceDisney.cpp
+  src/normalizedDiffusion.cpp
   src/indirectWhitted.cpp
-  src/whittedVolumetric.cpp
-  src/path_mats_volume.cpp
-  src/path_ems_volume.cpp
   src/agregate.cpp
+  src/skin.cpp
 )
 
 add_definitions(${NANOGUI_EXTRA_DEFS})
@@ -151,6 +152,13 @@ endif()
 target_link_libraries(warptest tbb_static nanogui ${NANOGUI_EXTRA_LIBS})
 
 set_property(TARGET nori PROPERTY CXX_STANDARD 17)
+
+
+if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+elseif (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+endif()
 
 # Force colored output for the ninja generator
 if (CMAKE_GENERATOR STREQUAL "Ninja")

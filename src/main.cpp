@@ -50,12 +50,6 @@ static void renderBlock(const Scene *scene, Sampler *sampler, ImageBlock &block)
     {
         for (int x=0; x<size.x(); ++x) 
         {
-            if (y == 265 && x == 557)
-            {
-                int a = 0;
-                a++;
-            }
-
             for (uint32_t i=0; i<sampler->getSampleCount(); ++i) 
             {
                 Point2f pixelSample = Point2f((float) (x + offset.x()), (float) (y + offset.y())) + sampler->next2D();
@@ -78,13 +72,14 @@ static void renderBlock(const Scene *scene, Sampler *sampler, ImageBlock &block)
 static void render(Scene* scene, const std::string& filename, bool nogui) {
     const Camera* camera = scene->getCamera();
     Vector2i outputSize = camera->getOutputSize();
+
+    std::cout << "Preprocessing... \n";
+    scene->preprocess();
     scene->getIntegrator()->preprocess(scene, scene->getSampler());
 
     /* Allocate memory for the entire output image and clear it */
     ImageBlock result(outputSize, camera->getReconstructionFilter());
     result.clear();
-
-    std::cout << "Computing incoming radiance for subsurface scattering..." << std::endl;
 
     /* Create a window that visualizes the partially rendered result */
     NoriScreen* screen = 0;

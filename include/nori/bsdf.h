@@ -54,6 +54,7 @@ struct BSDFQueryRecord {
     Frame fro, fri; // Shading frames
     const Mesh *mesh = nullptr; 
     const Scene *scene = nullptr;
+    Sampler *sampler = nullptr;
     bool isCameraRay = false;
 
     int agregate_id = -1;
@@ -153,6 +154,8 @@ public:
      */
     virtual bool isDiffuse() const { return false; }
     virtual bool isSubsurfaceScattering() const { return false; }
+
+    virtual void preprocess(Sampler *sampler) { }
 };
 
 NORI_NAMESPACE_END

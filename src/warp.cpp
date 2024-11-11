@@ -107,7 +107,7 @@ Point2f Warp::squareToUniformTriangle(const Point2f &sample)
 
 float Warp::squareToUniformTrianglePdf(const Point2f &p) 
 {
-    return (p.x() >= 0.0f && p.x() <= 1.0f && p.y() >= 0.0f && p.y() <= 1.0f) ? 2.0f : 0.0f;
+    return (p.x() >= 0.0f && p.x() <= 1.0f && p.y() >= 0.0f && p.x() + p.y() <= 1.0f) ? 2.0f : 0.0f;
 }
 
 Point2f Warp::squareToTent(const Point2f &sample) 
@@ -210,7 +210,8 @@ Vector3f Warp::squareToUniformHemisphere(const Point2f &sample)
 
 float Warp::squareToUniformHemispherePdf(const Vector3f &v) 
 {
-    return 1 / (2 * M_PI);
+    return (v.norm() <= 1.0f && v.z() >= 0.0f) ? 1.0f / (2.0f * M_PI) : 0.0f;
+    // return 1 / (2 * M_PI);
 }
 
 Vector3f Warp::squareToCosineHemisphere(const Point2f &sample) 
@@ -227,15 +228,15 @@ float Warp::squareToCosineHemispherePdf(const Vector3f &v)
 
 Vector3f Warp::squareToBeckmann(const Point2f &sample, float alpha) {
     // Step 1: Sample azimuthal angle phi
-    float phi = 2.0f * M_PI * sample.x();
+    const float phi = 2.0f * M_PI * sample.x();
 
     // Step 2: Sample elevation angle theta using the inverse CDF
-    float tanTheta2 = -alpha * alpha * std::log(1.0f - sample.y());
-    float theta = std::atan(std::sqrt(tanTheta2));
+    const float tanTheta2 = -alpha * alpha * std::log(1.0f - sample.y());
+    const float theta = std::atan(std::sqrt(tanTheta2));
 
     // Step 3: Convert spherical to Cartesian coordinates
-    float sinTheta = std::sin(theta);
-    float cosTheta = std::cos(theta);
+    const float sinTheta = std::sin(theta);
+    const float cosTheta = std::cos(theta);
 
     return Vector3f(sinTheta * std::cos(phi), sinTheta * std::sin(phi), cosTheta);
 }
@@ -243,15 +244,18 @@ Vector3f Warp::squareToBeckmann(const Point2f &sample, float alpha) {
 
 float Warp::squareToBeckmannPdf(const Vector3f &m, float alpha) {
     // Extract theta from the z-component of the normalized vector
-    float cosTheta = m.z();
+    const float cosTheta = m.z();
     if (cosTheta <= 0.0f)
         return 0.0f;
 
-    float tanTheta2 = (1.0f - cosTheta * cosTheta) / (cosTheta * cosTheta);
-    float cosTheta3 = cosTheta * cosTheta * cosTheta;
+    const float cosTheta2 = Math::pow2(cosTheta);
+    const float alpha2 = Math::pow2(alpha);
+
+    const float tanTheta2 = (1.0f - cosTheta2) / (cosTheta2);
+    const float cosTheta3 = cosTheta2 * cosTheta;
 
     // Beckmann distribution PDF
-    return std::exp(-tanTheta2 / (alpha * alpha)) / (M_PI * alpha * alpha * cosTheta3);
+    return std::exp(-tanTheta2 / alpha2) / (M_PI * alpha2 * cosTheta3);
 }
 
 float Warp::squareToSrDecay(const float &sample, float sigmaT)

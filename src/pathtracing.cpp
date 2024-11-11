@@ -31,6 +31,7 @@ Color3f sampleRandomEmitter(const Scene *scene, Sampler *sampler,
     // Sample a point on the emitter
     EmitterQueryRecord emitterQuery (ESolidAngle);
     emitterQuery.surfaceP = surfaceP;
+
     Color3f Le = emitterMesh->sampleLi(sampler, emitterQuery) / randomLightPdf;
     
     lightP = emitterQuery.lightP;
@@ -45,26 +46,20 @@ bool checkVisibility (const Scene *scene,
             Emitter *emitterMesh,
             Vector3f &g_wi)
 {
-    Ray3f shadowRay(p, g_wi.normalized(), Epsilon, g_wi.norm() + Epsilon);
+    Ray3f shadowRay(p, g_wi.normalized(), Epsilon, g_wi.norm() - Epsilon);
 
     Intersection lightIntersection;
     bool intersects = scene->rayIntersect(shadowRay, lightIntersection);
 
-    //*********************** Compute Le ******************************
-    return (!intersects)
-        ||
-        ( 
-            intersects 
-            && 
-            (   (lightIntersection.p - p).norm() > g_wi.norm()
-                ||
-                lightIntersection.mesh->getEmitter() == emitterMesh
-            )
-        );
+    // Check visibility
+    //bool objectSeesEmitter = true; //state.intersection.toLocal(g_wi).z() > 0.0f;
+
+    return !intersects
+        || ( intersects && lightIntersection.mesh->getEmitter() == emitterMesh);
 }
 
 
-BSDFQueryRecord Pth::initBSDFQuery(const Scene *scene, const PathState &state)
+BSDFQueryRecord Pth::initBSDFQuery(const Scene *scene, Sampler *sampler, const PathState &state)
 {
     BSDFQueryRecord bsdfQuery;
     bsdfQuery.wi = state.intersection.vtoLocal(-state.ray.d);
@@ -77,6 +72,7 @@ BSDFQueryRecord Pth::initBSDFQuery(const Scene *scene, const PathState &state)
     
     bsdfQuery.mesh = state.intersection.mesh;
     bsdfQuery.scene = scene;
+    bsdfQuery.sampler = sampler;
 
     return bsdfQuery;
 }
@@ -114,7 +110,8 @@ Color3f Pth::nextEventEstimation(const Scene *scene,
                 float &lightPdf, float &bsdfPdf)
 {
     Vector3f g_wo; Emitter *emitterMesh;
-    Color3f Le = estimateDirectLight(scene, sampler, state.intersection.p, lightPdf, g_wo, emitterMesh);
+    Color3f Le = estimateDirectLight(scene, sampler, state.intersection.p, 
+                                    lightPdf, g_wo, emitterMesh);
 
     if (Le != Color3f(0.0f) && state.intersection.vtoLocal(g_wo).z() > 0.0f)
     {
@@ -132,10 +129,17 @@ Color3f Pth::nextEventEstimation(const Scene *scene,
         // Compute the geometric term
         float cosThetaP = Math::absCosTheta(l_wo);
         float G = cosThetaP / g_wo.squaredNorm();
+        
 
         if (emitterMesh->getEmitterType() == EmitterType::EMITTER_ENVIRONMENT)
         {
-            return Le*f *cosThetaP;
+            if (scene->getIntegrator()->toString() == "Whitted[]" || scene->getIntegrator()->toString() == "directWhitted[]") 
+            {
+                return Le * f * cosThetaP;
+            } else{
+                return Le * f * cosThetaP / M_PI;
+            }
+            
         }else
         {
             return Le * f * G;
@@ -161,7 +165,7 @@ Color3f Pth::sampleBSDF(
     pdf = bsdf->pdf(bsdfQuery);
 
     // Create the new ray
-    Ray3f newRay(bsdfQuery.po, bsdfQuery.fro.vtoWorld(bsdfQuery.wo), 0.001, INFINITY);
+    Ray3f newRay(bsdfQuery.po, bsdfQuery.fro.vtoWorld(bsdfQuery.wo), Epsilon, INFINITY);
     newRay.isCameraRay = bsdfQuery.isCameraRay;
 
     // Apply scattering factor
@@ -194,10 +198,11 @@ Pth::IntegrationType Pth::getIntegrationType(const Intersection &its)
 
 
 
+
 Color3f Pth::integrateBSDF(const BSDF *bsdf, Sampler *sampler)
 {
     Color3f result(0.0f, 0.0f, 0.0f);
-    int nSteps = 10000;
+    int nSteps = 2048;
 
     for (int i = 0; i < nSteps; i++)
     {
@@ -213,118 +218,69 @@ Color3f Pth::integrateBSDF(const BSDF *bsdf, Sampler *sampler)
     return result / nSteps;
 }
 
+template <std::size_t N>
+std::array<float, N> precompute_sin(float constant)
+{
+    std::array<float, N> array {};
 
-Color3f Pth::computeInScattering(const Scene *scene, 
-        Sampler *sampler, 
-        const Ray3f &ray, 
-        const Point3f &p,
-        float sigma_s,
-        float sigma_t,
-        float g) 
-{    
-    Vector3f g_wo; Emitter *emitterMesh; float lightPdf;
-    Color3f Le = estimateDirectLight(scene, sampler, p, lightPdf, g_wo, emitterMesh);
-
-    if (Le != Color3f(0.0f))
-    {
-        Color3f direct = Le / g_wo.squaredNorm();
-
-        // Henyey-Greenstein phase function
-        float cosTheta = ray.d.dot(g_wo.normalized());
-        float phaseFunctionNormalization = 1.0f / (4 * M_PI);
-        float phaseFunction = phaseFunctionNormalization * (1.0f - g * g) / std::pow(1.0f + g * g - 2.0f * g * cosTheta, 1.5f);
-    
-        return sigma_s * phaseFunction * direct;
+    for(unsigned i = 0; i < N; i++){
+        float th = float(i) / float(N - 1) * M_PI * constant;
+        array[i] = std::sin(th);
     }
 
-    return Color3f(0.0f); 
+    return array;
 }
 
-
-
-/*
-
-
-std::vector<Photon> generateSubsurfaceSamples(const Scene *scene, Sampler *sampler)
+template <std::size_t N>
+std::array<float, N> precompute_cos(float constant)
 {
-    std::vector<Photon> photons;
+    std::array<float, N> array {};
 
-    auto SS_meshes = scene->getSSMeshes();
+    for(unsigned i = 0; i < N; i++){
+        float th = float(i) / float(N - 1) * M_PI * constant;
+        array[i] = std::cos(th);
+    }
 
-    for (auto mesh : SS_meshes)
+    return array;
+}
+
+Color3f Pth::integrateSkinSpecular(const BSDF *bsdf, std::unique_ptr<Sampler> sampler, float costheta, float specWeight)
+{
+    Color3f result(0.0f, 0.0f, 0.0f);
+
+    constexpr unsigned nSteps = 512;
+    auto sinphi = precompute_sin<nSteps>(2.0f);
+    auto cosphi = precompute_cos<nSteps>(2.0f);
+    auto sinth =  precompute_sin<nSteps>(1.0f/2.0f);
+    auto costh =  precompute_cos<nSteps>(1.0f/2.0f);
+
+    Vector3f V = Vector3f(0.0, sqrt(1.0 - costheta * costheta), costheta);
+
+    for (unsigned i = 0; i < nSteps; i++)
     {
-        u_int32_t nTriangles = mesh->nTriangles();
-        u_int32_t nSamples = nTriangles;
+        float cosp = cosphi[i];
+        float sinp = sinphi[i];
 
-        std::cout << "Generating " << nSamples << " photons for mesh " << mesh->getName() << std::endl;
+        Color3f localsum = 0.0f;
 
-        for (u_int32_t i = 0; i < nSamples; i++)
+        for (unsigned j = 0; j < nSteps; j++)
         {
-            float pdf;
-            Point3f p; Normal3f n; Point2f uv;
-            u_int32_t triangle_id;
-            
-            mesh->samplePosition(sampler, p, n, uv, pdf, triangle_id);
-            photons.push_back(Photon(p, pdf, mesh));
+            float sint = sinth[j];
+            float cost = costh[j];
+            Vector3f L = Vector3f(sinp * sint, cosp * sint, cost);
+
+            BSDFQueryRecord bsdfQuery;
+            bsdfQuery.wi = L;
+            bsdfQuery.wo = V;
+
+            localsum += bsdf->eval(bsdfQuery) * specWeight * sint;
         }
+
+        result += localsum * (M_PI / 2.0) / float(nSteps);
     }
 
-    return photons;
+    return result * (2.0 * M_PI) / (float(nSteps));
 }
-
-
-void Pth::integrateSubsurfacePhotons(const Scene *scene,
-                const PhotonMap &photons,
-                Sampler *sampler,
-                PathState &state)
-{
-    // Static cast to SubsurfaceScattering bsdf
-    const BSSRDF &SSS = *static_cast<const BSSRDF *>(state.intersection.mesh->getBSDF());
-    
-    BSDFQueryRecord bsdfQuery(state.intersection.toLocal(-state.ray.d));
-    bsdfQuery.po = state.intersection.p;
-    bsdfQuery.wo = state.intersection.toLocal(-state.ray.d);
-    bsdfQuery.measure = ESolidAngle;
-    bsdfQuery.isCameraRay = state.ray.isCameraRay;
-
-    Color3f contributions = Color3f(0.0f);
-
-    std::vector<Photon> nearest = photons.nearest_neighbors(state.intersection.p,
-                                         (ulong)-1, 0.001f, state.intersection.mesh);
-
-
-    if (nearest.size() == 0)
-        return;
-
-    std::cout << "Nearest size: " << nearest.size() << std::endl;
-    
-    for (auto &photon : nearest)
-    {   
-        // Choose random photon
-        //int randomPhoton = sampler->next1D() * photons.size();
-        //auto photon = photons[randomPhoton % photons.size()];
-
-        bsdfQuery.pi = photon.p;
-        bsdfQuery.ni = state.intersection.toLocal(photon.n);
-        bsdfQuery.wi = state.intersection.toLocal(photon.d);
-        Color3f f = SSS.eval(bsdfQuery);
-        Color3f radiance = photon.radiance;
-
-        contributions += radiance * f;
-    }
-
-    contributions = contributions / nearest.size();       
-    //contributions *= state.intersection.mesh->meshArea();
-
-    state.radiance += contributions;
-}
-*/
-
-
-
-
-
-
 
 
 NORI_NAMESPACE_END

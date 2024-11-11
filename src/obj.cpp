@@ -21,6 +21,7 @@
 #include <filesystem/resolver.h>
 #include <unordered_map>
 #include <fstream>
+#include <functional>
 
 NORI_NAMESPACE_BEGIN
 
@@ -272,9 +273,9 @@ public:
 protected:
 
     /// Hash function for OBJVertex
-    struct OBJVertexHash : std::unary_function<OBJVertex, size_t> {
+    struct OBJVertexHash {
         std::size_t operator()(const OBJVertex &v) const {
-            size_t hash = std::hash<uint32_t>()(v.p);
+            std::size_t hash = std::hash<uint32_t>()(v.p);
             hash = hash * 37 + std::hash<uint32_t>()(v.uv);
             hash = hash * 37 + std::hash<uint32_t>()(v.n);
             return hash;

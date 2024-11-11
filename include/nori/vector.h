@@ -45,16 +45,16 @@ public:
     typedef TPoint<Scalar, Dimension>           PointType;
 
     /// Create a new vector with constant component vlaues
-    TVector(Scalar value = (Scalar) 0) { Base::setConstant(value); }
+    constexpr TVector(Scalar value = (Scalar) 0) { Base::setConstant(value); }
 
     /// Create a new 2D vector (type error if \c Dimension != 2)
-    TVector(Scalar x, Scalar y) : Base(x, y) { }
+    constexpr TVector(Scalar x, Scalar y) : Base(x, y) { }
 
     /// Create a new 3D vector (type error if \c Dimension != 3)
-    TVector(Scalar x, Scalar y, Scalar z) : Base(x, y, z) { }
+    constexpr TVector(Scalar x, Scalar y, Scalar z) : Base(x, y, z) { }
 
     /// Create a new 4D vector (type error if \c Dimension != 4)
-    TVector(Scalar x, Scalar y, Scalar z, Scalar w) : Base(x, y, z, w) { }
+    constexpr TVector(Scalar x, Scalar y, Scalar z, Scalar w) : Base(x, y, z, w) { }
 
     /// Construct a vector from MatrixBase (needed to play nice with Eigen)
     template <typename Derived> TVector(const Eigen::MatrixBase<Derived>& p)
@@ -93,16 +93,16 @@ public:
     typedef TPoint<Scalar, Dimension>           PointType;
 
     /// Create a new point with constant component vlaues
-    TPoint(Scalar value = (Scalar) 0) { Base::setConstant(value); }
+    constexpr TPoint(Scalar value = (Scalar) 0) { Base::setConstant(value); }
 
     /// Create a new 2D point (type error if \c Dimension != 2)
-    TPoint(Scalar x, Scalar y) : Base(x, y) { }
+    constexpr TPoint(Scalar x, Scalar y) : Base(x, y) { }
 
     /// Create a new 3D point (type error if \c Dimension != 3)
-    TPoint(Scalar x, Scalar y, Scalar z) : Base(x, y, z) { }
+    constexpr TPoint(Scalar x, Scalar y, Scalar z) : Base(x, y, z) { }
 
     /// Create a new 4D point (type error if \c Dimension != 4)
-    TPoint(Scalar x, Scalar y, Scalar z, Scalar w) : Base(x, y, z, w) { }
+    constexpr TPoint(Scalar x, Scalar y, Scalar z, Scalar w) : Base(x, y, z, w) { }
 
     /// Construct a point from MatrixBase (needed to play nice with Eigen)
     template <typename Derived> TPoint(const Eigen::MatrixBase<Derived>& p)

@@ -48,8 +48,6 @@ struct EmitterQueryRecord {
     Point3f surfaceP;
     /// Sampled position on the light source
     Point3f lightP;
-    /// Associated surface normal
-    Normal3f n;
     /// Sampled texture coordinates on the light source
     Point2f uv;
     /// Solid angle density wrt. 'ref'
@@ -79,7 +77,7 @@ struct EmitterQueryRecord {
      */
     EmitterQueryRecord(const Emitter* emitter,
         const Point3f& ref, const Point3f& p,
-        const Normal3f& n, const Point2f& uv) : emitter(emitter), surfaceP(ref), lightP(p), n(n), uv(uv){
+        const Normal3f& n, const Point2f& uv) : emitter(emitter), surfaceP(ref), lightP(p), uv(uv){
 		wo = surfaceP - lightP;
 		dist = wo.norm();
 		wo /= dist;

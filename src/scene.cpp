@@ -94,6 +94,11 @@ void Scene::activate()
             NoriObjectFactory::createInstance("independent", PropertyList()));
     }
 
+    if (m_emitters.size() == 0)
+    {
+        throw NoriException("No emitters were specified!");
+    }
+
     cout << endl;
     cout << "Configuration: " << toString() << endl;
     cout << endl;
@@ -119,13 +124,21 @@ void Scene::activate()
 // 	return m_emitters[index];
 // }
 
+void Scene::preprocess() {
+    for (auto mesh : m_meshes)
+    {
+        mesh->getBSDF()->preprocess(m_sampler);
+    }
+}
+
 Emitter *Scene::sampleEmitter(Sampler* sampler, float &pdf) const
 {
     float rnd = sampler->next1D(); // Get a random value between 0 and 1
 
     // Sample from the PDF
-    size_t index = m_emitterPDF.sample(rnd, pdf);
-    // pdf = 1. / float(m_emitters.size());
+    //size_t index = m_emitterPDF.sample(rnd, pdf); // Multi importance lighting
+    size_t index = std::min(static_cast<size_t>(std::floor(m_emitters.size()*rnd)), m_emitters.size() - 1); // random light
+    pdf = 1. / float(m_emitters.size());
 
     // Return the selected emitter
     return m_emitters[index];
@@ -193,7 +206,8 @@ Color3f Scene::getBackground(const Ray3f& ray) const
 }
 
 
-std::string Scene::toString() const {
+std::string Scene::toString() const 
+{
     std::string meshes;
     for (size_t i=0; i<m_meshes.size(); ++i) {
         meshes += std::string("  ") + indent(m_meshes[i]->toString(), 2);

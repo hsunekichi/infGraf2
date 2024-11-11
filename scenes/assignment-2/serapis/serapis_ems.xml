@@ -1,11 +1,11 @@
 <scene>
 	<!-- Independent sample generator -->
 	<sampler type="independent">
-		<integer name="sampleCount" value="1"/>
+		<integer name="sampleCount" value="512"/>
 	</sampler>
 
 	<!-- Use the ambient occlusion integrator -->
-    <integrator type="direct_ems"/>
+    <integrator type="whitted"/>
 
 	<!-- Load the Serapis bust -->
 	<mesh type="obj">

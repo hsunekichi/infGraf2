@@ -713,20 +713,44 @@ bool Accel::rayProbe(const Ray3f &_ray, std::vector<Intersection> &its) const
 	{
 		const BVHNode &node = m_nodes[node_idx];
 
-		if (!node.bbox.rayIntersect(ray)) 
-		{
-			if (stack_idx == 0)
-				break;
-
-			node_idx = stack[--stack_idx];
-			continue;
-		}
-
 		if (node.isInner()) 
 		{
-			stack[stack_idx++] = node.inner.rightChild;
-			node_idx++;
-			assert(stack_idx < 64);
+			const n_UINT right = node.inner.rightChild;
+			const n_UINT left = node_idx + 1;
+			float tRight, tLeft;
+			bool right_intersected = m_nodes[right].bbox.rayIntersect(ray, tRight);
+			bool left_intersected  = m_nodes[left].bbox.rayIntersect(ray, tLeft);
+
+			if (left_intersected && right_intersected)
+			{
+				if (tRight > tLeft)
+				{
+					stack[stack_idx++] = right;
+					node_idx = left;
+				}
+				else
+				{
+					stack[stack_idx++] = left;
+					node_idx = right;
+				}
+
+				assert(stack_idx < 64);
+			}
+			else if (left_intersected)
+			{
+				node_idx = left;
+			}
+			else if (right_intersected)
+			{
+				node_idx = right;
+			}
+			else
+			{
+				if (stack_idx == 0)
+					break;
+				node_idx = stack[--stack_idx];
+				continue;
+			}
 		}
 		else 
 		{

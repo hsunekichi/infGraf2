@@ -160,7 +160,11 @@ public:
     }
 
     /// Return the number of configured pixel samples
-    size_t getSampleCount(Point2i pixel) const { return samplesPerPixel(pixel.x(), pixel.y()); }
+    size_t getSampleCount(Point2i pixel) const 
+    { 
+        return samplesPerPixel(pixel.x(), pixel.y()); 
+    }
+    
     size_t getSampleCount() const 
     { 
         if (_nPasses == 1 || currentPass > 0)
@@ -192,7 +196,7 @@ protected:
 private:
     pcg32 m_random;
 
-    size_t currentPass;
+    size_t currentPass = 0;
     size_t weightedPassTotalSamples;
 
     Eigen::MatrixXf samplesPerPixel;

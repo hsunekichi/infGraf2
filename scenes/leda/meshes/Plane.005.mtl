@@ -1,7 +1,7 @@
-# Blender MTL File: 'sword.blend'
+# Blender MTL File: 'character.blend'
 # Material Count: 1
 
-newmtl Material.003
+newmtl Material.005
 Ns 359.999993
 Ka 1.000000 1.000000 1.000000
 Kd 0.800000 0.800000 0.800000

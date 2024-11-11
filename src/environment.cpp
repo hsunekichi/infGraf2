@@ -80,14 +80,15 @@ public:
 	}
 
 	virtual Color3f sampleLi(Sampler *sampler, EmitterQueryRecord &query) const {
-		// Sample a direction on the unit sphere using uniform sampling
-		
-		query.wo = Warp::squareToUniformSphere(sampler->next2D());
-		// cerr << "n: " << query.n << endl;
-		query.lightP = query.surfaceP + query.wo*1e15;
-		query.pdf = pdf(query);
 
-		return eval(query);
+        query.wo = Warp::squareToUniformSphere(sampler->next2D());
+        query.pdf = pdf(query);
+        query.lightP = -query.wo*1e10;
+        
+		if (query.pdf <= 1e-6)
+			return Color3f(0.0f);
+
+		return eval(query) / query.pdf;
 	}
 
 	// Returns probability with respect to solid angle given by all the information inside the emitterqueryrecord.
