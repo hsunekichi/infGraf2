@@ -122,6 +122,8 @@ add_executable(nori
   src/subsurfaceDisney.cpp
   src/indirectWhitted.cpp
   src/whittedVolumetric.cpp
+  src/path_mats_volume.cpp
+  src/path_ems_volume.cpp
   src/agregate.cpp
 )
 

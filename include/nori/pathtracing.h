@@ -43,6 +43,13 @@ static Color3f nextEventEstimation(const Scene *scene,
 
 static BSDFQueryRecord initBSDFQuery(const Scene *scene, const PathState &state);
 
+static Color3f estimateDirectLight(const Scene *scene, 
+                Sampler *sampler,
+                const Point3f &p,
+                float &lightPdf,
+                Vector3f &g_wo,
+                Emitter *&emitterMesh);
+
 static Color3f nextEventEstimation(const Scene *scene, 
                 Sampler *sampler,
                 const PathState &state,
