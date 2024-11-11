@@ -182,7 +182,7 @@ public:
                 state.ray = Ray3f(lp, newDir);
                 float phase = phaseFunction(-state.ray.d, newDir);
 
-                Color3f inScatterFactor = phase * mediumScattering;
+                Color3f inScatterFactor = phase * mediumScattering * 0.5f;
                 state.scatteringFactor *= inScatterFactor;   
                 
                 continue;      
