@@ -54,10 +54,10 @@ bool checkVisibility (const Scene *scene,
     bool objectSeesEmitter = true; //state.intersection.toLocal(g_wi).z() > 0.0f;
 
     //*********************** Compute Le ******************************
-    return (objectSeesEmitter && !intersects)
+    return (!intersects)
         ||
         ( 
-            objectSeesEmitter && intersects 
+            intersects 
             && 
             (   (lightIntersection.p - p).norm() > g_wi.norm()
                 ||
@@ -84,6 +84,31 @@ BSDFQueryRecord Pth::initBSDFQuery(const Scene *scene, const PathState &state)
     return bsdfQuery;
 }
 
+Color3f Pth::estimateDirectLight(const Scene *scene, 
+                Sampler *sampler,
+                const Point3f &p,
+                float &lightPdf,
+                Vector3f &g_wo,
+                Emitter *&emitterMesh)
+{
+    Point3f lightP;
+
+    // Sample a point on a random emitter
+    Color3f Le = sampleRandomEmitter(scene, sampler, p, 
+            emitterMesh, lightP, lightPdf);
+    
+    if (Le == Color3f(0.0f))
+        return Color3f(0.0f);
+
+    g_wo = (lightP - p);
+
+    //*********************** Sample emitter ******************************
+    if (checkVisibility(scene, p, emitterMesh, g_wo))
+        return Le;
+    else
+        return Color3f(0.0f);
+}
+
 
 Color3f Pth::nextEventEstimation(const Scene *scene, 
                 Sampler *sampler,
@@ -91,22 +116,13 @@ Color3f Pth::nextEventEstimation(const Scene *scene,
                 BSDFQueryRecord &bsdfQuery,
                 float &lightPdf, float &bsdfPdf)
 {
-    Point3f lightP;
-    Emitter *emitterMesh = nullptr;
+    Vector3f g_wo; Emitter *emitterMesh;
+    Color3f Le = estimateDirectLight(scene, sampler, state.intersection.p, lightPdf, g_wo, emitterMesh);
 
-    // Sample a point on a random emitter
-    Color3f Le = sampleRandomEmitter(scene, sampler, bsdfQuery.po, 
-            emitterMesh, lightP, lightPdf);
-    
-    if (Le == Color3f(0.0f))
-        return Color3f(0.0f);
-
-    Vector3f g_wo = (lightP - state.intersection.p);
-    Vector3f l_wo = bsdfQuery.fro.vtoLocal(g_wo).normalized();
-
-    //*********************** Sample emitter ******************************
-    if (checkVisibility(scene, bsdfQuery.po, emitterMesh, g_wo))
+    if (Le != Color3f(0.0f))
     {
+        Vector3f l_wo = bsdfQuery.fro.vtoLocal(g_wo).normalized();
+
         // Evaluate bsdf
         const BSDF *bsdf = state.intersection.mesh->getBSDF();
         bsdfQuery.wo = l_wo;
@@ -204,51 +220,27 @@ Color3f Pth::integrateBSDF(const BSDF *bsdf, Sampler *sampler)
 Color3f Pth::computeInScattering(const Scene *scene, 
         Sampler *sampler, 
         const Ray3f &ray, 
-        const Point3f &lp,
+        const Point3f &p,
         float sigma_s,
         float sigma_t,
         float g) 
-{
-    Color3f inScatter(0.0f);
-    float phaseFunctionNormalization = 1.0f / (4 * M_PI);
+{    
+    Vector3f g_wo; Emitter *emitterMesh; float lightPdf;
+    Color3f Le = estimateDirectLight(scene, sampler, p, lightPdf, g_wo, emitterMesh);
 
-    // Consultar la luz entrante en esa dirección
-    //Ray3f inRay(lp, sampleDir);
-    
-    // auto query = Pth::initBSDFQuery(scene, state);
-    
-    // Color3f directLight = integrateDiffuse(scene, sampler, inRay, state.intersection);
-    // Color3f directLight = Pth::nextEventEstimation(scene, sampler, state, query); // Luz directa en esa dirección
-    //Color3f directLight = Li(scene, sampler, inRay, 0, false); // Radiancia entrante
-    //radiance += phaseFunction * directLight;
-
-    Point3f lightP;
-    Emitter *emitterMesh = nullptr;
-
-    float lightPdf;
-
-    // Sample a point on a random emitter
-    Color3f Le = sampleRandomEmitter(scene, sampler, lp, 
-            emitterMesh, lightP, lightPdf);
-    
-    if (Le == Color3f(0.0f))
-        return Color3f(0.0f);
-
-    Vector3f g_wo = (lightP - lp);
-
-    //*********************** Sample emitter ******************************
-    if (checkVisibility(scene, lp, emitterMesh, g_wo))
+    if (Le != Color3f(0.0f))
     {
         Color3f direct = Le / g_wo.squaredNorm();
 
         // Henyey-Greenstein phase function
         float cosTheta = ray.d.dot(g_wo.normalized());
+        float phaseFunctionNormalization = 1.0f / (4 * M_PI);
         float phaseFunction = phaseFunctionNormalization * (1.0f - g * g) / std::pow(1.0f + g * g - 2.0f * g * cosTheta, 1.5f);
     
-        inScatter = sigma_s/sigma_t * phaseFunction * direct;
+        return sigma_s * phaseFunction * direct;
     }
 
-    return inScatter; 
+    return Color3f(0.0f); 
 }
 
 

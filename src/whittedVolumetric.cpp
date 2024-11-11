@@ -19,10 +19,10 @@ public:
     {
         sigma_s = props.getFloat("sigma_s", 0.f);
         // sigma_s = props.getFloat("sigma_s", 0.001f);
-        sigma_t = props.getFloat("sigma_t", 0.001f);
+        sigma_t = props.getFloat("sigma_t", 0.f);
 
-        g = props.getFloat("g", -0.1f);
-        helios_coeff = props.getFloat("helios_coeff", 100.f);
+        g = props.getFloat("g", 0.f);
+        helios_coeff = props.getFloat("helios_coeff", 0.f);
     }
 
     Color3f specularIntegration(const Scene *scene, 
@@ -127,7 +127,8 @@ public:
             }
         }
 
-        float volumeD = Math::abs(std::log(1 - sampler->next1D()) / sigma_t); // random distance
+        /*********** Sample volume point intersection **********************/
+        float volumeD = Math::abs(std::log(1 - sampler->next1D()) / sigma_t);
         if (volumeD < its.t)
         {
             if (sigma_s==0 || helios_coeff==0)
@@ -135,10 +136,13 @@ public:
             
             float volumePdf = sigma_t * std::exp(-sigma_t * volumeD);
             Point3f lp = ray(volumeD);
+
+            Color3f inScatter = Pth::computeInScattering(scene, sampler, ray,
+                    lp, sigma_s, sigma_t, g) * helios_coeff / volumePdf;
     
+            
             // Dispersión volumétrica
-            return Pth::computeInScattering(scene, sampler, ray,
-                    lp, sigma_s, sigma_t, g) * helios_coeff / volumePdf;           
+            return inScatter;           
         }
 
         Pth::IntegrationType type = Pth::getIntegrationType(its);        
@@ -192,6 +196,6 @@ public:
 
 };
 
-NORI_REGISTER_CLASS(WhittedVolumetric, "whittedVolumetric");
+NORI_REGISTER_CLASS(WhittedVolumetric, "whitted_volume");
 NORI_NAMESPACE_END
 

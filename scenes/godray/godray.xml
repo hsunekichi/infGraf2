@@ -1,10 +1,10 @@
 <?xml version="1.0" ?>
 <scene>
-	<integrator type="whittedVolumetric">
-		<float name="sigma_s" value="0.01"/>
-		<float name="sigma_t" value="0.01"/>
+	<integrator type="path_ems_volume">
+		<float name="sigma_s" value="0.05"/>
+		<float name="sigma_t" value="0.05"/>
 		<float name="g" value="0"/>
-		<float name="helios_coeff" value="1"/>
+		<float name="helios_coeff" value="8"/>
 	</integrator>
 	<sampler type="independent">
 		<integer name="sampleCount" value="64"/>
