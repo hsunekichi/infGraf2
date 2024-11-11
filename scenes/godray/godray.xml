@@ -51,6 +51,6 @@
 
 	<emitter type="pointlight">
 		<point name="position" value="0.000000,0.000000,140.704727"/>
-		<color name="radiance" value="5e4,5e4,5e4"/>
+		<color name="radiance" value="1e5,1e5,1e5"/>
 	</emitter>
 </scene>

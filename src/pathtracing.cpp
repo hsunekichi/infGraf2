@@ -50,9 +50,6 @@ bool checkVisibility (const Scene *scene,
     Intersection lightIntersection;
     bool intersects = scene->rayIntersect(shadowRay, lightIntersection);
 
-    // Check visibility
-    bool objectSeesEmitter = true; //state.intersection.toLocal(g_wi).z() > 0.0f;
-
     //*********************** Compute Le ******************************
     return (!intersects)
         ||
@@ -119,7 +116,7 @@ Color3f Pth::nextEventEstimation(const Scene *scene,
     Vector3f g_wo; Emitter *emitterMesh;
     Color3f Le = estimateDirectLight(scene, sampler, state.intersection.p, lightPdf, g_wo, emitterMesh);
 
-    if (Le != Color3f(0.0f))
+    if (Le != Color3f(0.0f) && state.intersection.vtoLocal(g_wo).z() > 0.0f)
     {
         Vector3f l_wo = bsdfQuery.fro.vtoLocal(g_wo).normalized();
 
