@@ -84,11 +84,10 @@ public:
         query.wo = Warp::squareToUniformSphere(sampler->next2D());
         query.pdf = pdf(query);
         query.lightP = -query.wo*1e10;
-        if (Math::sameDirection(query.n, query.wo))
-			return Color3f(0.0f);
-		
+        
 		if (query.pdf <= 1e-6)
 			return Color3f(0.0f);
+
 		return eval(query) / query.pdf;
 	}
 

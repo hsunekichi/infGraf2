@@ -23,6 +23,7 @@
 
 #include <nori/accel.h>
 #include <nori/common.h>
+#include <nori/medium.h>
 
 
 NORI_NAMESPACE_BEGIN
@@ -96,6 +97,16 @@ public:
 	{
 		return m_enviromentalEmitter;
 	}
+
+    /// Add a medium to the scene
+    void setMedium(Medium *medium) {
+        m_medium = medium;
+    }
+
+    /// Get the medium in the scene
+    Medium* getMedium() const {
+        return m_medium;
+    }
 
     /**
      * \brief Intersect a ray against all triangles stored in the scene
@@ -182,6 +193,8 @@ private:
 	Emitter *m_enviromentalEmitter = nullptr;
 	
     DiscretePDF m_emitterPDF;
+
+    Medium *m_medium;
 
     Integrator *m_integrator = nullptr;
     Sampler *m_sampler = nullptr;

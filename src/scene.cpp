@@ -32,6 +32,7 @@ NORI_NAMESPACE_BEGIN
 Scene::Scene(const PropertyList &) {
     m_accel = new Accel();
     m_enviromentalEmitter = 0;
+    setMedium(new Medium(0.1f, 0.05f, new PhaseFunction(0.5f)));
 }
 
 Scene::~Scene() {

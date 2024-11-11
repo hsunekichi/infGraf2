@@ -97,7 +97,9 @@
         "forward_list": "cpp",
         "tensor": "cpp",
         "text_encoding": "cpp",
+        "csignal": "cpp",
         "strstream": "cpp",
+        "codecvt": "cpp",
         "__locale": "cpp",
         "ios": "cpp"
     },

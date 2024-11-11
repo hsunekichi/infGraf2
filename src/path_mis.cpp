@@ -17,12 +17,27 @@ NORI_NAMESPACE_BEGIN
 
 
 
-class Path_mis : public Integrator {
-public:
-
+class Path_mis : public Integrator 
+{
+private:
     const int N_SSS_NES_SAMPLES = 8;
 
-    Path_mis(const PropertyList &props) {}
+    float sigma_s; // Scatter coefficient
+    float sigma_t; // Extinction Coefficient
+    float g, g_2; // Scatter Phase Coefficient (G)
+    float helios_coeff; // Helios Coefficient
+
+public:
+
+    Path_mis(const PropertyList &props) 
+    {
+        sigma_s = props.getFloat("sigma_s", 0.f);
+        sigma_t = props.getFloat("sigma_t", 0.001f);
+
+        g = props.getFloat("g", -0.1f);
+        g_2 = Math::pow2(g);
+        helios_coeff = props.getFloat("helios_coeff", 0.f);
+    }
 
     void integrateDiffuse(const Scene *scene, 
                 Sampler *sampler,
@@ -38,10 +53,10 @@ public:
         /**************** Compute next event estimation ******************/
         Color3f direct (0.0f);
 
-        int nSamples = bsdf->isSubsurfaceScattering() ? N_SSS_NES_SAMPLES : 1;
-        state.previous_sss = bsdf->isSubsurfaceScattering();
+        const size_t nSamples = bsdf->isSubsurfaceScattering() ? N_SSS_NES_SAMPLES : 1;
+        state.previous_n_samples = nSamples;
 
-        for (int i = 0; i < nSamples; i++)
+        for (size_t i = 0; i < nSamples; i++)
         {
             float lightPdf;
             Color3f directLight = Pth::nextEventEstimation(scene, sampler, state, query, lightPdf, state.bsdfPdf);
@@ -76,6 +91,59 @@ public:
         state.previous_diffuse = false;
     }
 
+    Color3f phaseFunction(const Vector3f &wo,
+                        const Vector3f &wi) const
+    {
+        constexpr float normalization = 1.0f / (4 * M_PI);
+
+        float cosTh = Math::absDot(wo, wi);
+        float denom = Math::pow(1.0f + g_2 - 2.0f*g*cosTh, 1.5f);
+
+        return normalization * (1.0f - g_2) / denom;
+    }
+
+    void integrateVolume(const Scene *scene, 
+                Sampler *sampler,
+                PathState &state) const
+    {
+        Point3f sampleP = state.ray(state.intersection.t);
+        
+        float transmittance = std::exp(-sigma_t * state.intersection.t);
+        float density = sigma_t * transmittance;
+        float atmos_pdf = density; //(density.x + density.y + density.z) / 3.0f;
+
+        Color3f mediumScattering = transmittance * sigma_s * helios_coeff / atmos_pdf;
+
+        /******************* Direct *********************/
+        Vector3f g_wo; Emitter *emitterMesh; float lightPdf;
+        Color3f Le = Pth::estimateDirectLight(scene, sampler, sampleP, lightPdf, g_wo, emitterMesh);
+
+        if (Le != Color3f(0.0f))
+        {
+            Vector3f wo = g_wo.normalized();
+            Color3f direct = Le / g_wo.squaredNorm();
+            Color3f phase = phaseFunction(-state.ray.d, wo);
+
+            float phasePdf = Warp::squareToUniformSpherePdf(wo);
+            float weightLight = Math::powerHeuristic(1, lightPdf, 1, phasePdf);
+
+            state.radiance += state.scatteringFactor * mediumScattering * phase * direct * weightLight;
+        }
+
+        /******************* Indirect *******************/
+        Vector3f newDir = Warp::squareToUniformSphere(sampler->next2D());
+        float dirPdf = Warp::squareToUniformSpherePdf(newDir);
+
+        state.ray = Ray3f(sampleP, newDir);
+        Color3f phase = phaseFunction(-state.ray.d, newDir);
+
+        Color3f inScatterFactor = phase * mediumScattering;
+        state.scatteringFactor *= inScatterFactor; 
+
+        state.bsdfPdf = dirPdf;
+        state.previous_diffuse = true;
+    }
+
     void integrateEmitter(const Scene *scene, 
                 Sampler *sampler,
                 PathState &state) const
@@ -93,7 +161,7 @@ public:
             emitterQuery.measure = EMeasure::ESolidAngle;
             
             float lightPdf = emitter->pdf(emitterQuery);
-            int nSamples = state.previous_sss ? N_SSS_NES_SAMPLES : 1;
+            size_t nSamples = state.previous_n_samples;
             weight = Math::powerHeuristic(1, state.bsdfPdf, nSamples, lightPdf);
         }
 
@@ -106,6 +174,23 @@ public:
     void sampleIntersection(const Scene *scene, Sampler *sampler, PathState &state) const
     {
         Pth::IntegrationType integrationType = Pth::getIntegrationType(state.intersection);
+
+        #ifndef DISABLE_VOLUME_INTEGRATION
+        if (sigma_s != 0 && helios_coeff != 0)
+        {
+            float volume_t = Math::abs(std::log(1 - sampler->next1D()) / sigma_t);
+            if (volume_t < state.intersection.t)
+            {
+                state.intersection.t = volume_t;
+                integrationType = Pth::VOLUME;
+            }
+            else
+            {
+                // Apply extinction coefficient
+                state.scatteringFactor *= std::exp(-sigma_t * state.intersection.t);
+            }
+        }
+        #endif
 
         switch (integrationType)
         {
@@ -121,6 +206,10 @@ public:
             case Pth::SPECULAR:
                 integrateSpecular(scene, sampler, state);
                 break;
+            case Pth::VOLUME:
+                integrateVolume(scene, sampler, state);
+                break;
+
             default:
                 break;
         }
@@ -140,7 +229,7 @@ public:
                 emitterQuery.measure = EMeasure::ESolidAngle;
                 
                 float lightPdf = scene->getEnvironmentalEmitter()->pdf(emitterQuery);
-                int nSamples = state.previous_sss ? N_SSS_NES_SAMPLES : 1;
+                size_t nSamples = state.previous_n_samples;
                 weight = Math::powerHeuristic(1, state.bsdfPdf, nSamples, lightPdf);
             }
 
@@ -179,7 +268,6 @@ public:
 
             // Integrate the current intersection
             sampleIntersection(scene, sampler, state);
-
             state.depth++;
         }
     }

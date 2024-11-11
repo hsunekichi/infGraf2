@@ -14,7 +14,8 @@ NORI_NAMESPACE_BEGIN
 
 struct PathState
 {
-    bool previous_diffuse = false; bool previous_sss = false;
+    bool previous_diffuse = false; 
+    size_t previous_n_samples = 1;
     float bsdfPdf = 0.0f; Point3f prevP = Point3f(0.0f);    
     Intersection intersection;
 
@@ -29,7 +30,7 @@ struct PathState
 struct Pth
 {
 
-enum IntegrationType {EMITTER, DIFFUSE, SUBSURFACE, SPECULAR, NONE};
+enum IntegrationType {EMITTER, DIFFUSE, SUBSURFACE, SPECULAR, VOLUME, NONE};
 
 
 static Color3f nextEventEstimation(const Scene *scene, 
@@ -42,6 +43,13 @@ static Color3f nextEventEstimation(const Scene *scene,
 }
 
 static BSDFQueryRecord initBSDFQuery(const Scene *scene, Sampler *sampler, const PathState &state);
+
+static Color3f estimateDirectLight(const Scene *scene, 
+                Sampler *sampler,
+                const Point3f &p,
+                float &lightPdf,
+                Vector3f &g_wo,
+                Emitter *&emitterMesh);
 
 static Color3f nextEventEstimation(const Scene *scene, 
                 Sampler *sampler,

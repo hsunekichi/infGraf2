@@ -141,7 +141,7 @@ float Warp::SrToDiskPdf(const Point2f &p)
 
 float Warp::squareToUniformDiskPdf(const Point2f &p) 
 {
-    return (p.norm() <= 1.0f) ? 1.0f / M_PI : 0.0f;
+    return (p.norm() - 1.0f < Epsilon) ? 1.0f / M_PI : 0.0f;
 }
 
 
@@ -184,7 +184,7 @@ Point2f Warp::concentricSampleDisk(const Point2f &sample)
 
 float Warp::concentricSampleDiskPdf(const Point2f &v)
 {
-    return (v.norm() <= 1.0f) ? 1.0f / M_PI : 0.0f;
+    return (v.norm() - 1.0f < Epsilon) ? 1.0f / M_PI : 0.0f;
 } 
 
 Vector3f Warp::squareToUniformSphere(const Point2f &sample) 
@@ -197,7 +197,7 @@ Vector3f Warp::squareToUniformSphere(const Point2f &sample)
 
 float Warp::squareToUniformSpherePdf(const Vector3f &v) 
 {
-    return (v.squaredNorm() <= 1.0f) ? 1.0f / (4 * M_PI) : 0.0f;
+    return (v.squaredNorm() - 1.0f < Epsilon) ? 1.0f / (4 * M_PI) : 0.0f;
 }
 
 Vector3f Warp::squareToUniformHemisphere(const Point2f &sample) 
@@ -218,7 +218,7 @@ Vector3f Warp::squareToCosineHemisphere(const Point2f &sample)
 {
     Point2f p = squareToUniformDisk(sample);
     float z = std::sqrt(std::max(0.0f, 1 - p.x() * p.x() - p.y() * p.y()));
-    return Vector3f(p.x(), p.y(), z);
+    return Vector3f(p.x(), p.y(), std::max(0.0f, z));
 }
 
 float Warp::squareToCosineHemispherePdf(const Vector3f &v) 

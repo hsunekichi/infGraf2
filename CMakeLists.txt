@@ -4,6 +4,7 @@ project(nori)
 add_subdirectory(ext ext_build)
 
 #set(CMAKE_CXX_COMPILER "nvc++")
+#add_compile_definitions(DISABLE_VOLUME_INTEGRATION)
 
 include_directories(
   # Nori include files
@@ -71,6 +72,9 @@ add_executable(nori
   include/nori/warp.h
   include/nori/pathtracing.h
   include/nori/kdtree.h
+  include/nori/phase.h
+  include/nori/medium.h
+
 
   # Source code files
   src/common.cpp

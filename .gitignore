@@ -2,6 +2,7 @@ ext/
 build/
 *.exr
 *.obj
+*.bmp
 *.blend*
 env/
 *.bmp
