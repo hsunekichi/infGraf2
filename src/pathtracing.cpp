@@ -133,10 +133,11 @@ Color3f Pth::nextEventEstimation(const Scene *scene,
 
         if (emitterMesh->getEmitterType() == EmitterType::EMITTER_ENVIRONMENT)
         {
-            if (scene->getIntegrator()->toString() == "Whitted[]" || scene->getIntegrator()->toString() == "directWhitted[]") 
+            if (scene->getIntegrator()->toString() == "Whitted[]" 
+                || scene->getIntegrator()->toString() == "directWhitted[]") 
             {
                 return Le * f * cosThetaP;
-            } else{
+            } else {
                 return Le * f * cosThetaP / M_PI;
             }
             

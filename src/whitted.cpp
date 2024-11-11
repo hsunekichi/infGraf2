@@ -171,7 +171,7 @@ public:
         Pth::IntegrationType type = Pth::getIntegrationType(its);   
 
         #ifndef DISABLE_VOLUME_INTEGRATION
-        if (sigma_s != 0 && helios_coeff != 0)
+        if (sigma_s != 0 || helios_coeff != 0)
         {
             float volume_t = Math::abs(std::log(1 - sampler->next1D()) / sigma_t);
             if (volume_t < its.t)
