@@ -624,8 +624,7 @@ public:
         // cosine factor from the reflection equation, i.e.
         // return eval(bRec) * Frame::cosTheta(bRec.wo) / pdf(bRec);
         if (bRec.measure != ESolidAngle
-            || Frame::cosTheta(bRec.wi) <= 0
-            || Frame::cosTheta(bRec.wo) <= 0)
+            || Frame::cosTheta(bRec.wi) <= 0)
             return Color3f(0.0f);
 
         bRec.measure = ESolidAngle;
@@ -656,7 +655,6 @@ public:
             bRec.wo = Math::reflect(bRec.wi, wh);
             // bRec.wo = Reflectance::refract(bRec.wi, wh, m_extIOR, m_intIOR);
 
-
             if (Frame::cosTheta(bRec.wo) <= 0)
                 return Color3f(0.0f);
         } 
@@ -668,6 +666,7 @@ public:
             // Sample an outgoing direction using the cosine-weighted distribution
             bRec.wo = Warp::squareToCosineHemisphere(newSample);
         }
+
 
         float PDF = pdf(bRec);
         if (std::abs(PDF) <= Epsilon)
