@@ -19,16 +19,16 @@ class Math
     //static constexpr float INV_PI = 1 / M_PI;
 
     /// Compute the dot product of two vectors
-    inline static constexpr float dot(const Vector3f &a, const Vector3f &b) { return a.dot(b); }
-    inline static constexpr float dot(const Normal3f &a, const Normal3f &b) { return a.dot(b); }
-    inline static constexpr float dot(const Vector3f &a, const Normal3f &b) { return a.dot(b); }
-    inline static constexpr float dot(const Normal3f &a, const Vector3f &b) { return a.dot(b); }
+    inline static float dot(const Vector3f &a, const Vector3f &b) { return a.dot(b); }
+    inline static float dot(const Normal3f &a, const Normal3f &b) { return a.dot(b); }
+    inline static float dot(const Vector3f &a, const Normal3f &b) { return a.dot(b); }
+    inline static float dot(const Normal3f &a, const Vector3f &b) { return a.dot(b); }
 
-    inline static constexpr float clamp(float v, float min, float max) { return std::max(min, std::min(max, v)); }
+    inline static float clamp(float v, float min, float max) { return std::max(min, std::min(max, v)); }
     inline static Color3f clamp(const Color3f &v, float min, float max) { return Color3f(clamp(v.x(), min, max), clamp(v.y(), min, max), clamp(v.z(), min, max)); }
 
-    inline static constexpr float toRadians(float degrees) { return degrees * PI / 180.0f; }
-    inline static constexpr float toDegrees(float radians) { return radians * 180.0f / PI; }
+    inline static float toRadians(float degrees) { return degrees * PI / 180.0f; }
+    inline static float toDegrees(float radians) { return radians * 180.0f / PI; }
 
     /// Compute the cross product of two vectors
     inline static Vector3f cross(const Vector3f &a, const Vector3f &b) { return a.cross(b); }
@@ -37,30 +37,30 @@ class Math
     inline static Vector3f normalize(const Vector3f &a) { return a.normalized(); }
 
     /// Compute the squared norm of a vector
-    inline static constexpr float squaredNorm(const Vector3f &a) { return a.squaredNorm(); }
+    inline static float squaredNorm(const Vector3f &a) { return a.squaredNorm(); }
 
     /// Compute the norm of a vector
-    inline static constexpr float norm(const Vector3f &a) { return a.norm(); }
+    inline static float norm(const Vector3f &a) { return a.norm(); }
 
     /// Compute the absolute value of a float
-    inline static constexpr float abs(float a) { return std::abs(a); }
+    inline static float abs(float a) { return std::abs(a); }
     inline static Color3f abs(const Color3f &a) { return Color3f(std::abs(a.x()), std::abs(a.y()), std::abs(a.z())); }
-    inline static constexpr float absDot(const Vector3f &a, const Vector3f &b) { return std::abs(dot(a, b)); }
+    inline static float absDot(const Vector3f &a, const Vector3f &b) { return std::abs(dot(a, b)); }
 
     /// Compute the square root of a float
-    inline static constexpr float sqrt(float a) { return std::sqrt(a); }
+    inline static float sqrt(float a) { return std::sqrt(a); }
 
-    inline static constexpr float exp(float a) { return std::exp(a); }
+    inline static float exp(float a) { return std::exp(a); }
     inline static Color3f sqrt(const Color3f &a) { return Color3f(std::sqrt(a.x()), std::sqrt(a.y()), std::sqrt(a.z())); }
     inline static Color3f exp(const Color3f &a) { return Color3f(std::exp(a.x()), std::exp(a.y()), std::exp(a.z())); }
 
-    inline static constexpr float safeSqrt(float a) { return std::sqrt(std::max(a, 0.0f)); }
+    inline static float safeSqrt(float a) { return std::sqrt(std::max(a, 0.0f)); }
     
-    inline static constexpr float pow(float a, float b) { return std::pow(a, b); }
-    inline static constexpr float pow2(float a) { return a * a; }
-    inline static constexpr float pow3(float a) { return a * a * a; }
-    inline static constexpr float pow4(float a) { float a2 = a*a; return a2*a2; }
-    inline static constexpr float pow5(float a) { float a2 = a*a; return a2*a2*a; }
+    inline static float pow(float a, float b) { return std::pow(a, b); }
+    inline static float pow2(float a) { return a * a; }
+    inline static float pow3(float a) { return a * a * a; }
+    inline static float pow4(float a) { float a2 = a*a; return a2*a2; }
+    inline static float pow5(float a) { float a2 = a*a; return a2*a2*a; }
 
     inline static Color3f pow(const Color3f &a, float b) { return Color3f(std::pow(a.x(), b), std::pow(a.y(), b), std::pow(a.z(), b)); }
     inline static Color3f pow2(const Color3f &a) { return Color3f(a.x() * a.x(), a.y() * a.y(), a.z() * a.z()); }
@@ -68,24 +68,24 @@ class Math
     inline static Color3f pow4(const Color3f &a) { return Color3f(a.x() * a.x() * a.x() * a.x(), a.y() * a.y() * a.y() * a.y(), a.z() * a.z() * a.z() * a.z()); }
 
     /// Compute the cosine of an angle
-    inline static constexpr float cos(float a) { return std::cos(a); }
-    inline static constexpr float cos(const Vector3f &a, const Vector3f &b) { return a.dot(b) / (a.norm() * b.norm()); }
-    inline static constexpr float absCos(const Vector3f &a, const Vector3f &b) { return std::abs(cos(a, b)); }
+    inline static float cos(float a) { return std::cos(a); }
+    inline static float cos(const Vector3f &a, const Vector3f &b) { return a.dot(b) / (a.norm() * b.norm()); }
+    inline static float absCos(const Vector3f &a, const Vector3f &b) { return std::abs(cos(a, b)); }
 
     /// Compute the sine of an angle
-    inline static constexpr float sin(float a) { return std::sin(a); }
+    inline static float sin(float a) { return std::sin(a); }
 
-    inline static constexpr float cosTheta(const Vector3f &w) { return w.z(); }
-    inline static constexpr float cos2Theta(const Vector3f &w) { return w.z() * w.z(); }
-    inline static constexpr float absCosTheta(const Vector3f &w) { return std::abs(w.z()); }
+    inline static float cosTheta(const Vector3f &w) { return w.z(); }
+    inline static float cos2Theta(const Vector3f &w) { return w.z() * w.z(); }
+    inline static float absCosTheta(const Vector3f &w) { return std::abs(w.z()); }
 
-    inline static constexpr float max(float a, float b) { return std::max(a, b); }
-    inline static constexpr float min(float a, float b) { return std::min(a, b); }
+    inline static float max(float a, float b) { return std::max(a, b); }
+    inline static float min(float a, float b) { return std::min(a, b); }
     
     inline static Point2f max(const Point2f &a, const Point2f &b) { return Point2f(std::max(a.x(), b.x()), std::max(a.y(), b.y())); }
     inline static Point2f min(const Point2f &a, const Point2f &b) { return Point2f(std::min(a.x(), b.x()), std::min(a.y(), b.y())); }
 
-    inline static constexpr float asin(float a) { return std::asin(a); }
+    inline static float asin(float a) { return std::asin(a); }
 
     inline static Color3f max (const Color3f &a, const Color3f &b) { return Color3f(std::max(a.x(), b.x()), std::max(a.y(), b.y()), std::max(a.z(), b.z())); }
     inline static Color3f min (const Color3f &a, const Color3f &b) { return Color3f(std::min(a.x(), b.x()), std::min(a.y(), b.y()), std::min(a.z(), b.z())); }
@@ -93,10 +93,10 @@ class Math
     inline static Color3f max (const Color3f &a, float b) { return Color3f(std::max(a.x(), b), std::max(a.y(), b), std::max(a.z(), b)); }
     inline static Color3f min (const Color3f &a, float b) { return Color3f(std::min(a.x(), b), std::min(a.y(), b), std::min(a.z(), b)); }
 
-    inline static constexpr float lerp(float a, float b, float t) { return a + (b - a) * t; }
+    inline static float lerp(float a, float b, float t) { return a + (b - a) * t; }
     inline static Color3f lerp(const Color3f &a, const Color3f &b, float t1, float t2) { return a * t1 + b * t2; } 
 
-    inline static constexpr float schlick(float cosTheta, float eta) 
+    inline static float schlick(float cosTheta, float eta) 
     {
         float r0 = (1 - eta) / (1 + eta);
         r0 = r0 * r0;
@@ -111,54 +111,54 @@ class Math
     inline static constexpr float rcp(float a) { return 1 / a; }
 
     // Compute sin of a vector in local coordinates
-    inline static constexpr float sin2Theta(const Vector3f &w) {
+    inline static float sin2Theta(const Vector3f &w) {
         return std::max((float)0, (float)1 - cos2Theta(w));
     }
-    inline static constexpr float sinTheta(const Vector3f &w) {
+    inline static float sinTheta(const Vector3f &w) {
         return std::sqrt(sin2Theta(w));
     }
 
-    inline static constexpr float cosPhi(const Vector3f &w) {
+    inline static float cosPhi(const Vector3f &w) {
         float sinTh = sinTheta(w);
         return (sinTh == 0) ? 1 : clamp(w.x() / sinTh, -1.0f, 1.0f);
     }
-    inline static constexpr float sinPhi(const Vector3f &w) {
+    inline static float sinPhi(const Vector3f &w) {
         float sinTh = sinTheta(w);
         return (sinTh == 0) ? 0 : clamp(w.y() / sinTh, -1.0f, 1.0f);
     }
 
-    inline static constexpr float cos2Phi(const Vector3f &w) {
+    inline static float cos2Phi(const Vector3f &w) {
         return cosPhi(w) * cosPhi(w);
     }
-    inline static constexpr float sin2Phi(const Vector3f &w) {
+    inline static float sin2Phi(const Vector3f &w) {
         return sinPhi(w) * sinPhi(w);
     }
 
-    inline static constexpr float tanTheta(const Vector3f &w) 
+    inline static float tanTheta(const Vector3f &w) 
     {
         return sinTheta(w) / cosTheta(w);
     }
 
-    inline static constexpr float tanTheta2(const Vector3f &w) 
+    inline static float tanTheta2(const Vector3f &w) 
     {
         return sin2Theta(w) / cos2Theta(w);
     }
 
-    inline static constexpr float floor(float a) { return std::floor(a); }
-    inline static constexpr float ceil(float a) { return std::ceil(a); }
+    inline static float floor(float a) { return std::floor(a); }
+    inline static float ceil(float a) { return std::ceil(a); }
 
-    inline static constexpr bool sameSign(float a, float b) { return a * b > 0; }
-    inline static constexpr int sign(float a) { return (a > 0) - (a < 0); }
+    inline static bool sameSign(float a, float b) { return a * b > 0; }
+    inline static int sign(float a) { return (a > 0) - (a < 0); }
 
-    inline static constexpr bool sameDirection(const Vector3f &a, const Vector3f &b) { return dot(a, b) > 0; }
-    inline static constexpr bool sameHemisphere(const Vector3f &a, const Vector3f &b) { return dot(a, b) > 0; }
+    inline static bool sameDirection(const Vector3f &a, const Vector3f &b) { return dot(a, b) > 0; }
+    inline static bool sameHemisphere(const Vector3f &a, const Vector3f &b) { return dot(a, b) > 0; }
 
     inline static Vector3f reflect(const Vector3f &wo, const Vector3f &n) { return -wo + 2 * dot(wo, n) * n; }
     inline static float distanceSquared(const Point3f &a, const Point3f &b) { return (a - b).squaredNorm(); }
     inline static float distance(const Point3f &a, const Point3f &b) { return (a - b).norm(); }
 
     // Round up to the next power of two
-    inline static constexpr int roundUpPow2 (int x) 
+    inline static int roundUpPow2 (int x) 
     {
         x--;
         x |= x >> 1;

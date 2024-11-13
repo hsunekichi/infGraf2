@@ -2,7 +2,7 @@
 	<!-- Independent sample generator -->
 	<sampler type="independent">
 		<!-- <integer name="sampleCount" value="256"/> -->
-		<integer name="sampleCount" value="512"/>
+		<integer name="sampleCount" value="64"/>
 	</sampler>
 
 	<!-- Use the ambient occlusion integrator -->
@@ -12,7 +12,7 @@
 	<mesh type="obj">
 		<string name="filename" value="serapis.obj"/>
 
-		<bsdf type="diffuse">
+		<bsdf type="orenNayar">
 			<color name="albedo" value="1.0 1.0 1.0"/>
 		</bsdf>
 	</mesh>
