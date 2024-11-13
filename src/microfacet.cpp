@@ -327,8 +327,7 @@ public:
         bRec.measure = ESolidAngle;
 
         if (bRec.measure != ESolidAngle
-            || Frame::cosTheta(bRec.wi) <= 0
-            || Frame::cosTheta(bRec.wo) <= 0)
+            || Frame::cosTheta(bRec.wi) <= 0)
         {
             bRec.wo = Vector3f(-bRec.wi.x(), -bRec.wi.y(), bRec.wi.z());
             Color3f F = Reflectance::fresnel(Frame::cosTheta(bRec.wi), m_R0->eval(Point2f(0.0f)));

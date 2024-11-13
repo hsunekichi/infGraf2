@@ -3,7 +3,7 @@
      after a file by Steve Marschner (CS667) -->
 
 <scene>
-	<integrator type="path_mats"/>
+	<integrator type="direct_mats"/>
 
 	<sampler type="independent">
 		<integer name="sampleCount" value="512"/>

@@ -116,7 +116,9 @@ add_executable(nori
   src/pointLight.cpp
   src/path_ems.cpp
   src/path_mats.cpp
+  src/direct_mats.cpp
   src/path_mis.cpp
+  src/direct_mis.cpp
   src/beckmann.cpp
   src/lightProbeMipMap.cpp
   src/pathtracing.cpp
