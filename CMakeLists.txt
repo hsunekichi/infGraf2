@@ -44,6 +44,7 @@ add_executable(nori
 
   # Header files
   include/nori/common.h
+  include/nori/reflectance.h
   include/nori/accel.h
   include/nori/bbox.h
   include/nori/bitmap.h
@@ -78,6 +79,7 @@ add_executable(nori
 
   # Source code files
   src/common.cpp
+  src/reflectance.cpp
   src/accel.cpp
   src/area.cpp
   src/bitmap.cpp
@@ -134,6 +136,7 @@ add_definitions(${NANOGUI_EXTRA_DEFS})
 add_executable(warptest
   include/nori/warp.h
   include/nori/math.h
+  include/nori/reflectance.h
   src/warp.cpp
   src/warptest.cpp
   src/microfacet.cpp
@@ -141,6 +144,7 @@ add_executable(warptest
   src/proplist.cpp
   src/common.cpp
   src/math.cpp
+  src/reflectance.cpp
 )
 
 if (WIN32)
@@ -152,13 +156,6 @@ endif()
 target_link_libraries(warptest tbb_static nanogui ${NANOGUI_EXTRA_LIBS})
 
 set_property(TARGET nori PROPERTY CXX_STANDARD 17)
-
-
-if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-elseif (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-endif()
 
 # Force colored output for the ninja generator
 if (CMAKE_GENERATOR STREQUAL "Ninja")
