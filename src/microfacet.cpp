@@ -35,11 +35,17 @@ class Microfacet : public BSDF {
 public:
     Microfacet(const PropertyList &propList) {
         /* RMS surface roughness */
-        m_alpha = propList.getFloat("alpha", 0.1f);
+        float alpha = propList.getFloat("alpha", 0.1f);
 
         float roughness = propList.getFloat("roughness", -1.0f);
         if (roughness >= 0.0f)
-            m_alpha = roughness * roughness;
+            alpha = roughness * roughness;
+
+        float tmp_alphaX = propList.getFloat("alphaX", -1.0f);
+        float tmp_alphaY = propList.getFloat("alphaY", -1.0f);
+
+        alphaX = (tmp_alphaX >= 0.0f) ? tmp_alphaX : alpha;
+        alphaY = (tmp_alphaY >= 0.0f) ? tmp_alphaY : alphaX;
 
 
         /* Interior IOR (default: BK7 borosilicate optical glass) */
@@ -83,8 +89,14 @@ public:
         // Tangent of the angle theta_v
         float tanThetaV = std::sqrt(1.0f - cosThetaV * cosThetaV) / cosThetaV;
 
+        float sin2Ph = std::abs(Math::sin2Phi(wv));
+        float cos2Ph = std::abs(Math::cos2Phi(wv));
+
+        float alpha = sqrt(cos2Ph * Math::pow2(alphaX) +
+                                sin2Ph * Math::pow2(alphaY));
+
         // Calculate the 'b' parameter
-        float b = 1 / (m_alpha * tanThetaV);
+        float b = 1 / (alpha * tanThetaV);
 
         // If b is less than 1.6, use the rational formula
         if (b < 1.6f) {
@@ -104,7 +116,7 @@ public:
     }
 
     bool effectivelySmooth() const {
-        return m_alpha < 0.001f;
+        return alphaX < 0.001f || alphaY < 0.001f;
     }
 
 
@@ -132,7 +144,7 @@ public:
         Color3f diffuse = m_kd / M_PI;
 
         // Beckmann normal distribution function D(wh)
-        float D = Warp::squareToBeckmannPdf(wh, m_alpha);
+        float D = Warp::squareToBeckmannPdf(wh, alphaX, alphaY);
 
         // Fresnel term F(wh ⋅ wi)
         Color3f F = l_fresnel(wi.dot(wh));
@@ -156,7 +168,7 @@ public:
         Vector3f wh = (bRec.wi + bRec.wo).normalized();
 
         // Calculate the specular density using the Beckmann distribution
-        float D = Warp::squareToBeckmannPdf(wh, m_alpha);
+        float D = Warp::squareToBeckmannPdf(wh, alphaX, alphaY);
         float jacobian = 1.0f / (4.0f * bRec.wo.dot(wh));
         
         // Specular density
@@ -191,7 +203,7 @@ public:
             Point2f newSample = Point2f(sample.x() / m_ks, sample.y());
 
             // Sample a normal according to the Beckmann distribution
-            Vector3f wh = Warp::squareToBeckmann(newSample, m_alpha);
+            Vector3f wh = Warp::squareToBeckmann(newSample, alphaX, alphaY);
             
             // Reflect the incident direction in the normal to get the outgoing direction
             bRec.wo = Math::reflect(bRec.wi, wh);
@@ -227,14 +239,16 @@ public:
     std::string toString() const {
         return tfm::format(
             "Microfacet[\n"
-            "  alpha = %f,\n"
+            "  alphaX = %f,\n"
+            "  alphaY = %f,\n"
             "  etaI = %f,\n"
             "  etaT = %f,\n"
             "  extIOR = %f,\n"
             "  kd = %s,\n"
             "  ks = %f\n"
             "]",
-            m_alpha,
+            alphaX,
+            alphaY,
             internIOR.toString(),
             K.toString(),
             m_extIOR,
@@ -243,7 +257,7 @@ public:
         );
     }
 private:
-    float m_alpha;
+    float alphaX, alphaY;
     Color3f internIOR, K, m_extIOR;
     float m_ks;
     Color3f m_kd;
@@ -550,7 +564,7 @@ public:
 
         // Half-vector calculation
         Vector3f wh = (wi + wo).normalized();
-        float cosThetaH = Frame::cosTheta(wh);
+        //float cosThetaH = Frame::cosTheta(wh);
 
         // Diffuse term
         // Color3f diffuse = m_kd->eval(Point2f(0.0f)) / M_PI;

@@ -163,7 +163,7 @@ public:
     // Compute radiance over a full path
     void Li(const Scene *scene, Sampler *sampler, PathState &state) const 
     {
-        while (state.scatteringFactor != Color3f(0.0f) && state.depth < 100000)
+        while (state.scatteringFactor != Color3f(0.0f))
         {
             /* Find the surface that is visible in the requested direction */
             if (!scene->rayIntersect(state.ray, state.intersection))

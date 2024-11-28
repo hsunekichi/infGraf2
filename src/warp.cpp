@@ -241,8 +241,26 @@ Vector3f Warp::squareToBeckmann(const Point2f &sample, float alpha) {
     return Vector3f(sinTheta * std::cos(phi), sinTheta * std::sin(phi), cosTheta);
 }
 
+Vector3f Warp::squareToBeckmann(const Point2f &sample, float alphaX, float alphaY) 
+{
+    // Step 1: Sample azimuthal angle phi
+    const float phi = 2.0f * M_PI * sample.x();
 
-float Warp::squareToBeckmannPdf(const Vector3f &m, float alpha) {
+    // Step 2: Sample elevation angle theta using the inverse CDF
+    const float tanTheta2 = -std::log(1.0f - sample.y()) / (Math::pow2(alphaX) * std::cos(phi) * std::cos(phi) 
+                            + Math::pow2(alphaY) * std::sin(phi) * std::sin(phi));
+    const float theta = std::atan(std::sqrt(tanTheta2));
+
+    // Step 3: Convert spherical to Cartesian coordinates
+    const float sinTheta = std::sin(theta);
+    const float cosTheta = std::cos(theta);
+
+    return Vector3f(sinTheta * std::cos(phi), sinTheta * std::sin(phi), cosTheta);
+   
+}
+
+float Warp::squareToBeckmannPdf(const Vector3f &m, float alpha) 
+{
     // Extract theta from the z-component of the normalized vector
     const float cosTheta = m.z();
     if (cosTheta <= 0.0f)
@@ -256,6 +274,21 @@ float Warp::squareToBeckmannPdf(const Vector3f &m, float alpha) {
 
     // Beckmann distribution PDF
     return std::exp(-tanTheta2 / alpha2) / (M_PI * alpha2 * cosTheta3);
+}
+
+float Warp::squareToBeckmannPdf(const Vector3f &wh, float alphaX, float alphaY) 
+{
+    // Extract theta from the z-component of the normalized vector
+    float tanTheta2 = Math::tanTheta2(wh);
+    if (Math::isInf(tanTheta2))
+        return 0.0f;
+
+    float cosTheta4 = Math::pow4(Math::cosTheta(wh));
+
+    float exponent = -tanTheta2 * (Math::cos2Phi(wh) / Math::pow2(alphaX) 
+                            + Math::sin2Phi(wh) / Math::pow2(alphaY));
+
+    return Math::exp(exponent) / (M_PI * alphaX * alphaY * cosTheta4);
 }
 
 float Warp::squareToSrDecay(const float &sample, float sigmaT)
