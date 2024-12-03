@@ -130,6 +130,7 @@ add_executable(nori
   src/indirectWhitted.cpp
   src/agregate.cpp
   src/skin.cpp
+  src/skinOilyLayer.cpp
 )
 
 add_definitions(${NANOGUI_EXTRA_DEFS})

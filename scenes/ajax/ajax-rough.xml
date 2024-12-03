@@ -5,17 +5,22 @@
 	</sampler>
 
 	<!-- Use the simple point light integrator -->
-    <integrator type="whitted"/>
+    <integrator type="path_mis"/>
 
 	<!-- Load the Ajax bust (a freely available scan from the Jotero forum) -->
 	<mesh type="obj">
 		<string name="filename" value="ajax.obj"/>
 
-		<bsdf type="microfacet">
-            <float name="intIOR" value="1.7"/>
-            <color name="kd" value="0.2 0.2 0.4"/>
-            <float name="alphaX" value="1"/>
-			<float name="alphaY" value="0.1"/>
+		<bsdf type="skinOilyLayer"> <!-- Skin specular part -->
+			<color name="internIOR" value="1.51 1.51 1.51"/>
+			<float name="roughness1" value="0.05"/>
+			<float name="roughness2" value="1"/>
+			<texture type="textmap" name="albedo">
+				<string name="filename" value="semiSpecular.bmp"/>
+				<string name="interpolation" value="Linear"/>
+				<string name="extension" value="REPEAT"/>
+				<string name="projection" value="FLAT"/>
+			</texture>
 		</bsdf>
 	</mesh>
 

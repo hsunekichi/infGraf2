@@ -40,6 +40,9 @@ public:
 			m_bitmap = new LDRBitmap(filename.str());
 			cout << "Loaded " << m_bitmap_name << " - SIZE [" << m_bitmap->rows() << ", " << m_bitmap->cols() << "]" << endl;
 		}
+		else {
+			throw NoriException("BitmapTexture: Could not load texture map \"%s\"!", filename.str());
+		}
 		m_color = props.getColor("color", Color3f(1.));
 		m_scale[0] = props.getFloat("scalex", 1.f);
 		m_scale[1] = props.getFloat("scaley", 1.f);

@@ -2,8 +2,8 @@
 <scene>
 	<integrator type="path_mis"/>
 	<sampler type="independent">
-		<integer name="sampleCount" value="64"/>
-		<integer name="nPasses" value="4"/>
+		<integer name="sampleCount" value="32"/>
+		<integer name="nPasses" value="16"/>
 	</sampler>
 	<camera type="perspective">
 		<float name="fov" value="25.0"/> <!-- 25.0 -->
@@ -19,20 +19,11 @@
 	
 	<mesh type="obj">
 		<string name="filename" value="meshes/option1_hair_Hair.obj"/>
-		<bsdf type="agregate">
-			<float name="w1" value="0.25"/>
-			<float name="w2" value="0.75"/>
-
-			<bsdf type="normalizedDiffusion">
-				<color name="ld" value="4 3.6 2.5"/>
-				<float name="eta" value="1.55"/>
-				<color name="albedo" value="0.9843,0.9059,0.6314"/>
-			</bsdf>
-			<bsdf type="microfacet">
-				<color name="internIOR" value="1.55 1.55 1.55"/>
-				<color name="albedo" value="0.9843,0.9059,0.6314"/>
-				<float name="roughness" value="1"/>
-			</bsdf>
+		<bsdf type="microfacet">
+			<color name="internIOR" value="1.55 1.55 1.55"/>
+			<color name="albedo" value="0.9843,0.9059,0.6314"/>
+			<float name="alphaX" value="1"/>
+			<float name="alphaY" value="1"/>
 		</bsdf>
 	</mesh>
 	
@@ -58,7 +49,7 @@
 
 			<bsdf type="diffuse">
 				<texture type="textmap" name="albedo">
-					<string name="filename" value="Eyes.bmp"/>
+					<string name="filename" value="textures/Eyes.bmp"/>
 					<string name="interpolation" value="Linear"/>
 					<string name="extension" value="REPEAT"/>
 					<string name="projection" value="FLAT"/>
@@ -74,17 +65,23 @@
 		<string name="filename" value="meshes/only_head_Skin.002.obj"/>
 		<bsdf type="skin">
 		
-			<bsdf type="beckmann"> <!-- Skin specular part -->
+			<bsdf type="skinOilyLayer"> <!-- Skin specular part -->
 				<color name="internIOR" value="1.51 1.51 1.51"/>
-				<color name="kd" value="1 1 1"/>
-				<float name="roughness" value="0.25"/>
+				<float name="roughness1" value="0.1"/>
+				<float name="roughness2" value="0.8"/>
+				<texture type="textmap" name="albedo">
+					<string name="filename" value="textures/OilyLayer.bmp"/>
+					<string name="interpolation" value="Linear"/>
+					<string name="extension" value="REPEAT"/>
+					<string name="projection" value="FLAT"/>
+				</texture>
 			</bsdf>
 
 			<bsdf type="normalizedDiffusion">   <!-- Skin properties -->
 				<color name="ld" value="1.8 1.6 1.5"/>
 				<float name="eta" value="1.3"/>
 				<texture type="textmap" name="albedo">
-					<string name="filename" value="Head.bmp"/>
+					<string name="filename" value="textures/Head.bmp"/>
 					<string name="interpolation" value="Linear"/>
 					<string name="extension" value="REPEAT"/>
 					<string name="projection" value="FLAT"/>
@@ -95,61 +92,26 @@
 	<mesh type="obj">
 		<string name="filename" value="meshes/Cube_Wall.obj"/>
 		<bsdf type="diffuse">
-			<color name="albedo" value="0.044980,0.044980,0.044980"/>
-		</bsdf>
-	</mesh>
-	<mesh type="obj">
-		<string name="filename" value="meshes/Plane_Black.obj"/>
-		<bsdf type="GGX">
-			<color name="albedo" value="0.000000,0.000000,0.000000"/>
-			<float name="roughness" value="0.500000"/>
+		<color name="albedo" value="0.044980,0.044980,0.044980"/>
 		</bsdf>
 	</mesh>
 	<mesh type="obj">
 		<string name="filename" value="meshes/Plane.002_Material.002.obj"/>
 		<bsdf type="diffuse">
-			<color name="albedo" value="0.800000,0.800000,0.800000"/>
+		<color name="albedo" value="0.800000,0.800000,0.800000"/>
 		</bsdf>
 		<emitter type="area">
-			<color name="radiance" value="5.000000,5.000000,5.000000"/>
-		</emitter>
-	</mesh>
-	<mesh type="obj">
-		<string name="filename" value="meshes/Plane.003_Material.003.obj"/>
-		<bsdf type="diffuse">
-			<color name="albedo" value="0.800000,0.800000,0.800000"/>
-		</bsdf>
-		<emitter type="area">
-			<color name="radiance" value="7.671321,7.695287,8.000000"/>
+		<color name="radiance" value="5,5,5"/>
 		</emitter>
 	</mesh>
 	<mesh type="obj">
 		<string name="filename" value="meshes/Plane.004_Material.004.obj"/>
 		<bsdf type="diffuse">
-			<color name="albedo" value="0.800000,0.800000,0.800000"/>
+		<color name="albedo" value="0.800000,0.800000,0.800000"/>
 		</bsdf>
 		<emitter type="area">
-			<color name="radiance" value="10.000000,10.000000,10.000000"/>
+		<color name="radiance" value="5.000000,5.000000,5.000000"/>
 		</emitter>
 	</mesh>
-	<!--
-	<mesh type="obj">
-		<string name="filename" value="meshes/Plane.005_Material.005.obj"/>
-		<bsdf type="diffuse">
-			<color name="albedo" value="0.800000,0.800000,0.800000"/>
-		</bsdf>
-		<emitter type="area">
-			<color name="radiance" value="0.150000,0.150000,0.150000"/>
-		</emitter>
-	</mesh>
-	<mesh type="obj">
-		<string name="filename" value="meshes/Plane.006_Material.006.obj"/>
-		<bsdf type="diffuse">
-			<color name="albedo" value="0.800000,0.800000,0.800000"/>
-		</bsdf>
-		<emitter type="area">
-			<color name="radiance" value="0.150000,0.150000,0.150000"/>
-		</emitter>
-	</mesh>
-	-->
+
 </scene>
