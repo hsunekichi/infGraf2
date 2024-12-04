@@ -63,7 +63,7 @@
 	</mesh>
 	-->
 	<mesh type="obj">
-		<string name="filename" value="meshes/only_head_Skin.002.obj"/>
+		<string name="filename" value="meshes/option1_head_Skin.obj"/>
 		<bsdf type="skin">
 		
 			<bsdf type="skinOilyLayer"> <!-- Skin specular part -->

@@ -170,24 +170,47 @@ class WavefrontOBJ : public Mesh
             std::vector<Vector3f> &positions)
     {
         order_vertices_morton(loaded_faces, positions);
-        order_faces_morton(loaded_faces, positions);   
+        order_faces_morton(loaded_faces, positions); 
+
+        //order_vertices_randomly(loaded_faces, positions); 
+        //order_faces_randomly(loaded_faces, positions);  
+    }
+
+    void order_vertices_randomly(
+            std::vector<Face> &loaded_faces,
+            std::vector<Vector3f> &vertices)
+    {
+        std::random_device rd;
+        std::mt19937 g(rd());
+        std::vector<uint32_t> indices(vertices.size());
+        std::iota(indices.begin(), indices.end(), 0);
+
+        std::vector<Vector3f> tmp_vertices(vertices.size());
+        std::ranges::shuffle(indices, g);
+        std::ranges::transform(indices, tmp_vertices.begin(), [&](uint32_t idx) { return vertices[idx]; });
+        vertices.swap(tmp_vertices);
+
+        std::vector<uint32_t> inverse_indices(vertices.size());
+        for (uint32_t i = 0; i < indices.size(); ++i)
+            inverse_indices[indices[i]] = i;
+
+        for (Face &face : loaded_faces)
+        {
+            for (int i = 0; i < face.nVertices; ++i)
+            {
+                OBJVertex &v = face.v[i];
+                v.p = inverse_indices[v.p - 1] + 1;
+            }
+        }
     }
 
     void order_faces_randomly(
             std::vector<Face> &loaded_faces,
             const std::vector<Vector3f> &positions)
     {
-        std::vector<uint32_t> indices(loaded_faces.size());
-        for (uint32_t i = 0; i < loaded_faces.size(); ++i)
-            indices[i] = i;
-
-        std::random_shuffle(indices.begin(), indices.end());
-
-        std::vector<Face> F(loaded_faces.size());
-        for (uint32_t i = 0; i < loaded_faces.size(); ++i)
-            F[i] = loaded_faces[indices[i]];
-
-        loaded_faces.swap(F);
+        std::random_device rd;
+        std::mt19937 g(rd());
+        std::shuffle(loaded_faces.begin(), loaded_faces.end(), g);
     }
 
 public:
