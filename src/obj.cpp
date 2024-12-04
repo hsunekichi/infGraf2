@@ -213,8 +213,7 @@ class WavefrontOBJ : public Mesh
             std::vector<Face> &loaded_faces,
             std::vector<Vector3f> &vertices)
     {
-        std::random_device rd;
-        std::mt19937 g(rd());
+        std::mt19937 g(987654321);
         std::vector<uint32_t> indices(vertices.size());
         std::iota(indices.begin(), indices.end(), 0);
 
@@ -241,8 +240,7 @@ class WavefrontOBJ : public Mesh
             std::vector<Face> &loaded_faces,
             const std::vector<Vector3f> &positions)
     {
-        std::random_device rd;
-        std::mt19937 g(rd());
+        std::mt19937 g(987654321);
         std::shuffle(loaded_faces.begin(), loaded_faces.end(), g);
     }
 

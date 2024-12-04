@@ -340,7 +340,7 @@ template <typename _PointType> struct TBoundingBox {
     }
 
     /// Check if a ray intersects a bounding box
-    bool rayIntersect(const Ray3f &ray) const 
+    bool rayIntersectUnoptim(const Ray3f &ray) const 
     {
         float nearT = -std::numeric_limits<float>::infinity();
         float farT = std::numeric_limits<float>::infinity();
@@ -370,7 +370,41 @@ template <typename _PointType> struct TBoundingBox {
         return ray.mint <= farT && nearT <= ray.maxt;
     }
 
-    bool rayIntersectOptim(const Ray3f &ray) const 
+    
+    bool rayIntersectUnoptim(const Ray3f &ray, float &minT) const 
+    {
+        float nearT = -std::numeric_limits<float>::infinity();
+        float farT = std::numeric_limits<float>::infinity();
+
+        for (int i=0; i<3; i++) {
+            float origin = ray.o[i];
+            float minVal = min[i], maxVal = max[i];
+
+            if (ray.d[i] == 0) {
+                if (origin < minVal || origin > maxVal)
+                    return false;
+            } else {
+                float t1 = (minVal - origin) * ray.dRcp[i];
+                float t2 = (maxVal - origin) * ray.dRcp[i];
+
+                if (t1 > t2)
+                    std::swap(t1, t2);
+
+                nearT = std::max(t1, nearT);
+                farT = std::min(t2, farT);
+
+                if (!(nearT <= farT))
+                    return false;
+            }
+        }
+
+        minT = nearT;
+
+        return ray.mint <= farT && nearT <= ray.maxt;
+    }
+
+
+    bool rayIntersect(const Ray3f &ray) const 
     {
         Eigen::Vector3f _tmin = (min - ray.o).cwiseProduct(ray.dRcp);
         Eigen::Vector3f tmax = (max - ray.o).cwiseProduct(ray.dRcp);
