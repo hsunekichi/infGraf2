@@ -26,6 +26,7 @@
 #include <algorithm>
 #include <numeric>
 #include <random>
+#include <execution>
 
 NORI_NAMESPACE_BEGIN
 
@@ -100,7 +101,7 @@ class WavefrontOBJ : public Mesh
         return morton_code;
     }
 
-    void order_faces_morton(std::vector<Face> &loaded_faces,
+    void order_faces_morton(std::vector<Face> &faces,
             std::vector<Vector3f> &vertices)
     {
         Vector3f bbox_size = m_bbox.max - m_bbox.min;
@@ -108,7 +109,7 @@ class WavefrontOBJ : public Mesh
             if (bbox_size[i] == 0) bbox_size[i] = 1.0f;
 
 
-        auto compute_morton = [&](Face f) -> uint64_t
+        auto compute_morton = [&](const Face &f) -> uint64_t
             {
                 Vector3f p0 = vertices[f.v[0].p - 1];
                 Vector3f p1 = vertices[f.v[1].p - 1];
@@ -121,12 +122,30 @@ class WavefrontOBJ : public Mesh
                 return morton3D(normalized_centroid);
             };
 
-        std::ranges::sort(loaded_faces, std::less{}, compute_morton);
+        auto policy = std::execution::par_unseq;
+
+        // Generate data to sort
+        std::vector<uint32_t> indices(faces.size());
+        std::vector<uint64_t> morton_codes(faces.size());
+        std::iota(indices.begin(), indices.end(), 0);
+        std::transform(policy, faces.begin(), faces.end(), morton_codes.begin(), compute_morton);
+
+        // Sort face indices by Morton code
+        //  An indexed sort is needed (instead of directly sorting the faces) 
+        //  since the index is required to access the precomputed morton codes
+        //  Computing morton in-place is significantly slower, 
+        //  as each access in the sorting requires recomputing
+        std::sort(policy, indices.begin(), indices.end(), [&](uint32_t i, uint32_t j) { return morton_codes[i] < morton_codes[j]; });
+
+        // Sort the faces data
+        std::vector<Face> tmp_faces(faces.size());
+        std::transform(policy, indices.begin(), indices.end(), tmp_faces.begin(), [&](uint32_t idx) { return faces[idx]; });
+        faces = std::move(tmp_faces);
     }
     
 
     void order_vertices_morton(
-        std::vector<Face> &loaded_faces,
+        std::vector<Face> &faces,
         std::vector<Vector3f> &vertices)
     {
         Vector3f bbox_size = m_bbox.max - m_bbox.min;
@@ -134,34 +153,42 @@ class WavefrontOBJ : public Mesh
             if (bbox_size[i] == 0) bbox_size[i] = 1.0f;
 
 
-        auto compute_morton = [&](uint32_t idx) -> uint64_t
+        auto compute_morton = [&](const Vector3f &vertex) -> uint64_t
             {
-                Vector3f norm = (vertices[idx] - m_bbox.min);
+                Vector3f norm = (vertex - m_bbox.min);
                 norm = norm.cwiseQuotient(bbox_size);
                 return morton3D(norm);
             };
 
+        auto policy = std::execution::par_unseq;
+
+        // Generate data to sort
         std::vector<uint32_t> indices(vertices.size());
-        std::iota(indices.begin(), indices.end(), 0);
-        std::ranges::sort(indices, std::less{}, compute_morton);
+        std::vector<uint64_t> morton_codes(vertices.size());      
+        std::iota(indices.begin(), indices.end(), 0);  
+        std::transform(policy, vertices.begin(), vertices.end(), morton_codes.begin(), compute_morton);
 
+        // Sort vertex indices by Morton code
+        std::sort(policy, indices.begin(), indices.end(), [&](uint32_t i, uint32_t j) { return morton_codes[i] < morton_codes[j]; });
+
+        // Sort the vertices data
         std::vector<Vector3f> tmp_vertices(vertices.size());
-        std::ranges::transform(indices, tmp_vertices.begin(), [&](uint32_t idx) { return vertices[idx]; });
-        vertices.swap(tmp_vertices);
+        std::transform(policy, indices.begin(), indices.end(), tmp_vertices.begin(), [&](uint32_t idx) { return vertices[idx]; });
+        vertices = std::move(tmp_vertices);
 
+        // Make a lookup table to update face indices
         std::vector<uint32_t> inverse_indices(vertices.size());
         for (uint32_t i = 0; i < indices.size(); ++i)
             inverse_indices[indices[i]] = i;
 
         // Update face indices
-        for (Face &face : loaded_faces)
+        std::for_each(policy, faces.begin(), faces.end(), [&](Face &face) 
         {
-            for (int i = 0; i < face.nVertices; ++i)
-            {
+            for (int i = 0; i < face.nVertices; ++i) {
                 OBJVertex &v = face.v[i];
                 v.p = inverse_indices[v.p - 1] + 1;
             }
-        }
+        });
     }
 
 
@@ -169,11 +196,17 @@ class WavefrontOBJ : public Mesh
             std::vector<Face> &loaded_faces,
             std::vector<Vector3f> &positions)
     {
+        auto init = std::chrono::high_resolution_clock::now();
         order_vertices_morton(loaded_faces, positions);
         order_faces_morton(loaded_faces, positions); 
 
         //order_vertices_randomly(loaded_faces, positions); 
         //order_faces_randomly(loaded_faces, positions);  
+
+        auto end = std::chrono::high_resolution_clock::now();
+
+        std::chrono::duration<double> elapsed = end - init;
+        std::cout << "Elapsed time: " << elapsed.count() << "s\n";
     }
 
     void order_vertices_randomly(
@@ -186,8 +219,8 @@ class WavefrontOBJ : public Mesh
         std::iota(indices.begin(), indices.end(), 0);
 
         std::vector<Vector3f> tmp_vertices(vertices.size());
-        std::ranges::shuffle(indices, g);
-        std::ranges::transform(indices, tmp_vertices.begin(), [&](uint32_t idx) { return vertices[idx]; });
+        std::shuffle(indices.begin(), indices.end(), g);
+        std::transform(indices.begin(), indices.end(), tmp_vertices.begin(), [&](uint32_t idx) { return vertices[idx]; });
         vertices.swap(tmp_vertices);
 
         std::vector<uint32_t> inverse_indices(vertices.size());
@@ -226,7 +259,7 @@ public:
             throw NoriException("Unable to open OBJ file \"%s\"!", filename);
         Transform trafo = propList.getTransform("toWorld", Transform());
 
-        cout << "Loading \"" << filename << "\" .. ";
+        //cout << "Loading \"" << filename << "\" .. ";
         cout.flush();
         Timer timer;
 
@@ -286,7 +319,7 @@ public:
                 loaded_faces.push_back(face);
             }
         }
-        cout << "End reading \"" << filename << "\" .. ";
+        //cout << "End reading \"" << filename << "\" .. ";
 
         order_by_morton(loaded_faces, positions);
 
@@ -317,7 +350,7 @@ public:
             m_V.col(i) = positions.at(vertices[i].p - 1);
         }
 
-        cout << "Passed with vertices \"" << filename << "\" .. ";
+        //cout << "Passed with vertices \"" << filename << "\" .. ";
 
         if (!normals.empty()) {
             m_N.resize(3, vertices.size());
@@ -325,7 +358,7 @@ public:
                 m_N.col(i) = normals.at(vertices[i].n-1);
         }
 
-        cout << "Passed with normals \"" << filename << "\" .. ";
+        //cout << "Passed with normals \"" << filename << "\" .. ";
 
         if (!texcoords.empty()) {
             m_UV.resize(2, vertices.size());
@@ -333,14 +366,14 @@ public:
                 m_UV.col(i) = texcoords.at(vertices[i].uv-1);
         }
 
-        cout << "Passed with UVs \"" << filename << "\" .. ";
+        //cout << "Passed with UVs \"" << filename << "\" .. ";
 
         m_name = filename.str();
-        cout << "done. (V=" << m_V.cols() << ", F=" << m_F.cols() << ", took "
-             << timer.elapsedString() << " and "
-             << memString(m_F.size() * sizeof(uint32_t) +
-                          sizeof(float) * (m_V.size() + m_N.size() + m_UV.size()))
-             << ")" << endl;
+        //cout << "done. (V=" << m_V.cols() << ", F=" << m_F.cols() << ", took "
+        //     << timer.elapsedString() << " and "
+        //     << memString(m_F.size() * sizeof(uint32_t) +
+        //                  sizeof(float) * (m_V.size() + m_N.size() + m_UV.size()))
+        //     << ")" << endl;
     }
 
 protected:

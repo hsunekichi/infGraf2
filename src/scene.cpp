@@ -75,13 +75,14 @@ void Scene::activate()
     m_emitterPDF.normalize();
 
     m_accel->build();
-
+    
     for (size_t i=0; i<sss_meshes.size(); ++i)
     {
         sss_accelerators.push_back(new Accel());
         sss_accelerators.back()->addMesh(sss_meshes[i]);
         sss_accelerators.back()->build();
     }
+
 
     if (!m_integrator)
         throw NoriException("No integrator was specified!");
@@ -99,9 +100,9 @@ void Scene::activate()
         throw NoriException("No emitters were specified!");
     }
 
-    cout << endl;
-    cout << "Configuration: " << toString() << endl;
-    cout << endl;
+    //cout << endl;
+    //cout << "Configuration: " << toString() << endl;
+    //cout << endl;
 }
 
 

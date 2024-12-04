@@ -2,7 +2,7 @@
 <scene>
 	<integrator type="path_mis"/>
 	<sampler type="independent">
-		<integer name="sampleCount" value="16"/>
+		<integer name="sampleCount" value="32"/>
 	</sampler>
 	<camera type="perspective">
 		<float name="fov" value="25.0"/> <!-- 25.0 -->
