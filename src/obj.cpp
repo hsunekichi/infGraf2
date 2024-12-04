@@ -197,16 +197,16 @@ class WavefrontOBJ : public Mesh
             std::vector<Vector3f> &positions)
     {
         auto init = std::chrono::high_resolution_clock::now();
-        order_vertices_morton(loaded_faces, positions);
-        order_faces_morton(loaded_faces, positions); 
+        //order_vertices_morton(loaded_faces, positions);
+        //order_faces_morton(loaded_faces, positions); 
 
-        //order_vertices_randomly(loaded_faces, positions); 
-        //order_faces_randomly(loaded_faces, positions);  
+        order_vertices_randomly(loaded_faces, positions); 
+        order_faces_randomly(loaded_faces, positions);  
 
         auto end = std::chrono::high_resolution_clock::now();
 
         std::chrono::duration<double> elapsed = end - init;
-        std::cout << "Elapsed time: " << elapsed.count() << "s\n";
+        //std::cout << "Elapsed time: " << elapsed.count() << "s\n";
     }
 
     void order_vertices_randomly(

@@ -172,8 +172,8 @@ LDRBitmap::LDRBitmap(const std::string& filename)
 
     resize(y, x);
 
-    cout << "Reading a " << cols() << "x" << rows() << " LDR file from \""
-        << filename << "\"" << endl;
+    //cout << "Reading a " << cols() << "x" << rows() << " LDR file from \""
+    //    << filename << "\"" << endl;
 
     memcpy((void*)this->data(), (void*)im, y * x * 3 * sizeof(uint8_t));
     

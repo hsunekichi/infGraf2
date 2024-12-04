@@ -242,12 +242,15 @@ int main(int argc, char **argv) {
         threadCount = tbb::task_scheduler_init::automatic;
     }
 
-    if (sceneName != "") {
-            std::string filename = argv[1];
-            std::unique_ptr<NoriObject> root(loadFromXML(filename));
-            /* When the XML root object is a scene, start rendering it .. */
-            if (root->getClassType() == NoriObject::EScene)
-                render(static_cast<Scene *>(root.get()), argv[1], nogui);
+    if (sceneName != "") 
+    {
+        std::cout << "Loading scene... \n";
+
+        std::string filename = argv[1];
+        std::unique_ptr<NoriObject> root(loadFromXML(filename));
+        /* When the XML root object is a scene, start rendering it .. */
+        if (root->getClassType() == NoriObject::EScene)
+            render(static_cast<Scene *>(root.get()), argv[1], nogui);
     }
 
     return 0;

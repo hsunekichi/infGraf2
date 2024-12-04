@@ -35,10 +35,10 @@ public:
 		std::ifstream is(filename.str());
 		if (!is.fail())
 		{
-			cout << "Loading Texture Map: " << filename.str() << endl;
+			//cout << "Loading Texture Map: " << filename.str() << endl;
 
 			m_bitmap = new LDRBitmap(filename.str());
-			cout << "Loaded " << m_bitmap_name << " - SIZE [" << m_bitmap->rows() << ", " << m_bitmap->cols() << "]" << endl;
+			//cout << "Loaded " << m_bitmap_name << " - SIZE [" << m_bitmap->rows() << ", " << m_bitmap->cols() << "]" << endl;
 		}
 		else {
 			throw NoriException("BitmapTexture: Could not load texture map \"%s\"!", filename.str());
