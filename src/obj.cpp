@@ -22,6 +22,10 @@
 #include <unordered_map>
 #include <fstream>
 #include <functional>
+#include <ranges>
+#include <algorithm>
+#include <numeric>
+#include <random>
 
 NORI_NAMESPACE_BEGIN
 
@@ -96,42 +100,88 @@ class WavefrontOBJ : public Mesh
         return morton_code;
     }
 
-    void order_faces_by_morton(
-            std::vector<Face> &loaded_faces,
-            const std::vector<Vector3f> &positions)
+    void order_faces_morton(std::vector<Face> &loaded_faces,
+            std::vector<Vector3f> &vertices)
     {
         Vector3f bbox_size = m_bbox.max - m_bbox.min;
         for (int i = 0; i < 3; ++i)
+            if (bbox_size[i] == 0) bbox_size[i] = 1.0f;
+
+
+        auto compute_morton = [&](Face f) -> uint64_t
+            {
+                Vector3f p0 = vertices[f.v[0].p - 1];
+                Vector3f p1 = vertices[f.v[1].p - 1];
+                Vector3f p2 = vertices[f.v[2].p - 1];
+
+                Vector3f centroid = (p0 + p1 + p2) / 3.0f;
+                Vector3f normalized_centroid = (centroid - m_bbox.min);
+                
+                normalized_centroid = normalized_centroid.cwiseQuotient(bbox_size);
+                return morton3D(normalized_centroid);
+            };
+
+        std::ranges::sort(loaded_faces, std::less{}, compute_morton);
+    }
+    
+
+    void order_vertices_morton(
+        std::vector<Face> &loaded_faces,
+        std::vector<Vector3f> &vertices)
+    {
+        Vector3f bbox_size = m_bbox.max - m_bbox.min;
+        for (int i = 0; i < 3; ++i)
+            if (bbox_size[i] == 0) bbox_size[i] = 1.0f;
+
+
+        auto compute_morton = [&](uint32_t idx) -> uint64_t
+            {
+                Vector3f norm = (vertices[idx] - m_bbox.min);
+                norm = norm.cwiseQuotient(bbox_size);
+                return morton3D(norm);
+            };
+
+        std::vector<uint32_t> indices(vertices.size());
+        std::iota(indices.begin(), indices.end(), 0);
+        std::ranges::sort(indices, std::less{}, compute_morton);
+
+        std::vector<Vector3f> tmp_vertices(vertices.size());
+        std::ranges::transform(indices, tmp_vertices.begin(), [&](uint32_t idx) { return vertices[idx]; });
+        vertices.swap(tmp_vertices);
+
+        std::vector<uint32_t> inverse_indices(vertices.size());
+        for (uint32_t i = 0; i < indices.size(); ++i)
+            inverse_indices[indices[i]] = i;
+
+        // Update face indices
+        for (Face &face : loaded_faces)
         {
-            if (bbox_size[i] == 0)
-                bbox_size[i] = 1.0f;
+            for (int i = 0; i < face.nVertices; ++i)
+            {
+                OBJVertex &v = face.v[i];
+                v.p = inverse_indices[v.p - 1] + 1;
+            }
         }
+    }
 
-        std::vector<uint64_t> morton_codes(loaded_faces.size());
-        for (uint32_t i = 0; i < loaded_faces.size(); ++i)
-        {
-            uint32_t index1 = loaded_faces[i].v[0].p;
-            uint32_t index2 = loaded_faces[i].v[1].p;
-            uint32_t index3 = loaded_faces[i].v[2].p;
 
-            Vector3f p0 = positions[index1-1];
-            Vector3f p1 = positions[index2-1];
-            Vector3f p2 = positions[index3-1];
+    void order_by_morton(
+            std::vector<Face> &loaded_faces,
+            std::vector<Vector3f> &positions)
+    {
+        order_vertices_morton(loaded_faces, positions);
+        order_faces_morton(loaded_faces, positions);   
+    }
 
-            Vector3f centroid = (p0 + p1 + p2) / 3.0f;
-            Vector3f normalized_centroid = (centroid - m_bbox.min);
-            
-            normalized_centroid = normalized_centroid.cwiseQuotient(bbox_size);
-            morton_codes[i] = morton3D(normalized_centroid);
-        }
-
+    void order_faces_randomly(
+            std::vector<Face> &loaded_faces,
+            const std::vector<Vector3f> &positions)
+    {
         std::vector<uint32_t> indices(loaded_faces.size());
         for (uint32_t i = 0; i < loaded_faces.size(); ++i)
             indices[i] = i;
 
-        std::sort(indices.begin(), indices.end(), [&morton_codes](uint32_t a, uint32_t b) {
-            return morton_codes[a] < morton_codes[b];
-        });
+        std::random_shuffle(indices.begin(), indices.end());
 
         std::vector<Face> F(loaded_faces.size());
         for (uint32_t i = 0; i < loaded_faces.size(); ++i)
@@ -215,7 +265,7 @@ public:
         }
         cout << "End reading \"" << filename << "\" .. ";
 
-        order_faces_by_morton(loaded_faces, positions);
+        order_by_morton(loaded_faces, positions);
 
         for (const Face &face : loaded_faces) 
         {

@@ -2,8 +2,7 @@
 <scene>
 	<integrator type="path_mis"/>
 	<sampler type="independent">
-		<integer name="sampleCount" value="32"/>
-		<integer name="nPasses" value="16"/>
+		<integer name="sampleCount" value="16"/>
 	</sampler>
 	<camera type="perspective">
 		<float name="fov" value="25.0"/> <!-- 25.0 -->
@@ -41,9 +40,10 @@
 			<float name="roughness" value="0.500000"/>
 		</bsdf>
 	</mesh>
+	<!--
 	<mesh type="obj">
 		<string name="filename" value="meshes/option1_eyes_Eyes.obj"/>
-		<bsdf type="agregate"> <!-- Eyes BSDF -->
+		<bsdf type="agregate"> 
 			<float name="w1" value="0.875"/>
 			<float name="w2" value="0.125"/>
 
@@ -61,6 +61,7 @@
 			</bsdf>
 		</bsdf>
 	</mesh>
+	-->
 	<mesh type="obj">
 		<string name="filename" value="meshes/only_head_Skin.002.obj"/>
 		<bsdf type="skin">

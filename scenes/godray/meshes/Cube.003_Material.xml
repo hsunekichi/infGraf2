@@ -1,0 +1,28 @@
+<?xml version="1.0" ?>
+<scene>
+	<integrator type="path_mis"/>
+	<sampler type="independent">
+		<integer name="sampleCount" value="4"/>
+	</sampler>
+	<mesh type="obj">
+		<string name="filename" value="meshes/Cube.002_Material.013.obj"/>
+		<bsdf type="GGX">
+			<color name="albedo" value="0.800000,0.800000,0.800000"/>
+			<float name="roughness" value="0.500000"/>
+		</bsdf>
+	</mesh>
+	<mesh type="obj">
+		<string name="filename" value="meshes/Cube.003_Material.014.obj"/>
+		<bsdf type="GGX">
+			<color name="albedo" value="0.800000,0.800000,0.800000"/>
+			<float name="roughness" value="0.500000"/>
+		</bsdf>
+	</mesh>
+	<mesh type="obj">
+		<string name="filename" value="meshes/Cube_Material.015.obj"/>
+		<bsdf type="GGX">
+			<color name="albedo" value="0.800000,0.800000,0.800000"/>
+			<float name="roughness" value="0.500000"/>
+		</bsdf>
+	</mesh>
+</scene>

@@ -158,7 +158,7 @@ endif()
 
 target_link_libraries(warptest tbb_static nanogui ${NANOGUI_EXTRA_LIBS})
 
-set_property(TARGET nori PROPERTY CXX_STANDARD 17)
+set_property(TARGET nori PROPERTY CXX_STANDARD 20)
 
 # Force colored output for the ninja generator
 if (CMAKE_GENERATOR STREQUAL "Ninja")
