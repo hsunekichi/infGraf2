@@ -1,0 +1,45 @@
+<?xml version="1.0" ?>
+<scene>
+	<integrator type="path_mis"/>
+	<sampler type="independent">
+		<integer name="sampleCount" value="64"/>
+		<integer name="nPasses" value="16"/>
+	</sampler>
+	<camera type="perspective">
+		<float name="fov" value="36.869897309578676"/>
+		<float name="nearClip" value="0.10000000149011612"/>
+		<float name="farClip" value="1000.0"/>
+		<integer name="width" value="777"/>
+		<integer name="height" value="828"/>
+		<transform name="toWorld">
+			<scale value="-1.000000 1.000000 -1.000000"/>
+			<matrix value="0.5177571773529053,0.16404354572296143,-0.8396530151367188,0.09429988265037537,-0.8555275797843933,0.09927760064601898,-0.508150041103363,-0.061922911554574966,0.0,0.9814447164535522,0.19174547493457794,0.10182032734155655,0.0,0.0,0.0,1.0"/>
+		</transform>
+	</camera>
+	<mesh type="obj">
+		<string name="filename" value="meshes/IndexedFaceSete_surface.obj"/>
+		<bsdf type="diffuse">   <!-- Marble properties -->
+				<color name="sigmaA" value="0.0021 0.0041 0.0071"/>
+				<color name="sigmaS" value="2.19 2.62 3.00"/>
+				<float name="eta" value="1.5"/>
+			</bsdf>
+	</mesh>
+	<mesh type="obj">
+		<string name="filename" value="meshes/Plane_Material.001.obj"/>
+		<bsdf type="diffuse">
+			<color name="albedo" value="0.800000,0.800000,0.800000"/>
+		</bsdf>
+		<emitter type="area">
+			<color name="radiance" value="6.000000,6.000000,6.000000"/>
+		</emitter>
+	</mesh>
+	<mesh type="obj">
+		<string name="filename" value="meshes/Plane.001_Material.002.obj"/>
+		<bsdf type="diffuse">
+			<color name="albedo" value="0.800000,0.800000,0.800000"/>
+		</bsdf>
+		<emitter type="area">
+			<color name="radiance" value="2.000000,2.000000,2.000000"/>
+		</emitter>
+	</mesh>
+</scene>

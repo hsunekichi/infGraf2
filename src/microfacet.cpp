@@ -47,6 +47,16 @@ public:
         alphaX = (tmp_alphaX >= 0.0f) ? tmp_alphaX : alpha;
         alphaY = (tmp_alphaY >= 0.0f) ? tmp_alphaY : alphaX;
 
+        roughness = propList.getFloat("roughnessX", -1.0f);
+        if (roughness >= 0.0f)
+            alphaX = roughness * roughness;
+
+        roughness = propList.getFloat("roughnessY", -1.0f);
+        if (roughness >= 0.0f)
+            alphaY = roughness * roughness;
+
+            
+
 
         /* Interior IOR (default: BK7 borosilicate optical glass) */
         internIOR = propList.getColor("internIOR", Color3f(1.0f));

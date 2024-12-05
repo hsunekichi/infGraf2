@@ -12,10 +12,18 @@
 	<mesh type="obj">
 		<string name="filename" value="ajax.obj"/>
 
-		<bsdf type="diffuse">   <!-- Marble properties -->
-			<color name="sigmaA" value="0.0021 0.0041 0.0071"/>
-			<color name="sigmaS" value="2.19 2.62 3.00"/>
-			<float name="eta" value="1.5"/>
+		<bsdf type="skin">
+			<bsdf type="beckmann"> <!-- Skin specular part -->
+				<color name="internIOR" value="1.51 1.51 1.51"/>
+				<float name="roughness" value="0.05"/>
+				<color name="albedo" value="1 1 1"/>
+			</bsdf>
+
+			<bsdf type="dipole">   <!-- Marble properties -->
+				<color name="sigmaA" value="0.0021 0.0041 0.0071"/>
+				<color name="sigmaS" value="2.19 2.62 3.00"/>
+				<float name="eta" value="1.5"/>
+			</bsdf>
 		</bsdf>
 	</mesh>
 

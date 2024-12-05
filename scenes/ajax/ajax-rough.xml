@@ -11,16 +11,11 @@
 	<mesh type="obj">
 		<string name="filename" value="ajax.obj"/>
 
-		<bsdf type="skinOilyLayer"> <!-- Skin specular part -->
+		<bsdf type="microfacet"> <!-- Skin specular part -->
 			<color name="internIOR" value="1.51 1.51 1.51"/>
-			<float name="roughness1" value="0.05"/>
-			<float name="roughness2" value="1"/>
-			<texture type="textmap" name="albedo">
-				<string name="filename" value="semiSpecular.bmp"/>
-				<string name="interpolation" value="Linear"/>
-				<string name="extension" value="REPEAT"/>
-				<string name="projection" value="FLAT"/>
-			</texture>
+			<float name="alphaX" value="0.05"/>
+			<float name="alphaY" value="1"/>
+			<color name="albedo" value="0.2 0.2 0.4"/>
 		</bsdf>
 	</mesh>
 

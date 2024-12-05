@@ -197,11 +197,11 @@ class WavefrontOBJ : public Mesh
             std::vector<Vector3f> &positions)
     {
         auto init = std::chrono::high_resolution_clock::now();
-        order_vertices_morton(loaded_faces, positions);
-        order_faces_morton(loaded_faces, positions); 
+        //order_vertices_morton(loaded_faces, positions);
+        //order_faces_morton(loaded_faces, positions); 
 
-        //order_vertices_randomly(loaded_faces, positions); 
-        //order_faces_randomly(loaded_faces, positions);  
+        order_vertices_randomly(loaded_faces, positions); 
+        order_faces_randomly(loaded_faces, positions);  
 
         auto end = std::chrono::high_resolution_clock::now();
 
@@ -213,6 +213,7 @@ class WavefrontOBJ : public Mesh
             std::vector<Face> &loaded_faces,
             std::vector<Vector3f> &vertices)
     {
+        auto device = std::random_device();
         std::mt19937 g(987654321);
         std::vector<uint32_t> indices(vertices.size());
         std::iota(indices.begin(), indices.end(), 0);
@@ -236,10 +237,11 @@ class WavefrontOBJ : public Mesh
         }
     }
 
-    void order_faces_randomly(
+    void order_faces_randomly( 
             std::vector<Face> &loaded_faces,
             const std::vector<Vector3f> &positions)
     {
+        auto device = std::random_device();
         std::mt19937 g(987654321);
         std::shuffle(loaded_faces.begin(), loaded_faces.end(), g);
     }
