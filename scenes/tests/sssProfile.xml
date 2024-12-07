@@ -2,29 +2,32 @@
 <scene>
 	<integrator type="path_mis"/>
 	<sampler type="independent">
-		<integer name="sampleCount" value="32"/>
+		<integer name="sampleCount" value="128"/>
+		<integer name="nPasses" value="16"/>
 	</sampler>
 	<camera type="perspective">
-		<float name="fov" value="39.597755335771296"/>
+		<float name="fov" value="60.0"/>
 		<float name="nearClip" value="0.10000000149011612"/>
-		<float name="farClip" value="100.0"/>
-		<integer name="width" value="640"/>
-		<integer name="height" value="360"/>
+		<float name="farClip" value="1000.0"/>
+		<integer name="width" value="800"/>
+		<integer name="height" value="800"/>
 		<transform name="toWorld">
 			<scale value="-1.000000 1.000000 -1.000000"/>
-			<matrix value="1.0,0.0,0.0,0.0,0.0,-4.371138828673793e-08,-1.0,-5.645473480224609,0.0,1.0,-4.371138828673793e-08,0.0,0.0,0.0,0.0,1.0"/>
+			<matrix value="1.0,0.0,0.0,0.0,0.0,-4.371138828673793e-08,-1.0,-0.144137904047966,0.0,1.0,-4.371138828673793e-08,0.0,0.0,0.0,0.0,1.0"/>
 		</transform>
 	</camera>
 	<emitter type="pointlight">
-		<point name="position" value="0.000000,0.020000,0.000000"/>
-		<color name="radiance" value="10.000000,10.000000,10.000000"/>
+		<point name="position" value="0.000000,0.010000,0.000000"/>
+		<color name="radiance" value="0.001,0.001,0.001"/>
 	</emitter>
 	<mesh type="obj">
 		<string name="filename" value="meshes/Cube_Material.obj"/>
-		<bsdf type="dipole">   <!-- Marble properties -->
-			<color name="ld" value="0.0008 0.0012 0.0015"/>
+		
+		
+		<bsdf type="normalizedDiffusion">   <!-- Skin properties -->
+			<color name="ld" value="3 0.43 0.2"/>
 			<float name="eta" value="1.3"/>
-			<color name="albedo" value="0.9 0.85 0.8"/>
+			<color name="albedo" value="1 0.674 0.372"/>
 		</bsdf>
 	</mesh>
 </scene>

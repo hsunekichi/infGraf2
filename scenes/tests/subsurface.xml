@@ -17,7 +17,7 @@
 	</camera>
 	<emitter type="pointlight">
 		<point name="position" value="-1.068750,-3.413081,0.219019"/>
-		<color name="radiance" value="10.000000,10.000000,10.000000"/>
+		<color name="radiance" value="1.000000,1.000000,1.000000"/>
 	</emitter>
 	<mesh type="obj">
 		<string name="filename" value="meshes/Cube_Material.obj"/>

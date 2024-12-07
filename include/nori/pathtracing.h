@@ -46,6 +46,13 @@ static BSDFQueryRecord initBSDFQuery(const Scene *scene, Sampler *sampler, const
 
 static Color3f estimateDirectLight(const Scene *scene, 
                 Sampler *sampler,
+                const Frame &frame,
+                float &lightPdf,
+                Vector3f &g_wo,
+                Emitter *&emitterMesh);
+
+static Color3f estimateDirectLight(const Scene *scene, 
+                Sampler *sampler,
                 const Point3f &p,
                 float &lightPdf,
                 Vector3f &g_wo,

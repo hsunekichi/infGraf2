@@ -77,6 +77,11 @@ public:
         auto query = Pth::initBSDFQuery(scene, sampler, state);
         Color3f fp = bsdf->samplePoint(query, sampler);
 
+        if (query.po.y() > 1e-5)
+        {
+            int a = 0;
+        }
+
         float lightPdf, bsdfPdf;
         Color3f result = fp * Pth::nextEventEstimation(scene, sampler, state, query, lightPdf, bsdfPdf);
         return result;

@@ -34,7 +34,7 @@
 		<string name="filename" value="meshes/option1_eyes_Eyes.obj"/>
 		<bsdf type="diffuse">
 			<texture type="textmap" name="albedo">
-				<string name="filename" value="Eyes.bmp"/>
+				<string name="filename" value="textures/Eyes.bmp"/>
 				<string name="interpolation" value="Linear"/>
 				<string name="extension" value="REPEAT"/>
 				<string name="projection" value="FLAT"/>
@@ -44,24 +44,15 @@
 	</mesh>
 	<mesh type="obj">
 		<string name="filename" value="meshes/only_head_Skin.002.obj"/>
-		<bsdf type="skin">
-		
-			<bsdf type="beckmann"> <!-- Skin specular part -->
-				<color name="internIOR" value="1.51 1.51 1.51"/>
-				<color name="kd" value="1 1 1"/>
-				<float name="roughness" value="0.25"/>
-			</bsdf>
-
-			<bsdf type="normalizedDiffusion">   <!-- Skin properties -->
-				<color name="ld" value="1.8 1.6 1.5"/>
-				<float name="eta" value="1.3"/>
-				<texture type="textmap" name="albedo">
-					<string name="filename" value="Head.bmp"/>
-					<string name="interpolation" value="Linear"/>
-					<string name="extension" value="REPEAT"/>
-					<string name="projection" value="FLAT"/>
-				</texture>
-			</bsdf>
+		<bsdf type="normalizedDiffusion">   <!-- Skin properties -->
+			<color name="ld" value="1.8 1.6 1.5"/>
+			<float name="eta" value="1.3"/>
+			<texture type="textmap" name="albedo">
+				<string name="filename" value="textures/Head.bmp"/>
+				<string name="interpolation" value="Linear"/>
+				<string name="extension" value="REPEAT"/>
+				<string name="projection" value="FLAT"/>
+			</texture>
 		</bsdf>
 	</mesh>
 	<mesh type="obj">

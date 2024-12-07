@@ -50,12 +50,9 @@ bool checkVisibility (const Scene *scene,
 
     Intersection lightIntersection;
     bool intersects = scene->rayIntersect(shadowRay, lightIntersection);
-
-    // Check visibility
-    //bool objectSeesEmitter = true; //state.intersection.toLocal(g_wi).z() > 0.0f;
-
+    
     return !intersects
-        || ( intersects && lightIntersection.mesh->getEmitter() == emitterMesh);
+            || (intersects && lightIntersection.mesh->getEmitter() == emitterMesh);
 }
 
 
@@ -75,6 +72,32 @@ BSDFQueryRecord Pth::initBSDFQuery(const Scene *scene, Sampler *sampler, const P
     bsdfQuery.sampler = sampler;
 
     return bsdfQuery;
+}
+
+Color3f Pth::estimateDirectLight(const Scene *scene, 
+                Sampler *sampler,
+                const Frame &frame,
+                float &lightPdf,
+                Vector3f &g_wo,
+                Emitter *&emitterMesh)
+{
+    Point3f lightP;
+
+    // Sample a point on a random emitter
+    Color3f Le = sampleRandomEmitter(scene, sampler, frame.o, 
+            emitterMesh, lightP, lightPdf);
+    
+    if (Le == Color3f(0.0f))
+        return Color3f(0.0f);
+
+    g_wo = (lightP - frame.o);
+
+    //*********************** Sample emitter ******************************
+    bool objectSeesEmitter = frame.vtoLocal(g_wo).z() > 0.0f;
+    if (objectSeesEmitter && checkVisibility(scene, frame.o, emitterMesh, g_wo))
+        return Le;
+    else
+        return Color3f(0.0f);
 }
 
 Color3f Pth::estimateDirectLight(const Scene *scene, 
@@ -110,10 +133,10 @@ Color3f Pth::nextEventEstimation(const Scene *scene,
                 float &lightPdf, float &bsdfPdf)
 {
     Vector3f g_wo; Emitter *emitterMesh;
-    Color3f Le = estimateDirectLight(scene, sampler, state.intersection.p, 
+    Color3f Le = estimateDirectLight(scene, sampler, bsdfQuery.fro, 
                                     lightPdf, g_wo, emitterMesh);
 
-    if (Le != Color3f(0.0f) && state.intersection.vtoLocal(g_wo).z() > 0.0f)
+    if (Le != Color3f(0.0f))
     {
         Vector3f l_wo = bsdfQuery.fro.vtoLocal(g_wo).normalized();
 
