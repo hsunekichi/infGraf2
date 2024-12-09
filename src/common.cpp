@@ -175,11 +175,11 @@ filesystem::resolver *getFileResolver() {
     return resolver;
 }
 
-Color3f Color3f::toSRGB() const {
+Color3f gamma(const Color3f &c) {
     Color3f result;
 
     for (int i=0; i<3; ++i) {
-        float value = coeff(i);
+        float value = c.coeff(i);
 
         if (value <= 0.0031308f)
             result[i] = 12.92f * value;
@@ -189,6 +189,10 @@ Color3f Color3f::toSRGB() const {
     }
 
     return result;
+}
+
+Color3f Color3f::toSRGB() const {
+    return gamma(*this);
 }
 
 Color3f Color3f::toLinearRGB() const {

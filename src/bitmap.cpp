@@ -112,17 +112,48 @@ void Bitmap::saveEXR(const std::string &filename) {
     file.writePixels((int) rows());
 }
 
-void Bitmap::savePNG(const std::string &filename) {
+
+float luminance(Color3f v)
+{
+    return 0.2126f * v[0] + 0.7152f * v[1] + 0.0722f * v[2];
+}
+
+Color3f change_luminance(Color3f c_in, float l_out)
+{
+    float l_in = luminance(c_in);
+    return c_in * (l_out / l_in);
+}
+
+Color3f reinhard(const Color3f &c, float max_white_l) 
+{
+    float l_old = luminance(c);
+    float numerator = l_old * (1.0f + (l_old / (max_white_l * max_white_l)));
+    float l_new = numerator / (1.0f + l_old);
+    return change_luminance(c, l_new);
+}
+
+
+void Bitmap::savePNG(const std::string &filename) 
+{
     cout << "Writing a " << cols() << "x" << rows()
          << " PNG file to \"" << filename << "\"" << endl;
 
     std::string path = filename + ".png";
+
+    float max_white_l = 0.0f;
+    for (int i = 0; i < rows(); ++i) {
+        for (int j = 0; j < cols(); ++j) {
+            max_white_l = std::max(max_white_l, luminance(coeff(i, j)));
+        }
+    }
 
     uint8_t *rgb8 = new uint8_t[3 * cols() * rows()];
     uint8_t *dst = rgb8;
     for (int i = 0; i < rows(); ++i) {
         for (int j = 0; j < cols(); ++j) {
             Color3f tonemapped = coeffRef(i, j).toSRGB();
+            //Color3f tonemapped = reinhard(coeff(i, j), max_white_l);
+            
             dst[0] = (uint8_t) clamp(255.f * tonemapped[0], 0.f, 255.f);
             dst[1] = (uint8_t) clamp(255.f * tonemapped[1], 0.f, 255.f);
             dst[2] = (uint8_t) clamp(255.f * tonemapped[2], 0.f, 255.f);
