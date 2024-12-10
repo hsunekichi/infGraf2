@@ -133,7 +133,9 @@ public:
     Color3f eval(const BSDFQueryRecord &bRec) const 
     {
         // Handle perfect reflection
-        if (effectivelySmooth())
+        if (effectivelySmooth() 
+            || Frame::cosTheta(bRec.wi) <= Epsilon
+            || Frame::cosTheta(bRec.wo) <= Epsilon)
         {
             return Color3f(0.0f); 
         }
@@ -166,6 +168,12 @@ public:
         Color3f specular = (m_ks * D * F * G) / (4.0f * cosThetaI * cosThetaO * cosThetaH);
 
         Color3f f = diffuse + specular;
+
+        if ((f < 0.0f).any())
+        {
+            std::cout << "Negative value in BRDF: " + specular.toString() << std::endl;
+            f = Color3f(0.0f);
+        }
 
         // Return the sum of diffuse and specular terms
         return f;
@@ -236,7 +244,9 @@ public:
             return Color3f(0.0f);
 
 
-        return eval(bRec) * Frame::cosTheta(bRec.wo) / PDF;
+        auto res = eval(bRec) * Frame::cosTheta(bRec.wo) / PDF;
+
+        return res;
     }
 
     bool isDiffuse() const {

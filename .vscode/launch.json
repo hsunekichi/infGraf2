@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/nori",
-            "args": ["${workspaceFolder}/scenes/tests/sssProfile.xml", "--threads", "1"],
+            "args": ["${workspaceFolder}/scenes/leda/face.xml", "--threads", "1"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

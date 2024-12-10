@@ -208,7 +208,7 @@
 	<mesh type="obj">
 		<string name="filename" value="meshes/Plane_Material.003.obj"/>
 		<bsdf type="diffuse">
-			<color name="albedo" value="0.005230,0.005230,0.005230"/>
+			<color name="albedo" value="0.015,0.015,0.015"/>
 		</bsdf>
 	</mesh>
 </scene>
