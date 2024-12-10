@@ -2,20 +2,24 @@
 <scene>
 	<integrator type="path_mis"/>
 	<sampler type="independent">
-		<integer name="sampleCount" value="32"/>
+		<integer name="sampleCount" value="64"/>
 		<integer name="nPasses" value="16"/>
 	</sampler>
 	<camera type="perspective">
 		<float name="fov" value="32"/>
 		<float name="nearClip" value="0.10000000149011612"/>
 		<float name="farClip" value="1000.0"/>
-		<integer name="width" value="913"/>
-		<integer name="height" value="982"/>
+		<integer name="width" value="2282"/>
+		<integer name="height" value="2455"/>
 		<transform name="toWorld">
 			<scale value="-1.000000 1.000000 -1.000000"/>
-			<matrix value="1.0,0.0,0.0,0.008654666133224964,0.0,-0.12894348800182343,-0.9916519522666931,-1.8900377750396729,0.0,0.9916519522666931,-0.12894348800182343,4.302927494049072,0.0,0.0,0.0,1.0"/>
+			<matrix value="1.0,0.0,0.0,-0.012536580674350262,0.0,-0.12894348800182343,-0.9916519522666931,-1.898864984512329,0.0,0.9916519522666931,-0.12894348800182343,4.297508239746094,0.0,0.0,0.0,1.0"/>
 		</transform>
 	</camera>
+	<emitter type="pointlight">
+		<point name="position" value="0.133325,0.901125,4.888754"/>
+		<color name="radiance" value="10.000000,10.000000,10.000000"/>
+	</emitter>
 	<mesh type="obj">
 		<string name="filename" value="meshes/option1_hair_Hair.obj"/>
 		<bsdf type="agregate">  <!-- Hair -->
@@ -37,15 +41,17 @@
 	</mesh>
 	<mesh type="obj">
 		<string name="filename" value="meshes/option1_hair_eyebrows_EyebrowsHair.obj"/>
-		<bsdf type="GGX">
-			<color name="albedo" value="0.524154,0.254437,0.025226"/>
-			<float name="roughness" value="0.500000"/>
+		<bsdf type="microfacet">
+			<color name="internIOR" value="1.55 1.55 1.55"/>
+			<color name="albedo" value="0.245,0.225,0.16"/>
+			<float name="alphaX" value="0.01"/>
+			<float name="alphaY" value="1"/>
 		</bsdf>
 	</mesh>
 	<mesh type="obj">
 		<string name="filename" value="meshes/eyelasesHair_eyelashesHair.obj"/>
-		<bsdf type="GGX">
-			<color name="albedo" value="0.075011,0.070109,0.053563"/>
+		<bsdf type="orenNayar">
+			<color name="albedo" value="0.194153,0.180726,0.135679"/>
 			<float name="roughness" value="0.500000"/>
 		</bsdf>
 	</mesh>
@@ -173,27 +179,36 @@
 		</bsdf>
 	</mesh>
 	<mesh type="obj">
-		<string name="filename" value="meshes/Cube_Wall.obj"/>
-		<bsdf type="diffuse">
-			<color name="albedo" value="0.044980,0.044980,0.044980"/>
-		</bsdf>
-	</mesh>
-	<mesh type="obj">
 		<string name="filename" value="meshes/Plane.002_Material.002.obj"/>
+		<bsdf type="diffuse">
+			<color name="albedo" value="0.800000,0.800000,0.800000"/>
+		</bsdf>
 		<emitter type="area">
-			<color name="radiance" value="5.5 5.5 5.5"/>
+			<color name="radiance" value="3.000000,3.000000,3.000000"/>
 		</emitter>
 	</mesh>
 	<mesh type="obj">
 		<string name="filename" value="meshes/Plane.004_Material.004.obj"/>
+		<bsdf type="diffuse">
+			<color name="albedo" value="0.800000,0.800000,0.800000"/>
+		</bsdf>
 		<emitter type="area">
-			<color name="radiance" value="8 8 8"/>
+			<color name="radiance" value="5.000000,5.000000,5.000000"/>
 		</emitter>
 	</mesh>
 	<mesh type="obj">
 		<string name="filename" value="meshes/Plane.005_Material.005.obj"/>
+		<bsdf type="diffuse">
+			<color name="albedo" value="0.800000,0.800000,0.800000"/>
+		</bsdf>
 		<emitter type="area">
 			<color name="radiance" value="0.150000,0.150000,0.150000"/>
 		</emitter>
+	</mesh>
+	<mesh type="obj">
+		<string name="filename" value="meshes/Plane_Material.003.obj"/>
+		<bsdf type="diffuse">
+			<color name="albedo" value="0.005230,0.005230,0.005230"/>
+		</bsdf>
 	</mesh>
 </scene>
