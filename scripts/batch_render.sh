@@ -20,7 +20,7 @@ mkdir -p "$OUT_DIR"
 # Run the render engine multiple times
 i=1
 # While i == -1 or i <= NUM_ITERATIONS
-while [[ $i -eq -1 || $i -le $NUM_ITERATIONS ]]; do
+while [[  "$#" -eq 2  || $i -le $NUM_ITERATIONS ]]; do
     echo "Starting iteration $i..."
     
     # Run the render engine
