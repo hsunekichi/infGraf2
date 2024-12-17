@@ -180,6 +180,51 @@ static void render(Scene* scene, const std::string& filename, bool nogui) {
     bitmap->savePNG(outputName);
 }
 
+
+void process_exr(bool nogui, int argc, char **argv)
+{
+    /* Alternatively, provide a basic OpenEXR image viewer */
+    Bitmap bitmap(argv[0]);
+    ImageBlock block(Vector2i((int) bitmap.cols(), (int) bitmap.rows()), nullptr);
+    block.fromBitmap(bitmap);
+
+    if (!nogui)
+    {
+        nanogui::init();
+        NoriScreen *screen = new NoriScreen(block);
+        nanogui::mainloop();
+        delete screen;
+        nanogui::shutdown();
+    }
+
+    /* Determine the filename of the output bitmap */
+    std::string outputName = argv[0];
+    size_t lastdot = outputName.find_last_of(".");
+    if (lastdot != std::string::npos)
+        outputName.erase(lastdot, std::string::npos);
+
+    try 
+    {
+        float gamma = 2.4, intensity = 0.18, 
+            lightAdapt = 1, colorAdapt = 1;
+
+        if (argc > 1) 
+            gamma = std::stof(argv[1]);
+        if (argc > 2)
+            intensity = std::stof(argv[2]);
+        if (argc > 3)
+            lightAdapt = std::stof(argv[3]);
+        if (argc > 4)
+            colorAdapt = std::stof(argv[4]);
+
+        /* Save tonemapped (sRGB) output using the PNG format */
+        bitmap.savePNG_reinhard(outputName, gamma, intensity, lightAdapt, colorAdapt);
+    } 
+    catch (const std::exception &e) {
+        cerr << "Fatal parsing reinhard arguments: " << e.what() << endl;
+    }
+}
+
 int main(int argc, char **argv) {
     if (argc < 2) {
         cerr << "Syntax: " << argv[0] << " <scene.xml>" << endl;
@@ -205,31 +250,32 @@ int main(int argc, char **argv) {
 
             continue;
         }
-        if (token == "--nogui" || token == "-b")
+        
+        if (token == "--nogui" || token == "-b") {
             nogui = true;
+            continue;
+        }
 
         filesystem::path path(argv[i]);
 
         try {
-            if (path.extension() == "xml") {
+            if (path.extension() == "xml") 
+            {
                 sceneName = argv[i];
 
                 /* Add the parent directory of the scene file to the
                    file resolver. That way, the XML file can reference
                    resources (OBJ files, textures) using relative paths */
                 getFileResolver()->prepend(path.parent_path());
-            } else if (path.extension() == "exr") {
-                /* Alternatively, provide a basic OpenEXR image viewer */
-                Bitmap bitmap(argv[1]);
-                ImageBlock block(Vector2i((int) bitmap.cols(), (int) bitmap.rows()), nullptr);
-                block.fromBitmap(bitmap);
-                nanogui::init();
-                NoriScreen *screen = new NoriScreen(block);
-                nanogui::mainloop();
-                delete screen;
-                nanogui::shutdown();
-            } else {
-                cerr << "Fatal error: unknown file \"" << argv[1]
+            } 
+            else if (path.extension() == "exr") 
+            {
+                process_exr(nogui, argc-i, &argv[i]);
+                return 0;
+            } 
+            else 
+            {
+                cerr << "Fatal error: unknown file \"" << argv[i]
                      << "\", expected an extension of type .xml or .exr" << endl;
             }
         } catch (const std::exception &e) {

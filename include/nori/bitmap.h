@@ -50,6 +50,9 @@ public:
     /// Save the bitmap as a PNG file (with sRGB tonemapping) with the specified filename
     void savePNG(const std::string &filename);
 
+    void savePNG_reinhard(const std::string &filename, float gamma = 2.4f, float intensity = 0.18f, 
+                     float lightAdapt = 1.0f, float colorAdapt = 1.0f);
+
     Color3f eval(const Point2f& uv) const;
 };
 

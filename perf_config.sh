@@ -1,1 +1,0 @@
-sudo perf stat -B -e cache-references,cache-misses,context-switches,branches,branch-misses,page-faults,migrations

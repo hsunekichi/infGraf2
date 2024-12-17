@@ -113,26 +113,6 @@ void Bitmap::saveEXR(const std::string &filename) {
 }
 
 
-float luminance(Color3f v)
-{
-    return 0.2126f * v[0] + 0.7152f * v[1] + 0.0722f * v[2];
-}
-
-Color3f change_luminance(Color3f c_in, float l_out)
-{
-    float l_in = luminance(c_in);
-    return c_in * (l_out / l_in);
-}
-
-Color3f reinhard(const Color3f &c, float max_white_l) 
-{
-    float l_old = luminance(c);
-    float numerator = l_old * (1.0f + (l_old / (max_white_l * max_white_l)));
-    float l_new = numerator / (1.0f + l_old);
-    return change_luminance(c, l_new);
-}
-
-
 void Bitmap::savePNG(const std::string &filename) 
 {
     cout << "Writing a " << cols() << "x" << rows()
@@ -140,19 +120,11 @@ void Bitmap::savePNG(const std::string &filename)
 
     std::string path = filename + ".png";
 
-    float max_white_l = 0.0f;
-    for (int i = 0; i < rows(); ++i) {
-        for (int j = 0; j < cols(); ++j) {
-            max_white_l = std::max(max_white_l, luminance(coeff(i, j)));
-        }
-    }
-
     uint8_t *rgb8 = new uint8_t[3 * cols() * rows()];
     uint8_t *dst = rgb8;
     for (int i = 0; i < rows(); ++i) {
         for (int j = 0; j < cols(); ++j) {
             Color3f tonemapped = coeffRef(i, j).toSRGB();
-            //Color3f tonemapped = reinhard(coeff(i, j), max_white_l);
             
             dst[0] = (uint8_t) clamp(255.f * tonemapped[0], 0.f, 255.f);
             dst[1] = (uint8_t) clamp(255.f * tonemapped[1], 0.f, 255.f);
@@ -161,6 +133,72 @@ void Bitmap::savePNG(const std::string &filename)
         }
     }
     int ret = stbi_write_png(path.c_str(), (int) cols(), (int) rows(), 3, rgb8, 3 * (int) cols());
+    if (ret == 0) {
+        cout << "Bitmap::savePNG(): Could not save PNG file \"" << path << "\"" << endl;
+    }
+
+    delete[] rgb8;
+}
+
+// Reinhard Tone Mapping Function
+Color3f reinhardToneMap(const Color3f &color, float luminanceScale, float lightAdapt, float colorAdapt) {
+    float L = color.getLuminance();                          // Luminance
+    float Lscaled = luminanceScale * L / (1.0f + L / lightAdapt); // Reinhard luminance scaling
+    float scale = (L > 0.0f) ? (Lscaled / L) : 1.0f;      // Avoid division by zero
+    Color3f mapped = color * scale;                       // Apply tone mapping to RGB
+
+    // Apply color adaptation: blend between grayscale and full color
+    float gray = mapped.getLuminance();
+    return mapped * colorAdapt + Color3f(gray, gray, gray) * (1.0f - colorAdapt);
+}
+
+
+Color3f toSRGBgamma(const Color3f &color, float gamma) {
+    return Color3f(std::pow(color.r(), 1.0f / gamma),
+                   std::pow(color.g(), 1.0f / gamma),
+                   std::pow(color.b(), 1.0f / gamma));
+}
+
+void Bitmap::savePNG_reinhard(const std::string &filename, float gamma, float intensity, 
+                     float lightAdapt, float colorAdapt) {
+    cout << "Writing a " << cols() << "x" << rows()
+         << " PNG file to \"" << filename << "\"" << endl;
+
+    std::string path = filename + ".png";
+
+    // Step 1: Compute max white luminance
+    float max_white_l = 0.0f;
+    for (int i = 0; i < rows(); ++i) {
+        for (int j = 0; j < cols(); ++j) {
+            max_white_l = std::max(max_white_l, coeff(i, j).getLuminance());
+        }
+    }
+
+    // Adjust intensity
+    float luminanceScale = std::pow(2.0f, intensity);
+
+    // Step 2: Tone mapping and gamma correction
+    uint8_t *rgb8 = new uint8_t[3 * cols() * rows()];
+    uint8_t *dst = rgb8;
+
+    for (int i = 0; i < rows(); ++i) {
+        for (int j = 0; j < cols(); ++j) {
+            // Apply Reinhard tone mapping
+            Color3f tonemapped = reinhardToneMap(coeffRef(i, j), luminanceScale, lightAdapt, colorAdapt);
+
+            // Gamma correction
+            Color3f srgb = toSRGBgamma(tonemapped, gamma);
+
+            // Clamp and convert to 8-bit
+            dst[0] = (uint8_t)std::clamp(255.f * srgb.r(), 0.f, 255.f);
+            dst[1] = (uint8_t)std::clamp(255.f * srgb.g(), 0.f, 255.f);
+            dst[2] = (uint8_t)std::clamp(255.f * srgb.b(), 0.f, 255.f);
+            dst += 3;
+        }
+    }
+
+    // Step 3: Write to file using stb_image_write
+    int ret = stbi_write_png(path.c_str(), (int)cols(), (int)rows(), 3, rgb8, 3 * (int)cols());
     if (ret == 0) {
         cout << "Bitmap::savePNG(): Could not save PNG file \"" << path << "\"" << endl;
     }
