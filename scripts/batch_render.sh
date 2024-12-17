@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-if [ "$#" -lt 3 ]; then
+if [ "$#" -lt 2 ]; then
     echo "Usage: $0 <scene_path> <output_dir> [num_iterations]"
     echo "  scene_path: Path to the input scene XML"
     echo "  output_dir: Directory to save output EXR files"
@@ -10,22 +10,17 @@ if [ "$#" -lt 3 ]; then
 fi
 
 # Configuration
-SCENE_PATH="$1"               # Path to the input scene XML
-OUT_DIR="$2"                  # Directory to save output EXR files
-NUM_ITERATIONS=${3}       # Number of iterations
-
-# Verify NUM_ITERATIONS is a positive power of two
-if [ $NUM_ITERATIONS -le 0 ] || [ $((NUM_ITERATIONS & (NUM_ITERATIONS - 1))) -ne 0 ]; then
-    echo "Error: NUM_ITERATIONS must be a positive power of two."
-    exit 1
-fi
-
+SCENE_PATH="$1"      # Path to the input scene XML
+OUT_DIR="$2"         # Directory to save output EXR files
+NUM_ITERATIONS=${3:-1}  # Number of iterations
 
 # Ensure OUT_DIR exists
 mkdir -p "$OUT_DIR"
 
 # Run the render engine multiple times
-for i in $(seq 1 $NUM_ITERATIONS); do
+i=1
+# While i == -1 or i <= NUM_ITERATIONS
+while [[ $i -eq -1 || $i -le $NUM_ITERATIONS ]]; do
     echo "Starting iteration $i..."
     
     # Run the render engine
@@ -48,6 +43,8 @@ for i in $(seq 1 $NUM_ITERATIONS); do
         echo "Error: Expected EXR file not found after iteration $i."
         exit 1
     fi
+
+    i=$((i+1))
 done
 
 echo "Batch render complete. Files saved to: $OUT_DIR"
