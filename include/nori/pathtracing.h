@@ -14,16 +14,17 @@ NORI_NAMESPACE_BEGIN
 
 struct PathState
 {
-    bool previous_diffuse = false; 
-    size_t previous_n_samples = 1;
-    float bsdfPdf = 0.0f; Point3f prevP = Point3f(0.0f);    
     Intersection intersection;
-
+    
     Ray3f ray;
-    int depth = 0;
-
     Color3f radiance = Color3f(0.0f);
     Color3f scatteringFactor = Color3f(1.0f);
+    
+    Point3f prevP = Point3f(0.0f); float bsdfPdf = 0.0f;   
+    size_t previous_n_samples = 1;
+
+    int depth = 0;
+    bool previous_diffuse = false; 
 };
 
 

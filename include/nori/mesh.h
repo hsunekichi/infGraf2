@@ -39,18 +39,18 @@ NORI_NAMESPACE_BEGIN
  * geometry, and one that is used for shading computations).
  */
 struct Intersection {
-    /// Position of the surface intersection
-    Point3f p;
-    /// Unoccluded distance along the ray
-    float t;
-    /// UV coordinates, if any
-    Point2f uv;
     /// Shading frame (based on the shading normal)
     Frame shFrame;
     /// Geometric frame (based on the true geometry)
     Frame geoFrame;
+    /// Position of the surface intersection
+    Point3f p;
+    /// UV coordinates, if any
+    Point2f uv;
     /// Pointer to the associated mesh
     const Mesh *mesh;
+    /// Unoccluded distance along the ray
+    float t;
 
     /// Create an uninitialized intersection record
     Intersection() : mesh(nullptr) { }

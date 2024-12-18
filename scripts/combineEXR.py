@@ -140,7 +140,7 @@ def main(input_dir, output_exr, output_png):
     save_exr(output_exr, mean_image)
     print(f"Saved mean image to: {output_exr}")
 
-    display_exr_with_reinhard(output_exr)
+    #display_exr_with_reinhard(output_exr)
 
     # Apply gamma correction and save as PNG
     gamma_corrected = reinhard_tone_mapping(mean_image)
