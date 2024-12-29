@@ -2,15 +2,14 @@
 <scene>
 	<integrator type="path_mis"/>
 	<sampler type="independent">
-		<integer name="sampleCount" value="16"/>
-		<integer name="nPasses" value="32"/>
+		<integer name="sampleCount" value="128"/>
 	</sampler>
 	<camera type="perspective">
 		<float name="fov" value="34.48291694938847"/>
 		<float name="nearClip" value="0.10000000149011612"/>
 		<float name="farClip" value="1000.0"/>
-		<integer name="width" value="1060"/>
-		<integer name="height" value="932"/>
+		<integer name="width" value="4240"/>
+		<integer name="height" value="3728"/>
 		<transform name="toWorld">
 			<scale value="-1.000000 1.000000 -1.000000"/>
 			<matrix value="0.9844392538070679,-0.042509425431489944,-0.17050594091415405,-1.533775806427002,-0.1756346970796585,-0.20689231157302856,-0.962469756603241,-1.825046181678772,0.005637667141854763,0.9774397611618042,-0.21113905310630798,4.296967029571533,0.0,0.0,0.0,1.0"/>
