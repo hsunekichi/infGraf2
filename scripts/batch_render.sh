@@ -17,8 +17,15 @@ NUM_ITERATIONS=${3:-1}  # Number of iterations
 # Ensure OUT_DIR exists
 mkdir -p "$OUT_DIR"
 
+# Get highest output iteration number
+if [ -z "$(ls -A $OUT_DIR)" ]; then
+    i=1
+else
+    i=$(ls -1 $OUT_DIR | grep -o '[0-9]*' | sort -n | tail -1)
+    i=$((i+1))
+fi
+
 # Run the render engine multiple times
-i=1
 # While i == -1 or i <= NUM_ITERATIONS
 while [[  "$#" -eq 2  || $i -le $NUM_ITERATIONS ]]; do
     echo "Starting iteration $i..."

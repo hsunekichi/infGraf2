@@ -1,3 +1,5 @@
 #!/bin/bash
 
-build/nori --nogui leda.exr 2.0 0.4 2 1.2
+name=$1
+
+build/nori --nogui $name 1.95 0.4 2 1

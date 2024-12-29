@@ -153,6 +153,7 @@ public:
 
         EmitterQueryRecord emitterQuery (state.intersection.vtoLocal(-state.ray.d), EMeasure::EDiscrete);
         emitterQuery.lightP = state.intersection.p;
+        emitterQuery.uv = state.intersection.uv;
 
         float weight = 1.0f;
         if (state.previous_diffuse)

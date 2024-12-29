@@ -4,6 +4,7 @@
 #include <nori/mesh.h>
 #include <nori/warp.h>
 #include <nori/sampler.h>
+#include <nori/texture.h>
 
 NORI_NAMESPACE_BEGIN
 
@@ -26,12 +27,23 @@ protected:
         return lightP;
     }
 
+    Texture *txt_radiance = nullptr;
+    float scale = 1.0f;
 
 public:
     AreaLight(const PropertyList &props) 
     {
         m_type = EmitterType::EMITTER_AREA;
-        m_radiance = props.getColor("radiance");
+
+        txt_radiance = new ConstantSpectrumTexture(props.getColor("radiance", Color3f(0.5f)));
+        m_radiance = txt_radiance->eval(Point2f(0.0f));
+
+        scale = props.getFloat("scale", 1.0f);
+    }
+
+    ~AreaLight() 
+    {
+        delete txt_radiance;
     }
 
     // Returns radiance from a random lightP, over the provided surfaceP, and the direction wo
@@ -42,7 +54,7 @@ public:
 
         query.lightP = samplePoint(sampler, normal, query.meshId, query.pdf);
         query.wo = (query.surfaceP - query.lightP).normalized();
-        Le = m_radiance / query.pdf;
+        Le = txt_radiance->eval(query.uv) * scale / query.pdf;
 
         if (Math::cos(query.wo, normal) <= 0.0f)
             return Color3f(0.0f);
@@ -106,12 +118,34 @@ public:
         if (query.wo.z() <= 0.0f)
             return Color3f(0.0f);
 
-        return m_radiance;
+        return txt_radiance->eval(query.uv) * scale;
     }
 
     std::string toString() const 
     {
         return "AreaLight[]";
+    }
+
+    void addChild(NoriObject* obj, const std::string& name = "none") 
+    {
+        switch (obj->getClassType()) {
+        case ETexture:
+            if (name == "radiance")
+            {
+                if (txt_radiance != nullptr)
+                    delete txt_radiance;
+                
+                txt_radiance = static_cast<Texture*>(obj);
+            }
+            else
+                throw NoriException("Diffuse::addChild(<%s>,%s) is not supported!",
+                classTypeName(obj->getClassType()), name);
+            break;
+
+        default:
+            throw NoriException("Diffuse::addChild(<%s>) is not supported!",
+                classTypeName(obj->getClassType()));
+        }
     }
 };
 
