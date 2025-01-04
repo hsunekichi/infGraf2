@@ -268,7 +268,7 @@ std::array<float, N> precompute_cos(float constant)
     return array;
 }
 
-Color3f Pth::integrateSkinSpecular(const BSDF *bsdf, std::unique_ptr<Sampler> sampler, float costheta, float specWeight)
+Color3f Pth::integrateSkinSpecular(const BSDF *bsdf, float costheta, float specWeight)
 {
     Color3f result(0.0f, 0.0f, 0.0f);
 

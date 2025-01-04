@@ -71,7 +71,7 @@ public:
         for (int i = 0; i < nSamples; i++)
         {
             float costheta = float(i) / float(nSamples - 1);
-            futures[i] = std::async(std::launch::async, Pth::integrateSkinSpecular, m_bsdfs[0], std::move(sampler->clone()), costheta, specWeight);
+            futures[i] = std::async(std::launch::async, Pth::integrateSkinSpecular, m_bsdfs[0], costheta, specWeight);
         }
 
         for (int i = 0; i < nSamples; i++) {
