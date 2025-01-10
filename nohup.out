@@ -9,3 +9,323 @@ Rendering ..
 Starting iteration 20...
 Rendering scene: scenes/leda/close.xml
 Loading scene... 
+Starting iteration 101...
+Rendering scene: scenes/leda/close.xml
+Loading scene... 
+Constructing a SAH BVH (18 meshes, 4846655 triangles) .. Size of each node is 32done (took 1.3s and 314.3 MiB, SAH cost = 12.1911).
+Constructing a SAH BVH (1 mesh, 1096600 triangles) .. Size of each node is 32done (took 208.0ms and 71.1 MiB, SAH cost = 120.448).
+Constructing a SAH BVH (1 mesh, 614127 triangles) .. Size of each node is 32done (took 113.0ms and 39.8 MiB, SAH cost = 78.2139).
+Preprocessing... 
+Rendering .. 
+Rendering done. (took 29.3m)
+Writing a 4240x3728 OpenEXR file to "scenes/leda/close"
+Writing a 4240x3728 PNG file to "scenes/leda/close"
+Saved iteration 101 to: leda-renders/output_101.exr
+Starting iteration 102...
+Rendering scene: scenes/leda/close.xml
+Loading scene... 
+Constructing a SAH BVH (18 meshes, 4846655 triangles) .. Size of each node is 32done (took 1.3s and 314.3 MiB, SAH cost = 12.1912).
+Constructing a SAH BVH (1 mesh, 1096600 triangles) .. Size of each node is 32done (took 208.0ms and 71.1 MiB, SAH cost = 120.448).
+Constructing a SAH BVH (1 mesh, 614127 triangles) .. Size of each node is 32done (took 114.0ms and 39.8 MiB, SAH cost = 78.214).
+Preprocessing... 
+Rendering .. 
+Rendering done. (took 29.3m)
+Writing a 4240x3728 OpenEXR file to "scenes/leda/close"
+Writing a 4240x3728 PNG file to "scenes/leda/close"
+Saved iteration 102 to: leda-renders/output_102.exr
+Starting iteration 103...
+Rendering scene: scenes/leda/close.xml
+Loading scene... 
+Constructing a SAH BVH (18 meshes, 4846655 triangles) .. Size of each node is 32done (took 1.3s and 314.3 MiB, SAH cost = 12.1911).
+Constructing a SAH BVH (1 mesh, 1096600 triangles) .. Size of each node is 32done (took 207.0ms and 71.1 MiB, SAH cost = 120.448).
+Constructing a SAH BVH (1 mesh, 614127 triangles) .. Size of each node is 32done (took 113.0ms and 39.8 MiB, SAH cost = 78.214).
+Preprocessing... 
+Rendering .. 
+Rendering done. (took 29.3m)
+Writing a 4240x3728 OpenEXR file to "scenes/leda/close"
+Writing a 4240x3728 PNG file to "scenes/leda/close"
+Saved iteration 103 to: leda-renders/output_103.exr
+Starting iteration 104...
+Rendering scene: scenes/leda/close.xml
+Loading scene... 
+Constructing a SAH BVH (18 meshes, 4846655 triangles) .. Size of each node is 32done (took 1.3s and 314.3 MiB, SAH cost = 12.1912).
+Constructing a SAH BVH (1 mesh, 1096600 triangles) .. Size of each node is 32done (took 208.0ms and 71.1 MiB, SAH cost = 120.448).
+Constructing a SAH BVH (1 mesh, 614127 triangles) .. Size of each node is 32done (took 114.0ms and 39.8 MiB, SAH cost = 78.2139).
+Preprocessing... 
+Rendering .. 
+Rendering done. (took 29.4m)
+Writing a 4240x3728 OpenEXR file to "scenes/leda/close"
+Writing a 4240x3728 PNG file to "scenes/leda/close"
+Saved iteration 104 to: leda-renders/output_104.exr
+Starting iteration 105...
+Rendering scene: scenes/leda/close.xml
+Loading scene... 
+Constructing a SAH BVH (18 meshes, 4846655 triangles) .. Size of each node is 32done (took 1.3s and 314.3 MiB, SAH cost = 12.1911).
+Constructing a SAH BVH (1 mesh, 1096600 triangles) .. Size of each node is 32done (took 208.0ms and 71.1 MiB, SAH cost = 120.448).
+Constructing a SAH BVH (1 mesh, 614127 triangles) .. Size of each node is 32done (took 113.0ms and 39.8 MiB, SAH cost = 78.2139).
+Preprocessing... 
+Rendering .. 
+Rendering done. (took 29.3m)
+Writing a 4240x3728 OpenEXR file to "scenes/leda/close"
+Writing a 4240x3728 PNG file to "scenes/leda/close"
+Saved iteration 105 to: leda-renders/output_105.exr
+Starting iteration 106...
+Rendering scene: scenes/leda/close.xml
+Loading scene... 
+Constructing a SAH BVH (18 meshes, 4846655 triangles) .. Size of each node is 32done (took 1.3s and 314.3 MiB, SAH cost = 12.1912).
+Constructing a SAH BVH (1 mesh, 1096600 triangles) .. Size of each node is 32done (took 208.0ms and 71.1 MiB, SAH cost = 120.448).
+Constructing a SAH BVH (1 mesh, 614127 triangles) .. Size of each node is 32done (took 113.0ms and 39.8 MiB, SAH cost = 78.2139).
+Preprocessing... 
+Rendering .. 
+Rendering done. (took 29.1m)
+Writing a 4240x3728 OpenEXR file to "scenes/leda/close"
+Writing a 4240x3728 PNG file to "scenes/leda/close"
+Saved iteration 106 to: leda-renders/output_106.exr
+Starting iteration 107...
+Rendering scene: scenes/leda/close.xml
+Loading scene... 
+Constructing a SAH BVH (18 meshes, 4846655 triangles) .. Size of each node is 32done (took 1.3s and 314.3 MiB, SAH cost = 12.1912).
+Constructing a SAH BVH (1 mesh, 1096600 triangles) .. Size of each node is 32done (took 208.0ms and 71.1 MiB, SAH cost = 120.448).
+Constructing a SAH BVH (1 mesh, 614127 triangles) .. Size of each node is 32done (took 114.0ms and 39.8 MiB, SAH cost = 78.2139).
+Preprocessing... 
+Rendering .. 
+Rendering done. (took 29.3m)
+Writing a 4240x3728 OpenEXR file to "scenes/leda/close"
+Writing a 4240x3728 PNG file to "scenes/leda/close"
+Saved iteration 107 to: leda-renders/output_107.exr
+Starting iteration 108...
+Rendering scene: scenes/leda/close.xml
+Loading scene... 
+Constructing a SAH BVH (18 meshes, 4846655 triangles) .. Size of each node is 32done (took 1.3s and 314.3 MiB, SAH cost = 12.1912).
+Constructing a SAH BVH (1 mesh, 1096600 triangles) .. Size of each node is 32done (took 208.0ms and 71.1 MiB, SAH cost = 120.448).
+Constructing a SAH BVH (1 mesh, 614127 triangles) .. Size of each node is 32done (took 114.0ms and 39.8 MiB, SAH cost = 78.2139).
+Preprocessing... 
+Rendering .. 
+Rendering done. (took 29.4m)
+Writing a 4240x3728 OpenEXR file to "scenes/leda/close"
+Writing a 4240x3728 PNG file to "scenes/leda/close"
+Saved iteration 108 to: leda-renders/output_108.exr
+Starting iteration 109...
+Rendering scene: scenes/leda/close.xml
+Loading scene... 
+Constructing a SAH BVH (18 meshes, 4846655 triangles) .. Size of each node is 32done (took 1.3s and 314.3 MiB, SAH cost = 12.1911).
+Constructing a SAH BVH (1 mesh, 1096600 triangles) .. Size of each node is 32done (took 207.0ms and 71.1 MiB, SAH cost = 120.448).
+Constructing a SAH BVH (1 mesh, 614127 triangles) .. Size of each node is 32done (took 113.0ms and 39.8 MiB, SAH cost = 78.2139).
+Preprocessing... 
+Rendering .. 
+Rendering done. (took 29.2m)
+Writing a 4240x3728 OpenEXR file to "scenes/leda/close"
+Writing a 4240x3728 PNG file to "scenes/leda/close"
+Saved iteration 109 to: leda-renders/output_109.exr
+Starting iteration 110...
+Rendering scene: scenes/leda/close.xml
+Loading scene... 
+Constructing a SAH BVH (18 meshes, 4846655 triangles) .. Size of each node is 32done (took 1.3s and 314.3 MiB, SAH cost = 12.1912).
+Constructing a SAH BVH (1 mesh, 1096600 triangles) .. Size of each node is 32done (took 208.0ms and 71.1 MiB, SAH cost = 120.448).
+Constructing a SAH BVH (1 mesh, 614127 triangles) .. Size of each node is 32done (took 114.0ms and 39.8 MiB, SAH cost = 78.2141).
+Preprocessing... 
+Rendering .. 
+Rendering done. (took 29.4m)
+Writing a 4240x3728 OpenEXR file to "scenes/leda/close"
+Writing a 4240x3728 PNG file to "scenes/leda/close"
+Saved iteration 110 to: leda-renders/output_110.exr
+Starting iteration 111...
+Rendering scene: scenes/leda/close.xml
+Loading scene... 
+Constructing a SAH BVH (18 meshes, 4846655 triangles) .. Size of each node is 32done (took 1.3s and 314.3 MiB, SAH cost = 12.1911).
+Constructing a SAH BVH (1 mesh, 1096600 triangles) .. Size of each node is 32done (took 207.0ms and 71.1 MiB, SAH cost = 120.448).
+Constructing a SAH BVH (1 mesh, 614127 triangles) .. Size of each node is 32done (took 113.0ms and 39.8 MiB, SAH cost = 78.2139).
+Preprocessing... 
+Rendering .. 
+Rendering done. (took 29.4m)
+Writing a 4240x3728 OpenEXR file to "scenes/leda/close"
+Writing a 4240x3728 PNG file to "scenes/leda/close"
+Saved iteration 111 to: leda-renders/output_111.exr
+Starting iteration 112...
+Rendering scene: scenes/leda/close.xml
+Loading scene... 
+Constructing a SAH BVH (18 meshes, 4846655 triangles) .. Size of each node is 32done (took 1.3s and 314.3 MiB, SAH cost = 12.1911).
+Constructing a SAH BVH (1 mesh, 1096600 triangles) .. Size of each node is 32done (took 208.0ms and 71.1 MiB, SAH cost = 120.448).
+Constructing a SAH BVH (1 mesh, 614127 triangles) .. Size of each node is 32done (took 114.0ms and 39.8 MiB, SAH cost = 78.2139).
+Preprocessing... 
+Rendering .. 
+Rendering done. (took 29.3m)
+Writing a 4240x3728 OpenEXR file to "scenes/leda/close"
+Writing a 4240x3728 PNG file to "scenes/leda/close"
+Saved iteration 112 to: leda-renders/output_112.exr
+Starting iteration 113...
+Rendering scene: scenes/leda/close.xml
+Loading scene... 
+Constructing a SAH BVH (18 meshes, 4846655 triangles) .. Size of each node is 32done (took 1.3s and 314.3 MiB, SAH cost = 12.1912).
+Constructing a SAH BVH (1 mesh, 1096600 triangles) .. Size of each node is 32done (took 208.0ms and 71.1 MiB, SAH cost = 120.448).
+Constructing a SAH BVH (1 mesh, 614127 triangles) .. Size of each node is 32done (took 114.0ms and 39.8 MiB, SAH cost = 78.2139).
+Preprocessing... 
+Rendering .. 
+Rendering done. (took 29.3m)
+Writing a 4240x3728 OpenEXR file to "scenes/leda/close"
+Writing a 4240x3728 PNG file to "scenes/leda/close"
+Saved iteration 113 to: leda-renders/output_113.exr
+Starting iteration 114...
+Rendering scene: scenes/leda/close.xml
+Loading scene... 
+Constructing a SAH BVH (18 meshes, 4846655 triangles) .. Size of each node is 32done (took 1.3s and 314.3 MiB, SAH cost = 12.1912).
+Constructing a SAH BVH (1 mesh, 1096600 triangles) .. Size of each node is 32done (took 208.0ms and 71.1 MiB, SAH cost = 120.448).
+Constructing a SAH BVH (1 mesh, 614127 triangles) .. Size of each node is 32done (took 114.0ms and 39.8 MiB, SAH cost = 78.2139).
+Preprocessing... 
+Rendering .. 
+Rendering done. (took 29.2m)
+Writing a 4240x3728 OpenEXR file to "scenes/leda/close"
+Writing a 4240x3728 PNG file to "scenes/leda/close"
+Saved iteration 114 to: leda-renders/output_114.exr
+Starting iteration 115...
+Rendering scene: scenes/leda/close.xml
+Loading scene... 
+Constructing a SAH BVH (18 meshes, 4846655 triangles) .. Size of each node is 32done (took 1.3s and 314.3 MiB, SAH cost = 12.1911).
+Constructing a SAH BVH (1 mesh, 1096600 triangles) .. Size of each node is 32done (took 207.0ms and 71.1 MiB, SAH cost = 120.448).
+Constructing a SAH BVH (1 mesh, 614127 triangles) .. Size of each node is 32done (took 113.0ms and 39.8 MiB, SAH cost = 78.2139).
+Preprocessing... 
+Rendering .. 
+Rendering done. (took 29.2m)
+Writing a 4240x3728 OpenEXR file to "scenes/leda/close"
+Writing a 4240x3728 PNG file to "scenes/leda/close"
+Saved iteration 115 to: leda-renders/output_115.exr
+Starting iteration 116...
+Rendering scene: scenes/leda/close.xml
+Loading scene... 
+Constructing a SAH BVH (18 meshes, 4846655 triangles) .. Size of each node is 32done (took 1.3s and 314.3 MiB, SAH cost = 12.1911).
+Constructing a SAH BVH (1 mesh, 1096600 triangles) .. Size of each node is 32done (took 208.0ms and 71.1 MiB, SAH cost = 120.448).
+Constructing a SAH BVH (1 mesh, 614127 triangles) .. Size of each node is 32done (took 113.0ms and 39.8 MiB, SAH cost = 78.2139).
+Preprocessing... 
+Rendering .. 
+Rendering done. (took 29.2m)
+Writing a 4240x3728 OpenEXR file to "scenes/leda/close"
+Writing a 4240x3728 PNG file to "scenes/leda/close"
+Saved iteration 116 to: leda-renders/output_116.exr
+Starting iteration 117...
+Rendering scene: scenes/leda/close.xml
+Loading scene... 
+Constructing a SAH BVH (18 meshes, 4846655 triangles) .. Size of each node is 32done (took 1.3s and 314.3 MiB, SAH cost = 12.1912).
+Constructing a SAH BVH (1 mesh, 1096600 triangles) .. Size of each node is 32done (took 207.0ms and 71.1 MiB, SAH cost = 120.448).
+Constructing a SAH BVH (1 mesh, 614127 triangles) .. Size of each node is 32done (took 113.0ms and 39.8 MiB, SAH cost = 78.214).
+Preprocessing... 
+Rendering .. 
+Rendering done. (took 29.2m)
+Writing a 4240x3728 OpenEXR file to "scenes/leda/close"
+Writing a 4240x3728 PNG file to "scenes/leda/close"
+Saved iteration 117 to: leda-renders/output_117.exr
+Starting iteration 118...
+Rendering scene: scenes/leda/close.xml
+Loading scene... 
+Constructing a SAH BVH (18 meshes, 4846655 triangles) .. Size of each node is 32done (took 1.3s and 314.3 MiB, SAH cost = 12.1912).
+Constructing a SAH BVH (1 mesh, 1096600 triangles) .. Size of each node is 32done (took 208.0ms and 71.1 MiB, SAH cost = 120.448).
+Constructing a SAH BVH (1 mesh, 614127 triangles) .. Size of each node is 32done (took 113.0ms and 39.8 MiB, SAH cost = 78.214).
+Preprocessing... 
+Rendering .. 
+Rendering done. (took 29.3m)
+Writing a 4240x3728 OpenEXR file to "scenes/leda/close"
+Writing a 4240x3728 PNG file to "scenes/leda/close"
+Saved iteration 118 to: leda-renders/output_118.exr
+Starting iteration 119...
+Rendering scene: scenes/leda/close.xml
+Loading scene... 
+Constructing a SAH BVH (18 meshes, 4846655 triangles) .. Size of each node is 32done (took 1.3s and 314.3 MiB, SAH cost = 12.1911).
+Constructing a SAH BVH (1 mesh, 1096600 triangles) .. Size of each node is 32done (took 207.0ms and 71.1 MiB, SAH cost = 120.448).
+Constructing a SAH BVH (1 mesh, 614127 triangles) .. Size of each node is 32done (took 113.0ms and 39.8 MiB, SAH cost = 78.2139).
+Preprocessing... 
+Rendering .. 
+Rendering done. (took 29.2m)
+Writing a 4240x3728 OpenEXR file to "scenes/leda/close"
+Writing a 4240x3728 PNG file to "scenes/leda/close"
+Saved iteration 119 to: leda-renders/output_119.exr
+Starting iteration 120...
+Rendering scene: scenes/leda/close.xml
+Loading scene... 
+Constructing a SAH BVH (18 meshes, 4846655 triangles) .. Size of each node is 32done (took 1.3s and 314.3 MiB, SAH cost = 12.1912).
+Constructing a SAH BVH (1 mesh, 1096600 triangles) .. Size of each node is 32done (took 207.0ms and 71.1 MiB, SAH cost = 120.448).
+Constructing a SAH BVH (1 mesh, 614127 triangles) .. Size of each node is 32done (took 114.0ms and 39.8 MiB, SAH cost = 78.2139).
+Preprocessing... 
+Rendering .. 
+Rendering done. (took 29.3m)
+Writing a 4240x3728 OpenEXR file to "scenes/leda/close"
+Writing a 4240x3728 PNG file to "scenes/leda/close"
+Saved iteration 120 to: leda-renders/output_120.exr
+Starting iteration 121...
+Rendering scene: scenes/leda/close.xml
+Loading scene... 
+Constructing a SAH BVH (18 meshes, 4846655 triangles) .. Size of each node is 32done (took 1.3s and 314.3 MiB, SAH cost = 12.1911).
+Constructing a SAH BVH (1 mesh, 1096600 triangles) .. Size of each node is 32done (took 207.0ms and 71.1 MiB, SAH cost = 120.448).
+Constructing a SAH BVH (1 mesh, 614127 triangles) .. Size of each node is 32done (took 113.0ms and 39.8 MiB, SAH cost = 78.2139).
+Preprocessing... 
+Rendering .. 
+Rendering done. (took 29.3m)
+Writing a 4240x3728 OpenEXR file to "scenes/leda/close"
+Writing a 4240x3728 PNG file to "scenes/leda/close"
+Saved iteration 121 to: leda-renders/output_121.exr
+Starting iteration 122...
+Rendering scene: scenes/leda/close.xml
+Loading scene... 
+Constructing a SAH BVH (18 meshes, 4846655 triangles) .. Size of each node is 32done (took 1.3s and 314.3 MiB, SAH cost = 12.1911).
+Constructing a SAH BVH (1 mesh, 1096600 triangles) .. Size of each node is 32done (took 208.0ms and 71.1 MiB, SAH cost = 120.448).
+Constructing a SAH BVH (1 mesh, 614127 triangles) .. Size of each node is 32done (took 113.0ms and 39.8 MiB, SAH cost = 78.214).
+Preprocessing... 
+Rendering .. 
+Rendering done. (took 29.3m)
+Writing a 4240x3728 OpenEXR file to "scenes/leda/close"
+Writing a 4240x3728 PNG file to "scenes/leda/close"
+Saved iteration 122 to: leda-renders/output_122.exr
+Starting iteration 123...
+Rendering scene: scenes/leda/close.xml
+Loading scene... 
+Constructing a SAH BVH (18 meshes, 4846655 triangles) .. Size of each node is 32done (took 1.3s and 314.3 MiB, SAH cost = 12.1911).
+Constructing a SAH BVH (1 mesh, 1096600 triangles) .. Size of each node is 32done (took 207.0ms and 71.1 MiB, SAH cost = 120.448).
+Constructing a SAH BVH (1 mesh, 614127 triangles) .. Size of each node is 32done (took 113.0ms and 39.8 MiB, SAH cost = 78.214).
+Preprocessing... 
+Rendering .. 
+Rendering done. (took 29.4m)
+Writing a 4240x3728 OpenEXR file to "scenes/leda/close"
+Writing a 4240x3728 PNG file to "scenes/leda/close"
+Saved iteration 123 to: leda-renders/output_123.exr
+Starting iteration 124...
+Rendering scene: scenes/leda/close.xml
+Loading scene... 
+Constructing a SAH BVH (18 meshes, 4846655 triangles) .. Size of each node is 32done (took 1.3s and 314.3 MiB, SAH cost = 12.1911).
+Constructing a SAH BVH (1 mesh, 1096600 triangles) .. Size of each node is 32done (took 208.0ms and 71.1 MiB, SAH cost = 120.448).
+Constructing a SAH BVH (1 mesh, 614127 triangles) .. Size of each node is 32done (took 113.0ms and 39.8 MiB, SAH cost = 78.2141).
+Preprocessing... 
+Rendering .. 
+Rendering done. (took 29.2m)
+Writing a 4240x3728 OpenEXR file to "scenes/leda/close"
+Writing a 4240x3728 PNG file to "scenes/leda/close"
+Saved iteration 124 to: leda-renders/output_124.exr
+Starting iteration 125...
+Rendering scene: scenes/leda/close.xml
+Loading scene... 
+Constructing a SAH BVH (18 meshes, 4846655 triangles) .. Size of each node is 32done (took 1.3s and 314.3 MiB, SAH cost = 12.1912).
+Constructing a SAH BVH (1 mesh, 1096600 triangles) .. Size of each node is 32done (took 208.0ms and 71.1 MiB, SAH cost = 120.448).
+Constructing a SAH BVH (1 mesh, 614127 triangles) .. Size of each node is 32done (took 114.0ms and 39.8 MiB, SAH cost = 78.2139).
+Preprocessing... 
+Rendering .. 
+Rendering done. (took 29.2m)
+Writing a 4240x3728 OpenEXR file to "scenes/leda/close"
+Writing a 4240x3728 PNG file to "scenes/leda/close"
+Saved iteration 125 to: leda-renders/output_125.exr
+Starting iteration 126...
+Rendering scene: scenes/leda/close.xml
+Loading scene... 
+Constructing a SAH BVH (18 meshes, 4846655 triangles) .. Size of each node is 32done (took 1.3s and 314.3 MiB, SAH cost = 12.1911).
+Constructing a SAH BVH (1 mesh, 1096600 triangles) .. Size of each node is 32done (took 207.0ms and 71.1 MiB, SAH cost = 120.448).
+Constructing a SAH BVH (1 mesh, 614127 triangles) .. Size of each node is 32done (took 113.0ms and 39.8 MiB, SAH cost = 78.2139).
+Preprocessing... 
+Rendering .. 
+Rendering done. (took 29.1m)
+Writing a 4240x3728 OpenEXR file to "scenes/leda/close"
+Writing a 4240x3728 PNG file to "scenes/leda/close"
+Saved iteration 126 to: leda-renders/output_126.exr
+Starting iteration 127...
+Rendering scene: scenes/leda/close.xml
+Loading scene... 
+Constructing a SAH BVH (18 meshes, 4846655 triangles) .. Size of each node is 32done (took 1.3s and 314.3 MiB, SAH cost = 12.1911).
+Constructing a SAH BVH (1 mesh, 1096600 triangles) .. Size of each node is 32done (took 209.0ms and 71.1 MiB, SAH cost = 120.448).
+Constructing a SAH BVH (1 mesh, 614127 triangles) .. Size of each node is 32done (took 113.0ms and 39.8 MiB, SAH cost = 78.2139).
+Preprocessing... 
+Rendering .. 
